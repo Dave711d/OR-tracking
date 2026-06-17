@@ -4,6 +4,7 @@ const overlay = document.querySelector("#overlayCanvas");
 const emptyState = document.querySelector("#emptyState");
 const playButton = document.querySelector("#playButton");
 const syntheticButton = document.querySelector("#syntheticButton");
+const evaluationDemoButton = document.querySelector("#evaluationDemoButton");
 const resetButton = document.querySelector("#resetButton");
 const staticFallbackInput = document.querySelector("#staticFallback");
 const initialStageInput = document.querySelector("#initialStage");
@@ -14,10 +15,13 @@ const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
 const operatorPacket = document.querySelector("#operatorPacket");
+const procedureStatus = document.querySelector("#procedureStatus");
 const tableTeamList = document.querySelector("#tableTeamList");
 const stageCoverageList = document.querySelector("#stageCoverageList");
 const stageRosterList = document.querySelector("#stageRosterList");
 const milestoneList = document.querySelector("#milestoneList");
+const eventTimelineList = document.querySelector("#eventTimelineList");
+const qualityFlagList = document.querySelector("#qualityFlagList");
 const activityMetric = document.querySelector("#activityMetric");
 const elapsedMetric = document.querySelector("#elapsedMetric");
 const entryZone = document.querySelector("#entryZone");
@@ -170,6 +174,7 @@ const TAVR_STAGE_LOOKUP = new Map(
 const BROWSER_STAGE_MIN_SECONDS = 1.0;
 const BROWSER_STAGE_MIN_CONFIDENCE = 0.42;
 const BROWSER_STAGE_ADVANCE_MARGIN = 0.06;
+const EVALUATION_DEMO_URL = "/demo-data/sentara-1800-evaluation.json";
 
 let previousFrame = null;
 let activityHistory = [];
@@ -184,6 +189,7 @@ let uploadedStageStartedAt = 0;
 let rafId = null;
 let syntheticMode = false;
 let syntheticStartedAt = 0;
+let evaluationReplayRequestId = 0;
 
 populateInitialStageOptions();
 
@@ -220,11 +226,13 @@ syntheticButton.addEventListener("click", () => {
   tick();
 });
 
+evaluationDemoButton.addEventListener("click", loadEvaluationDemo);
+
 resetButton.addEventListener("click", () => {
   cancelAnimationFrame(rafId);
   video.hidden = false;
   resetMetrics();
-  if (!video.src) emptyState.hidden = false;
+  syncEmptyStateToVideoSource();
 });
 initialStageInput.addEventListener("change", () => {
   resetMetrics({ keepSyntheticMode: syntheticMode });
@@ -233,6 +241,90 @@ video.addEventListener("play", tick);
 video.addEventListener("pause", () => cancelAnimationFrame(rafId));
 video.addEventListener("loadedmetadata", resizeOverlay);
 window.addEventListener("resize", resizeOverlay);
+
+async function loadEvaluationDemo() {
+  const requestId = ++evaluationReplayRequestId;
+  cancelAnimationFrame(rafId);
+  syntheticMode = false;
+  video.pause();
+  resetMetrics({ keepEvaluationReplayRequest: true });
+  video.hidden = true;
+  emptyState.hidden = false;
+  setEmptyState("Loading evaluated demo", "Sentara TAVR backend artifact");
+
+  try {
+    const response = await fetch(EVALUATION_DEMO_URL);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const payload = await response.json();
+    if (requestId !== evaluationReplayRequestId) return;
+    renderEvaluationReplay(normalizeEvaluationPayload(payload));
+  } catch (error) {
+    if (requestId !== evaluationReplayRequestId) return;
+    setEmptyState("Demo artifact unavailable", String(error.message || error));
+    procedureStatus.replaceChildren();
+    appendInfoRow(procedureStatus, "Replay", "failed", { tone: "warn" });
+  }
+}
+
+function normalizeEvaluationPayload(payload) {
+  const tavr = payload.tavr || {};
+  const events = [
+    ...asArray(tavr.procedure_event_timeline).map((event) => ({
+      ...event,
+      source_table: event.source || "procedure_event_timeline",
+    })),
+    ...asArray(tavr.table_transition_events).map((event) => ({
+      ...event,
+      source_table: "table_transition_events",
+    })),
+  ].sort((a, b) => (
+    Number(a.timestamp_s ?? 0) - Number(b.timestamp_s ?? 0) ||
+    String(a.event_type || "").localeCompare(String(b.event_type || ""))
+  ));
+
+  return {
+    caseName: payload.case || "evaluated_tavr_case",
+    scoreSummary: payload.score_summary || {},
+    status: asArray(tavr.procedure_status_summary)[0] || null,
+    packets: asArray(tavr.operator_stage_packet),
+    team: asArray(tavr.table_team_summary),
+    stageCoverage: asArray(tavr.stage_table_coverage),
+    stageRosters: asArray(tavr.stage_roster_summary),
+    milestones: asArray(tavr.procedure_milestones),
+    qualityFlags: asArray(tavr.quality_flags),
+    events,
+  };
+}
+
+function renderEvaluationReplay(demo) {
+  const status = demo.status || {};
+  const latestPacket = latestOperatorPacket(demo.packets);
+  const stageLabel = status.current_stage_label || latestPacket?.stage_label || demo.caseName;
+  const tableCount = status.current_table_count ?? status.effective_table_count ?? 0;
+  const teamCount = demo.team.length || tableCount;
+
+  clearCanvas();
+  setEmptyState("Evaluated TAVR demo loaded", demo.caseName.replaceAll("_", " "));
+  stageMetric.textContent = `${stageLabel} (${status.evidence_level || "evaluated"})`;
+  countMetric.textContent = String(teamCount);
+  tableSideMetric.textContent = String(tableCount);
+  activityMetric.textContent = "replay";
+  elapsedMetric.textContent = status.clip_end_s === undefined
+    ? "n/a"
+    : `${Number(status.clip_end_s).toFixed(1)}s`;
+
+  renderBackendTableRoster(status);
+  renderProcedureStatus(status, demo);
+  renderBackendOperatorPacket(demo.packets, status);
+  renderBackendTableTeam(demo.team);
+  renderBackendStageCoverage(demo.stageCoverage);
+  renderBackendStageRoster(demo.stageRosters);
+  renderBackendProcedureMilestones(demo.milestones);
+  renderBackendProcedureEvents(demo.events);
+  renderBackendQualityFlags(demo.qualityFlags);
+}
 
 function populateInitialStageOptions() {
   TAVR_STAGES.forEach((stage) => {
@@ -1156,6 +1248,230 @@ function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0) 
   });
 }
 
+function renderProcedureStatus(status = null, demo = null) {
+  procedureStatus.replaceChildren();
+  if (!status) {
+    appendInfoRow(procedureStatus, "No procedure status yet", "");
+    return;
+  }
+
+  appendInfoRow(
+    procedureStatus,
+    "Current stage",
+    `${status.current_stage_label || "unknown"}; ${status.current_stage_status || "status n/a"}`,
+    { tone: "current" },
+  );
+  appendInfoRow(
+    procedureStatus,
+    "Current view",
+    `${status.current_view || "unknown"}; tracking ${yesNo(status.tracking_available)}`,
+  );
+  appendInfoRow(
+    procedureStatus,
+    "Effective table",
+    `${status.effective_table_count ?? 0} staff; ${status.effective_table_source || "source n/a"}`,
+  );
+  appendInfoRow(
+    procedureStatus,
+    "Last observed",
+    `${status.last_observed_table_count ?? 0} staff; age ${formatSeconds(status.last_observed_age_from_clip_end_s)}`,
+  );
+  appendInfoRow(
+    procedureStatus,
+    "Peak table",
+    `${status.peak_table_count ?? 0} staff; IDs ${formatIdList(status.peak_table_track_ids)}`,
+  );
+  const scoreValues = Object.values(demo?.scoreSummary || {});
+  const scored = scoreValues.filter((value) => value !== null && value !== undefined);
+  if (scored.length) {
+    const passed = scored.filter((value) => Number(value) >= 1).length;
+    appendInfoRow(procedureStatus, "Label gates", `${passed}/${scored.length} scored pass`);
+  }
+}
+
+function renderBackendOperatorPacket(packets = [], status = null) {
+  operatorPacket.replaceChildren();
+  const packet = latestOperatorPacket(packets);
+  if (!packet) {
+    appendInfoRow(operatorPacket, "No stage packet yet", "");
+    return;
+  }
+
+  appendInfoRow(
+    operatorPacket,
+    packet.is_current_stage ? "Current stage" : "Observed stage",
+    `${packet.stage_label} ${formatSeconds(packet.start_s)}-${formatSeconds(packet.end_s)}`,
+    { tone: packet.is_current_stage ? "current" : undefined },
+  );
+  appendInfoRow(
+    operatorPacket,
+    "Evidence",
+    `${packet.evidence_level || "n/a"}; confidence ${formatNumber(packet.mean_confidence)}`,
+  );
+  appendInfoRow(
+    operatorPacket,
+    "Table handoff",
+    handoffLabel(packet.handoff_type || "unknown"),
+    { handoff: packet.handoff_type },
+  );
+  appendInfoRow(
+    operatorPacket,
+    "Active table",
+    `${packet.active_table_track_count ?? 0} staff; IDs ${formatIdList(packet.active_table_track_ids)}`,
+  );
+  appendInfoRow(
+    operatorPacket,
+    "Canonical people",
+    `${packet.canonical_table_identity_count ?? 0}; lead ${packet.lead_track_id ?? "none"} ${ROLE_LABELS[packet.lead_table_team_role] || packet.lead_table_team_role || ""}`,
+  );
+  appendInfoRow(
+    operatorPacket,
+    "Effective table",
+    `${packet.effective_table_count ?? status?.effective_table_count ?? 0}; ${packet.effective_table_source || status?.effective_table_source || "source n/a"}`,
+  );
+  const flags = asArray(packet.quality_flag_codes);
+  appendInfoRow(
+    operatorPacket,
+    "Flags",
+    flags.length ? flags.join(", ") : "none",
+    { tone: flags.length ? "warn" : "quiet" },
+  );
+}
+
+function renderBackendTableRoster(status = {}) {
+  tableRoster.replaceChildren();
+  const current = asArray(status.current_table_roster);
+  const effective = asArray(status.effective_table_roster);
+  const last = asArray(status.last_observed_table_roster);
+  const rows = current.length ? current : (effective.length ? effective : last);
+
+  if (!current.length) {
+    const item = document.createElement("li");
+    item.textContent = rows.length ? "Current: none" : "None";
+    tableRoster.append(item);
+  }
+  const visibleRows = rows.slice(0, 5);
+  visibleRows.forEach((row) => {
+    const item = document.createElement("li");
+    const prefix = current.length ? "" : "Last: ";
+    item.textContent = `${prefix}ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`;
+    tableRoster.append(item);
+  });
+  appendOverflowListItem(tableRoster, rows.length, visibleRows.length, "people");
+}
+
+function renderBackendTableTeam(rows = []) {
+  tableTeamList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(tableTeamList, "None yet", "");
+    return;
+  }
+
+  const visibleRows = rows.slice(0, 8);
+  visibleRows.forEach((row) => {
+    appendInfoRow(
+      tableTeamList,
+      `ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
+      `${row.observed_table_frames ?? 0}f; ${statusLabel(row.team_status)}; ${row.dominant_stage_label || "stage n/a"}`,
+      { status: row.team_status },
+    );
+  });
+  appendOverflowRow(tableTeamList, rows.length, visibleRows.length, "people");
+}
+
+function renderBackendStageCoverage(rows = []) {
+  stageCoverageList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(stageCoverageList, "None yet", "");
+    return;
+  }
+
+  const visibleRows = rows.slice(0, 8);
+  visibleRows.forEach((row) => {
+    appendInfoRow(
+      stageCoverageList,
+      `${row.stage_label}: ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
+      `${row.observed_table_frames ?? 0}f; stage ${formatPercent(row.coverage_ratio)}; room ${formatPercent(row.room_coverage_ratio)}`,
+    );
+  });
+  appendOverflowRow(stageCoverageList, rows.length, visibleRows.length, "coverage rows");
+}
+
+function renderBackendStageRoster(rows = []) {
+  stageRosterList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(stageRosterList, "None yet", "");
+    return;
+  }
+
+  rows.slice().reverse().forEach((row) => {
+    appendInfoRow(
+      stageRosterList,
+      `${row.stage_label}: ${handoffLabel(row.handoff_type || "unknown")}`,
+      `peak ${row.peak_table_count ?? 0}; active ${formatIdList(row.active_table_track_ids)}; canonical ${row.canonical_table_identity_count ?? 0}; tracking ${formatPercent(row.tracking_available_rate)}`,
+      { handoff: row.handoff_type },
+    );
+  });
+}
+
+function renderBackendProcedureMilestones(rows = []) {
+  milestoneList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(milestoneList, "None yet", "");
+    return;
+  }
+
+  rows.forEach((row) => {
+    appendInfoRow(
+      milestoneList,
+      `${row.stage_label}: ${row.milestone_status || "not observed"}`,
+      row.observed_in_clip
+        ? `${formatSeconds(row.first_observed_s)}-${formatSeconds(row.last_observed_s)}; peak ${row.peak_table_count ?? 0}`
+        : "not seen",
+      { status: row.milestone_status },
+    );
+  });
+}
+
+function renderBackendProcedureEvents(rows = []) {
+  eventTimelineList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(eventTimelineList, "None yet", "");
+    return;
+  }
+
+  const visibleRows = rows.slice(0, 12);
+  visibleRows.forEach((row) => {
+    const tableDetail = row.table_count !== undefined
+      ? `table ${row.table_count}`
+      : `ID ${row.track_id ?? "n/a"} ${ROLE_LABELS[row.table_team_role] || row.table_team_role || ""}`;
+    appendInfoRow(
+      eventTimelineList,
+      `${formatSeconds(row.timestamp_s)} ${handoffLabel(row.event_type || "event")}`,
+      `${row.stage_label || row.view || "context"}; ${tableDetail}`,
+      { source: row.source_table },
+    );
+  });
+  appendOverflowRow(eventTimelineList, rows.length, visibleRows.length, "events");
+}
+
+function renderBackendQualityFlags(rows = []) {
+  qualityFlagList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(qualityFlagList, "None", "");
+    return;
+  }
+
+  rows.forEach((row) => {
+    appendInfoRow(
+      qualityFlagList,
+      row.code || "quality_flag",
+      row.message || `ratio ${formatPercent(row.ratio)}`,
+      { tone: "warn" },
+    );
+  });
+}
+
 function operatorEvidenceLevel(stage, summary) {
   const confidence = stage.confidence;
   if (summary.tableSide === 0 && confidence !== undefined && confidence < 0.25) {
@@ -1295,7 +1611,84 @@ function compactIdList(ids, maxVisible = 4) {
   return hidden > 0 ? `${visible}+${hidden}` : visible;
 }
 
+function appendInfoRow(container, labelText, valueText, options = {}) {
+  const row = document.createElement("div");
+  const label = document.createElement("span");
+  const value = document.createElement("b");
+  if (options.tone) row.dataset.tone = options.tone;
+  if (options.handoff) row.dataset.handoff = String(options.handoff).replaceAll("_", "-");
+  if (options.status) row.dataset.status = String(options.status).replaceAll("_", "-");
+  if (options.source) row.dataset.source = String(options.source).replaceAll("_", "-");
+  label.textContent = labelText;
+  value.textContent = valueText;
+  row.append(label);
+  if (valueText !== "") row.append(value);
+  container.append(row);
+}
+
+function appendOverflowRow(container, totalCount, visibleCount, itemLabel) {
+  const hiddenCount = totalCount - visibleCount;
+  if (hiddenCount <= 0) return;
+  appendInfoRow(container, `+${hiddenCount} more`, `${totalCount} total ${itemLabel}`, {
+    tone: "quiet",
+  });
+}
+
+function appendOverflowListItem(container, totalCount, visibleCount, itemLabel) {
+  const hiddenCount = totalCount - visibleCount;
+  if (hiddenCount <= 0) return;
+  const item = document.createElement("li");
+  item.textContent = `+${hiddenCount} more (${totalCount} total ${itemLabel})`;
+  container.append(item);
+}
+
+function latestOperatorPacket(packets) {
+  return packets.find((packet) => packet.is_current_stage) || packets[packets.length - 1] || null;
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function formatSeconds(value) {
+  return value === null || value === undefined ? "n/a" : `${Number(value).toFixed(1)}s`;
+}
+
+function formatNumber(value) {
+  return value === null || value === undefined ? "n/a" : Number(value).toFixed(2);
+}
+
+function formatPercent(value) {
+  return value === null || value === undefined ? "n/a" : `${Math.round(Number(value) * 100)}%`;
+}
+
+function formatIdList(ids, maxVisible = 6) {
+  return compactIdList(asArray(ids), maxVisible);
+}
+
+function yesNo(value) {
+  return value ? "yes" : "no";
+}
+
+function clearCanvas() {
+  const rect = overlay.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  sparkCtx.clearRect(0, 0, sparkline.width, sparkline.height);
+}
+
+function setEmptyState(title, subtitle) {
+  const titleNode = emptyState.querySelector("strong");
+  const subtitleNode = emptyState.querySelector("span");
+  if (titleNode) titleNode.textContent = title;
+  if (subtitleNode) subtitleNode.textContent = subtitle;
+}
+
+function syncEmptyStateToVideoSource() {
+  emptyState.hidden = Boolean(video.src);
+}
+
 function resetMetrics(options = {}) {
+  if (!options.keepEvaluationReplayRequest) evaluationReplayRequestId += 1;
   if (!options.keepSyntheticMode) syntheticMode = false;
   previousFrame = null;
   activityHistory = [];
@@ -1310,12 +1703,16 @@ function resetMetrics(options = {}) {
   stageMetric.textContent = "Idle";
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";
+  setEmptyState("No video loaded", "Choose a local MP4, MOV, or M4V file.");
   renderTableRoster([]);
   renderTableTeam();
   renderStageCoverage();
   renderStageRosterSummary();
+  renderProcedureStatus();
   renderOperatorPacket();
   renderProcedureMilestones();
+  renderBackendProcedureEvents();
+  renderBackendQualityFlags();
   activityMetric.textContent = "0";
   elapsedMetric.textContent = "0.0s";
   entryZone.textContent = "0";

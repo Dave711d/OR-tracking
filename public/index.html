@@ -32,6 +32,7 @@
         <section class="controls">
           <button id="playButton" type="button">Play / pause</button>
           <button id="syntheticButton" type="button">Synthetic demo</button>
+          <button id="evaluationDemoButton" type="button">Evaluated demo</button>
           <button id="resetButton" type="button">Reset metrics</button>
           <label class="toggle-control">
             <input id="staticFallback" type="checkbox" />
@@ -72,6 +73,12 @@
           </ul>
         </div>
         <div class="count-group">
+          <h2>Procedure status</h2>
+          <div id="procedureStatus" class="procedure-status-list">
+            <div><span>No procedure status yet</span></div>
+          </div>
+        </div>
+        <div class="count-group">
           <h2>Operator packet</h2>
           <div id="operatorPacket" class="operator-packet">
             <div><span>No stage packet yet</span></div>
@@ -99,6 +106,18 @@
           <h2>Procedure milestones</h2>
           <div id="milestoneList" class="milestone-list">
             <div><span>None yet</span></div>
+          </div>
+        </div>
+        <div class="count-group">
+          <h2>Event timeline</h2>
+          <div id="eventTimelineList" class="event-list">
+            <div><span>None yet</span></div>
+          </div>
+        </div>
+        <div class="count-group">
+          <h2>Quality flags</h2>
+          <div id="qualityFlagList" class="quality-list">
+            <div><span>None</span></div>
           </div>
         </div>
         <div class="metric">

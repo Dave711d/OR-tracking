@@ -12,6 +12,7 @@ def test_vercel_static_demo_files_are_present() -> None:
     assert (public / "index.html").exists()
     assert (public / "app.js").exists()
     assert (public / "styles.css").exists()
+    assert (public / "demo-data" / "sentara-1800-evaluation.json").exists()
 
 
 def test_vercel_config_builds_public_assets() -> None:
@@ -118,3 +119,73 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
     assert "nextTavrStage(stage.key)" in app_js
     assert "static_table_fallback" in app_js
     assert ".operator-packet" in styles
+
+
+def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
+    payload = json.loads(
+        Path("public/demo-data/sentara-1800-evaluation.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    tavr = payload["tavr"]
+
+    assert payload["case"] == "sentara_1800_mixed_room"
+    for key in [
+        "procedure_status_summary",
+        "operator_stage_packet",
+        "table_team_summary",
+        "stage_roster_summary",
+        "stage_table_coverage",
+        "procedure_event_timeline",
+        "table_transition_events",
+        "quality_flags",
+    ]:
+        assert tavr[key]
+
+    status = tavr["procedure_status_summary"][0]
+    packet = tavr["operator_stage_packet"][-1]
+    assert "effective_table_source" in status
+    assert "canonical_table_identity_count" in packet
+    assert "quality_flag_codes" in packet
+    assert len(tavr["table_team_summary"]) > 8
+    assert len(tavr["stage_table_coverage"]) > 8
+    assert (
+        len(tavr["procedure_event_timeline"]) + len(tavr["table_transition_events"])
+    ) > 12
+
+
+def test_static_demo_loads_backend_evaluation_replay() -> None:
+    index_html = Path("public/index.html").read_text(encoding="utf-8")
+    app_js = Path("public/app.js").read_text(encoding="utf-8")
+    styles = Path("public/styles.css").read_text(encoding="utf-8")
+
+    assert 'id="evaluationDemoButton"' in index_html
+    assert 'id="procedureStatus"' in index_html
+    assert 'id="eventTimelineList"' in index_html
+    assert 'id="qualityFlagList"' in index_html
+    assert "Evaluated demo" in index_html
+    assert "EVALUATION_DEMO_URL" in app_js
+    assert "function loadEvaluationDemo" in app_js
+    assert "function normalizeEvaluationPayload" in app_js
+    assert "function renderEvaluationReplay" in app_js
+    assert "function renderProcedureStatus" in app_js
+    assert "function renderBackendOperatorPacket" in app_js
+    assert "function renderBackendTableTeam" in app_js
+    assert "function renderBackendStageCoverage" in app_js
+    assert "function renderBackendStageRoster" in app_js
+    assert "function renderBackendProcedureEvents" in app_js
+    assert "function renderBackendQualityFlags" in app_js
+    assert "evaluationReplayRequestId" in app_js
+    assert "keepEvaluationReplayRequest" in app_js
+    assert "requestId !== evaluationReplayRequestId" in app_js
+    assert "function appendOverflowRow" in app_js
+    assert "function syncEmptyStateToVideoSource" in app_js
+    assert "emptyState.hidden = Boolean(video.src)" in app_js
+    assert "effective_table_source" in app_js
+    assert "tracking_available_rate" in app_js
+    assert "canonical_table_identity_count" in app_js
+    assert "quality_flag_codes" in app_js
+    assert "procedure_event_timeline" in app_js
+    assert ".procedure-status-list" in styles
+    assert ".event-list" in styles
+    assert ".quality-list" in styles

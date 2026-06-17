@@ -198,6 +198,9 @@ select {
 .team-list div,
 .stage-roster-list div,
 .operator-packet div,
+.procedure-status-list div,
+.event-list div,
+.quality-list div,
 .roster-card {
   display: flex;
   align-items: center;
@@ -281,6 +284,9 @@ select {
 .team-list,
 .stage-roster-list,
 .operator-packet,
+.procedure-status-list,
+.event-list,
+.quality-list,
 .milestone-list {
   display: grid;
   gap: 8px;
@@ -290,6 +296,9 @@ select {
 .team-list div,
 .stage-roster-list div,
 .operator-packet div,
+.procedure-status-list div,
+.event-list div,
+.quality-list div,
 .milestone-list div {
   align-items: flex-start;
   padding: 10px 12px;
@@ -299,6 +308,9 @@ select {
 .team-list span,
 .stage-roster-list span,
 .operator-packet span,
+.procedure-status-list span,
+.event-list span,
+.quality-list span,
 .milestone-list span {
   color: var(--muted);
   font-size: 12px;
@@ -311,6 +323,9 @@ select {
 .team-list b,
 .stage-roster-list b,
 .operator-packet b,
+.procedure-status-list b,
+.event-list b,
+.quality-list b,
 .milestone-list b {
   color: var(--warn);
   font-size: 18px;
@@ -320,6 +335,9 @@ select {
 .team-list b,
 .stage-roster-list b,
 .operator-packet b,
+.procedure-status-list b,
+.event-list b,
+.quality-list b,
 .milestone-list b {
   color: var(--accent);
   font-size: 12px;
@@ -328,15 +346,19 @@ select {
   white-space: nowrap;
 }
 
-.operator-packet div[data-tone="current"] {
+.operator-packet div[data-tone="current"],
+.procedure-status-list div[data-tone="current"] {
   border-color: rgba(55, 214, 163, 0.72);
 }
 
-.operator-packet div[data-tone="warn"] b {
+.operator-packet div[data-tone="warn"] b,
+.procedure-status-list div[data-tone="warn"] b,
+.quality-list div[data-tone="warn"] b {
   color: var(--warn);
 }
 
-.operator-packet div[data-tone="quiet"] b {
+.operator-packet div[data-tone="quiet"] b,
+.procedure-status-list div[data-tone="quiet"] b {
   color: var(--muted);
 }
 
@@ -375,6 +397,9 @@ select {
 .team-list b,
 .stage-roster-list b,
 .operator-packet b,
+.procedure-status-list b,
+.event-list b,
+.quality-list b,
 .milestone-list b {
   max-width: 118px;
   white-space: normal;
