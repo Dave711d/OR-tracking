@@ -160,6 +160,18 @@ input[type="range"] {
   width: 100%;
 }
 
+select {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #10171d;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
 .toggle-control {
   align-content: center;
   grid-template-columns: auto minmax(0, 1fr);

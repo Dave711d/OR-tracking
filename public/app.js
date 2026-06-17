@@ -6,6 +6,7 @@ const playButton = document.querySelector("#playButton");
 const syntheticButton = document.querySelector("#syntheticButton");
 const resetButton = document.querySelector("#resetButton");
 const staticFallbackInput = document.querySelector("#staticFallback");
+const initialStageInput = document.querySelector("#initialStage");
 const sensitivityInput = document.querySelector("#sensitivity");
 const cellSizeInput = document.querySelector("#cellSize");
 const stageMetric = document.querySelector("#stageMetric");
@@ -164,6 +165,9 @@ const SYNTHETIC_CYCLE_SECONDS = TAVR_STAGES.reduce(
 const TAVR_STAGE_LOOKUP = new Map(
   TAVR_STAGES.map((stage, index) => [stage.key, { ...stage, index }]),
 );
+const BROWSER_STAGE_MIN_SECONDS = 1.0;
+const BROWSER_STAGE_MIN_CONFIDENCE = 0.42;
+const BROWSER_STAGE_ADVANCE_MARGIN = 0.06;
 
 let previousFrame = null;
 let activityHistory = [];
@@ -171,9 +175,13 @@ let tableTeam = new Map();
 let stageCoverage = new Map();
 let milestoneProgress = new Map();
 let currentMilestoneKey = null;
+let uploadedStageIndex = 0;
+let uploadedStageStartedAt = 0;
 let rafId = null;
 let syntheticMode = false;
 let syntheticStartedAt = 0;
+
+populateInitialStageOptions();
 
 input.addEventListener("change", () => {
   const file = input.files?.[0];
@@ -214,10 +222,22 @@ resetButton.addEventListener("click", () => {
   resetMetrics();
   if (!video.src) emptyState.hidden = false;
 });
+initialStageInput.addEventListener("change", () => {
+  resetMetrics({ keepSyntheticMode: syntheticMode });
+});
 video.addEventListener("play", tick);
 video.addEventListener("pause", () => cancelAnimationFrame(rafId));
 video.addEventListener("loadedmetadata", resizeOverlay);
 window.addEventListener("resize", resizeOverlay);
+
+function populateInitialStageOptions() {
+  TAVR_STAGES.forEach((stage) => {
+    const option = document.createElement("option");
+    option.value = stage.key;
+    option.textContent = stage.label;
+    initialStageInput.append(option);
+  });
+}
 
 function tick() {
   resizeOverlay();
@@ -264,12 +284,10 @@ function analyzeFrame() {
   previousFrame = image;
   activityHistory.push(activity);
   if (activityHistory.length > 80) activityHistory.shift();
+  const stage = estimateUploadedTavrStage(boxes, activity, video.currentTime);
 
-  drawOverlay(boxes, activity, { label: "Uploaded review", progress: 0 });
-  updateMetrics(boxes, activity, video.currentTime, {
-    key: "uploaded_review",
-    label: "Uploaded review",
-  });
+  drawOverlay(boxes, activity, stage);
+  updateMetrics(boxes, activity, video.currentTime, stage);
 }
 
 function analyzeSyntheticFrame() {
@@ -292,6 +310,102 @@ function getTavrStage(elapsed) {
     stageSecond -= stage.duration;
   }
   return { ...TAVR_STAGES[0], progress: 0 };
+}
+
+function estimateUploadedTavrStage(boxes, activity, elapsedSeconds) {
+  if (elapsedSeconds < uploadedStageStartedAt) {
+    uploadedStageIndex = selectedInitialStageIndex();
+    uploadedStageStartedAt = elapsedSeconds;
+  }
+  const summary = summarizeBoxes(boxes);
+  const signals = tavrStageSignals(summary, boxes.length, activity);
+  const scores = scoreTavrStages(signals, elapsedSeconds);
+  const previousIndex = uploadedStageIndex;
+  uploadedStageIndex = chooseTavrStageIndex(scores, elapsedSeconds);
+  if (uploadedStageIndex !== previousIndex) {
+    uploadedStageStartedAt = elapsedSeconds;
+  }
+
+  const stage = TAVR_STAGES[uploadedStageIndex];
+  const confidence = Math.min(0.95, Math.max(...Object.values(scores)));
+  const progress = Math.min(
+    1,
+    Math.max(0, (elapsedSeconds - uploadedStageStartedAt) / Math.max(stage.duration, 1)),
+  );
+  return {
+    ...stage,
+    confidence,
+    progress,
+  };
+}
+
+function selectedInitialStageIndex() {
+  const index = TAVR_STAGES.findIndex((stage) => stage.key === initialStageInput.value);
+  return index >= 0 ? index : 0;
+}
+
+function tavrStageSignals(summary, peopleCount, activity) {
+  const tableCount = summary.zones.table +
+    summary.zones.table_left +
+    summary.zones.table_right +
+    summary.zones.access;
+  return {
+    table: Math.min(tableCount / 3, 1),
+    access: Math.min(summary.zones.access / 2, 1),
+    imaging: Math.min(summary.zones.imaging / 2, 1),
+    device: Math.min(summary.zones.device_table / 2, 1),
+    anesthesia: Math.min(summary.zones.anesthesia / 2, 1),
+    stillness: Math.max(0, 1 - Math.min(activity / 60, 1)),
+    crowd: Math.min(peopleCount / 5, 1),
+  };
+}
+
+function scoreTavrStages(signals, elapsedSeconds) {
+  const earlyBonus = elapsedSeconds < 1.2 ? 0.14 : 0;
+  const lateBonus = elapsedSeconds > 8 ? 0.08 : 0;
+  return {
+    room_prep_drape: 0.32 + 0.28 * signals.device + 0.18 * signals.anesthesia + earlyBonus,
+    access_sheathing: 0.24 + 0.42 * signals.access + 0.18 * signals.table,
+    angio_alignment_crossing: 0.22 + 0.38 * signals.imaging + 0.16 * signals.table,
+    bav_optional: 0.18 + 0.30 * signals.imaging + 0.24 * signals.stillness + 0.16 * signals.table,
+    valve_delivery_positioning: (
+      0.20 + 0.32 * signals.device + 0.26 * signals.table + 0.16 * signals.imaging
+    ),
+    valve_deployment: 0.16 + 0.32 * signals.stillness + 0.26 * signals.table + 0.20 * signals.imaging,
+    post_deploy_assessment: 0.20 + 0.34 * signals.imaging + 0.18 * signals.anesthesia + 0.08 * signals.table,
+    closure_finish: 0.18 + 0.38 * signals.access + 0.16 * signals.stillness + lateBonus,
+  };
+}
+
+function chooseTavrStageIndex(scores, elapsedSeconds) {
+  const currentStage = TAVR_STAGES[uploadedStageIndex];
+  const currentScore = scores[currentStage.key] || 0;
+  if (elapsedSeconds - uploadedStageStartedAt < BROWSER_STAGE_MIN_SECONDS) {
+    return uploadedStageIndex;
+  }
+
+  const nextIndex = Math.min(uploadedStageIndex + 1, TAVR_STAGES.length - 1);
+  const nextStage = TAVR_STAGES[nextIndex];
+  const nextScore = scores[nextStage.key] || 0;
+  if (nextStage.key === "bav_optional") {
+    const deliveryIndex = TAVR_STAGE_LOOKUP.get("valve_delivery_positioning").index;
+    const deliveryScore = scores.valve_delivery_positioning || 0;
+    if (
+      deliveryScore >= BROWSER_STAGE_MIN_CONFIDENCE &&
+      deliveryScore > currentScore + BROWSER_STAGE_ADVANCE_MARGIN &&
+      deliveryScore > nextScore + 0.05
+    ) {
+      return deliveryIndex;
+    }
+  }
+  if (
+    nextIndex > uploadedStageIndex &&
+    nextScore >= BROWSER_STAGE_MIN_CONFIDENCE &&
+    nextScore > currentScore + BROWSER_STAGE_ADVANCE_MARGIN
+  ) {
+    return nextIndex;
+  }
+  return uploadedStageIndex;
 }
 
 function buildSyntheticTavrBoxes(elapsed, stage) {
@@ -638,7 +752,9 @@ function drawSparkline(activity) {
 function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded review") {
   const stage = normalizeStage(stageInput);
   const summary = summarizeBoxes(boxes);
-  stageMetric.textContent = stage.label;
+  stageMetric.textContent = stage.confidence === undefined
+    ? stage.label
+    : `${stage.label} (${stage.confidence.toFixed(2)})`;
   countMetric.textContent = String(boxes.length);
   tableSideMetric.textContent = String(summary.tableSide);
   activityMetric.textContent = String(activity);
@@ -668,6 +784,7 @@ function normalizeStage(stageInput) {
     return { key: stageInput.toLowerCase().replaceAll(/\s+/g, "_"), label: stageInput };
   }
   return {
+    ...stageInput,
     key: stageInput.key || stageInput.label.toLowerCase().replaceAll(/\s+/g, "_"),
     label: stageInput.label,
   };
@@ -958,6 +1075,8 @@ function resetMetrics(options = {}) {
   stageCoverage = new Map();
   milestoneProgress = new Map();
   currentMilestoneKey = null;
+  uploadedStageIndex = selectedInitialStageIndex();
+  uploadedStageStartedAt = video.currentTime || 0;
   stageMetric.textContent = "Idle";
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";

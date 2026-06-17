@@ -67,3 +67,23 @@ def test_static_demo_exposes_static_table_fallback_review_mode() -> None:
     assert "Static table fallback" in index_html
     assert "collectStaticTableBoxes" in app_js
     assert "staticFallbackInput.checked" in app_js
+
+
+def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
+    index_html = Path("public/index.html").read_text(encoding="utf-8")
+    app_js = Path("public/app.js").read_text(encoding="utf-8")
+    analyze_frame_match = re.search(
+        r"function analyzeFrame\(\) \{(?P<body>.*?)\nfunction analyzeSyntheticFrame",
+        app_js,
+        flags=re.DOTALL,
+    )
+
+    assert 'id="initialStage"' in index_html
+    assert "populateInitialStageOptions" in app_js
+    assert "selectedInitialStageIndex" in app_js
+    assert analyze_frame_match is not None
+    assert "estimateUploadedTavrStage(boxes, activity, video.currentTime)" in app_js
+    assert "function estimateUploadedTavrStage" in app_js
+    assert "function scoreTavrStages" in app_js
+    assert "function chooseTavrStageIndex" in app_js
+    assert "Uploaded review" not in analyze_frame_match.group("body")
