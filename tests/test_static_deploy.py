@@ -13,6 +13,7 @@ def test_vercel_static_demo_files_are_present() -> None:
 def test_vercel_config_builds_public_assets() -> None:
     config = json.loads(Path("vercel.json").read_text(encoding="utf-8"))
 
+    assert config["framework"] is None
     assert config["buildCommand"] == "npm run build"
     assert config["outputDirectory"] == "dist"
 

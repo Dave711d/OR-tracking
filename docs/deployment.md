@@ -38,7 +38,8 @@ storage.
 
 `.vercelignore` intentionally excludes `app.py` and the Python package from the
 Vercel upload so Vercel does not auto-detect the Streamlit entrypoint as a Python
-serverless function.
+serverless function. `vercel.json` also sets `framework` to `null`, which is
+Vercel's "Other" framework preset for static/custom builds.
 
 ```bash
 npm install
