@@ -43,6 +43,29 @@
       "min_room_table_occupancy_rate": 0.3
     }
   ],
+  "stage_handoff_expectations": [
+    {
+      "stage": "post_deploy_assessment",
+      "role": "table_operator",
+      "handoff_type": "initial_table_roster",
+      "lead_role": "table_operator",
+      "min_active_tracks": 1,
+      "min_new_tracks": 1,
+      "min_lead_observed_table_frames": 20,
+      "min_tracking_available_rate": 0.9
+    },
+    {
+      "stage": "closure_finish",
+      "role": "table_operator",
+      "handoff_type": "roster_added",
+      "lead_role": "table_operator",
+      "min_active_tracks": 5,
+      "min_new_tracks": 4,
+      "min_continued_tracks": 1,
+      "min_lead_observed_table_frames": 40,
+      "min_tracking_available_rate": 0.45
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

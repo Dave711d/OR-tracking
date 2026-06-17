@@ -126,6 +126,11 @@ The JSON output includes:
   segment, including stage start/end, first/last seen timestamps, coverage
   ratio, room-view coverage ratio, dominant role, and whether the track entered
   or exited during the stage.
+- `stage_handoff_summary`: one row per contiguous stage segment showing the
+  lead table-side track, active roster, table IDs that continued from the prior
+  stage, new IDs, dropped IDs, within-stage entry/exit IDs, and a handoff type
+  such as `table_roster_started`, `roster_added`, `roster_removed`,
+  `roster_changed`, `roster_continued`, or `table_cleared`.
 - `stage_staffing_summary`: one compact row per observed stage with duration,
   room-view frame counts, tracking-available rate, mean/peak table count,
   total-stage and room-view table occupancy, role mix, and the meaningful
@@ -138,7 +143,8 @@ The JSON output includes:
   detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
-  stage-staffing / quality-flag expectation pass rates.
+  stage-staffing, stage-handoff, roster-snapshot, and quality-flag expectation
+  pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -169,6 +175,10 @@ The label file can include:
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
   count, room-view table-occupancy rate, or tracking-available rate.
+- `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
+  requiring a deployment-stage `table_roster_started` event, a closure-stage
+  `roster_added` event, a lead role, minimum active/new/continued/dropped track
+  counts, minimum lead table frames, or minimum tracking-available rate.
 - `roster_snapshot_expectations`: expected current, last-observed, or peak
   roster snapshots, such as requiring at least one table-operator track in the
   last-observed room-view table roster.
@@ -191,9 +201,10 @@ declares a clip path, label path, ROI, starting stage, frame limit, and tracking
 configuration. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, stage staffing,
-stage table coverage, table roster snapshots, table transition events, table
-presence intervals, quality flags, and low-confidence segments. The command
-exits non-zero if any scored label section falls below its configured threshold.
+stage table coverage, stage handoff summaries, table roster snapshots, table
+transition events, table presence intervals, quality flags, and low-confidence
+segments. The command exits non-zero if any scored label section falls below
+its configured threshold.
 
 The current local Sentara suite covers:
 
@@ -202,12 +213,13 @@ The current local Sentara suite covers:
   undercount instead of inventing table staff.
 - `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
   roster expectations once the room view returns, plus room-view denominator
-  checks for the deployment-stage staffing summary.
+  checks for the deployment-stage staffing summary and a deployment-stage
+  `table_roster_started` handoff expectation.
 - `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
   table staff and should be flagged `non_room_view`.
 - `sentara_2700_room_post`: post-deployment / closure room-view segment with
-  stage, table count, presence, staffing, room-view occupancy, and quality
-  expectations.
+  stage, table count, presence, staffing, room-view occupancy, quality, and
+  post-deploy-to-closure handoff expectations.
 
 ## Caveats
 

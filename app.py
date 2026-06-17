@@ -205,6 +205,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    handoffs = tavr_summary.get("stage_handoff_summary", [])
+    if handoffs:
+        st.subheader("Stage handoff summary")
+        st.dataframe(
+            pd.DataFrame(_stage_handoff_rows(handoffs)),
+            width="stretch",
+            hide_index=True,
+        )
+
     last_observed = tavr_summary.get("last_observed_table_roster", {})
     if last_observed.get("roster"):
         st.subheader("Last observed table roster")
@@ -422,6 +431,39 @@ def _stage_staffing_rows(staffing: list[dict[str, Any]]) -> list[dict[str, Any]]
             }
         )
     return rows
+
+
+def _stage_handoff_rows(handoffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in handoffs:
+        rows.append(
+            {
+                "stage_label": item["stage_label"],
+                "previous_stage_label": item.get("previous_stage_label") or "clip start",
+                "start_s": item["start_s"],
+                "end_s": item["end_s"],
+                "tracking_available_rate": item["tracking_available_rate"],
+                "handoff_type": item["handoff_type"],
+                "active_table_track_count": item["active_table_track_count"],
+                "lead_track_id": item.get("lead_track_id"),
+                "lead_role": item.get("lead_role") or "none",
+                "continued_track_ids": _id_label(item.get("continued_track_ids", [])),
+                "new_track_ids": _id_label(item.get("new_track_ids", [])),
+                "dropped_track_ids": _id_label(item.get("dropped_track_ids", [])),
+                "active_table_roster": _roster_label(
+                    item.get("active_table_roster", [])
+                ),
+            }
+        )
+    return rows
+
+
+def _id_label(track_ids: list[int]) -> str:
+    return ", ".join(str(track_id) for track_id in track_ids) or "none"
+
+
+def _roster_label(roster: list[dict[str, Any]]) -> str:
+    return "; ".join(item["label"] for item in roster[:6]) or "none"
 
 
 def _count_label(counts: dict[str, int]) -> str:

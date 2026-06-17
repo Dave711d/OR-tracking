@@ -36,6 +36,18 @@
       "min_room_table_occupancy_rate": 0.15
     }
   ],
+  "stage_handoff_expectations": [
+    {
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "handoff_type": "table_roster_started",
+      "lead_role": "table_operator",
+      "min_active_tracks": 10,
+      "min_new_tracks": 10,
+      "min_lead_observed_table_frames": 20,
+      "min_tracking_available_rate": 0.7
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

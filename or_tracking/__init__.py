@@ -4,6 +4,7 @@ from .tracker import MotionTrackerConfig, ORActivityTracker
 from .tavr import TAVR_STAGE_LABELS, TAVR_STAGE_ORDER, TAVRFrameState
 from .evaluation import (
     score_tavr_metrics,
+    stage_handoff_summary,
     stage_table_coverage,
     summarize_tavr_metrics,
     table_transition_events,
@@ -21,6 +22,7 @@ __all__ = [
     "TrackingRunResult",
     "process_video_file",
     "score_tavr_metrics",
+    "stage_handoff_summary",
     "stage_table_coverage",
     "summarize_tavr_metrics",
     "table_transition_events",
