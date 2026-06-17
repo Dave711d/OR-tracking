@@ -11,6 +11,8 @@ from or_tracking.evaluation import (
     stage_table_coverage,
     summarize_tavr_metrics,
     table_presence_intervals,
+    table_transition_events,
+    view_segments,
 )
 from or_tracking.models import FrameMetrics
 from or_tracking.synthetic import generate_synthetic_tavr_video
@@ -42,6 +44,8 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["peak_table_roster"]["roster"]
     assert summary["table_presence_roster"]
     assert summary["table_presence_intervals"]
+    assert summary["view_segments"]
+    assert summary["table_transition_events"]
     assert summary["stage_table_coverage"]
     assert summary["stage_staffing_summary"]
     assert any(
@@ -83,6 +87,37 @@ def test_summarize_tavr_metrics_flags_non_room_view() -> None:
     assert non_room
     assert non_room[0]["frames"] == 2
     assert non_room[0]["ratio"] == 0.5
+
+
+def test_view_segments_group_room_and_non_room_stretches() -> None:
+    metrics = [
+        _metric(0, 0.0, "valve_deployment", view_colorfulness=34.0),
+        _metric(1, 0.1, "valve_deployment", view_colorfulness=35.0),
+        _metric(
+            2,
+            0.2,
+            "valve_deployment",
+            alert_flags=["non_room_view"],
+            view_colorfulness=1.4,
+        ),
+        _metric(
+            3,
+            0.3,
+            "valve_deployment",
+            alert_flags=["non_room_view"],
+            view_colorfulness=1.2,
+        ),
+        _metric(4, 0.4, "closure_finish", view_colorfulness=36.0),
+    ]
+
+    segments = view_segments(metrics)
+
+    assert [item["view"] for item in segments] == ["room", "non_room", "room"]
+    assert segments[0]["tracking_available"] is True
+    assert segments[1]["tracking_available"] is False
+    assert segments[1]["frames"] == 2
+    assert segments[1]["mean_colorfulness"] == 1.3
+    assert segments[2]["dominant_stage"] == "closure_finish"
 
 
 def test_table_presence_intervals_group_by_track_and_gap() -> None:
@@ -131,6 +166,30 @@ def test_stage_table_coverage_splits_tracks_by_stage_segment() -> None:
     assert coverage[1]["exited_during_stage"] is True
     assert coverage[2]["entered_during_stage"] is True
     assert coverage[2]["exited_during_stage"] is False
+
+
+def test_table_transition_events_report_stage_entries_and_exits() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(4, 0.4, "valve_deployment", [8]),
+    ]
+
+    events = table_transition_events(metrics, min_observed_table_frames=1)
+
+    assert [
+        (item["event_type"], item["stage"], item["track_id"])
+        for item in events
+    ] == [
+        ("table_present_at_stage_start", "access_sheathing", 7),
+        ("table_present_at_stage_end", "access_sheathing", 7),
+        ("table_present_at_stage_start", "valve_deployment", 7),
+        ("table_entry", "valve_deployment", 8),
+        ("table_exit", "valve_deployment", 7),
+        ("table_present_at_stage_end", "valve_deployment", 8),
+    ]
 
 
 def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
@@ -206,11 +265,13 @@ def _metric(
     timestamp_s: float,
     stage: str,
     alert_flags: Optional[List[str]] = None,
+    view_colorfulness: float = 0.0,
 ) -> FrameMetrics:
     return FrameMetrics(
         frame_index=frame_index,
         timestamp_s=timestamp_s,
         alert_flags=alert_flags or [],
+        view_colorfulness=view_colorfulness,
         tavr=TAVRFrameState(
             stage=stage,
             stage_label=TAVR_STAGE_LABELS[stage],

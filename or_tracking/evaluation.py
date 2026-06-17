@@ -31,6 +31,8 @@ def summarize_tavr_metrics(
             tavr_metrics,
             min_observed_table_frames=3,
         ),
+        "view_segments": view_segments(tavr_metrics),
+        "table_transition_events": table_transition_events(tavr_metrics),
         "stage_table_coverage": stage_table_coverage(tavr_metrics),
         "stage_staffing_summary": stage_staffing_summary(tavr_metrics),
         "low_confidence_segments": low_confidence_segments(
@@ -222,6 +224,65 @@ def table_presence_intervals(
         )
     )
     return intervals
+
+
+def view_segments(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Group contiguous room/non-room view stretches."""
+
+    if not metrics:
+        return []
+
+    segments: List[Dict[str, Any]] = []
+    start_index = 0
+    active_view = _view_label(metrics[0])
+    for index, metric in enumerate(metrics[1:], start=1):
+        view = _view_label(metric)
+        if view != active_view:
+            segments.append(_view_segment_item(metrics, start_index, index - 1))
+            start_index = index
+            active_view = view
+    segments.append(_view_segment_item(metrics, start_index, len(metrics) - 1))
+    return segments
+
+
+def table_transition_events(
+    metrics: Sequence[FrameMetrics],
+    min_observed_table_frames: int = 3,
+) -> List[Dict[str, Any]]:
+    """Return entry/exit-style table events split by stage coverage rows."""
+
+    events: List[Dict[str, Any]] = []
+    for coverage in stage_table_coverage(
+        metrics,
+        min_observed_table_frames=min_observed_table_frames,
+    ):
+        entry_type = (
+            "table_entry"
+            if coverage["entered_during_stage"]
+            else "table_present_at_stage_start"
+        )
+        exit_type = (
+            "table_exit"
+            if coverage["exited_during_stage"]
+            else "table_present_at_stage_end"
+        )
+        events.append(_table_transition_event(coverage, entry_type, is_entry=True))
+        events.append(_table_transition_event(coverage, exit_type, is_entry=False))
+
+    event_order = {
+        "table_present_at_stage_start": 0,
+        "table_entry": 1,
+        "table_exit": 2,
+        "table_present_at_stage_end": 3,
+    }
+    events.sort(
+        key=lambda item: (
+            item["timestamp_s"],
+            event_order.get(item["event_type"], 9),
+            item["track_id"],
+        )
+    )
+    return events
 
 
 def stage_staffing_summary(
@@ -548,6 +609,84 @@ def _timeline_item(
             if track_id in end_state.track_role_summaries
         ],
         "note": state.note,
+    }
+
+
+def _view_segment_item(
+    metrics: Sequence[FrameMetrics],
+    start_index: int,
+    end_index: int,
+) -> Dict[str, Any]:
+    segment_metrics = metrics[start_index : end_index + 1]
+    view = _view_label(metrics[start_index])
+    sample_period_s = _sample_period_s(segment_metrics)
+    colorfulness = [metric.view_colorfulness for metric in segment_metrics]
+    table_counts = [_tavr_state(metric).table_count for metric in segment_metrics]
+    stages = _counts(_tavr_state(metric).stage for metric in segment_metrics)
+    start_metric = metrics[start_index]
+    end_metric = metrics[end_index]
+    duration_s = max(
+        0.0,
+        end_metric.timestamp_s - start_metric.timestamp_s + sample_period_s,
+    )
+    return {
+        "view": view,
+        "is_room_view": view == "room",
+        "tracking_available": view == "room",
+        "start_frame": start_metric.frame_index,
+        "end_frame": end_metric.frame_index,
+        "start_s": round(float(start_metric.timestamp_s), 3),
+        "end_s": round(float(end_metric.timestamp_s), 3),
+        "duration_s": round(float(duration_s), 3),
+        "frames": len(segment_metrics),
+        "mean_colorfulness": (
+            round(sum(colorfulness) / len(colorfulness), 3)
+            if colorfulness
+            else None
+        ),
+        "mean_table_count": (
+            round(sum(table_counts) / len(table_counts), 3)
+            if table_counts
+            else None
+        ),
+        "peak_table_count": max(table_counts) if table_counts else 0,
+        "dominant_stage": _dominant_from_counts(stages),
+        "stage_counts": stages,
+        "label": (
+            f"{view} view {start_metric.timestamp_s:.1f}-"
+            f"{end_metric.timestamp_s:.1f}s"
+        ),
+    }
+
+
+def _view_label(metric: FrameMetrics) -> str:
+    if "non_room_view" in metric.alert_flags:
+        return "non_room"
+    return "room"
+
+
+def _table_transition_event(
+    coverage: Dict[str, Any],
+    event_type: str,
+    is_entry: bool,
+) -> Dict[str, Any]:
+    timestamp_s = coverage["first_seen_s"] if is_entry else coverage["last_seen_s"]
+    frame = coverage["first_seen_frame"] if is_entry else coverage["last_seen_frame"]
+    return {
+        "event_type": event_type,
+        "timestamp_s": timestamp_s,
+        "frame_index": frame,
+        "track_id": coverage["track_id"],
+        "dominant_role": coverage["dominant_role"],
+        "stage": coverage["stage"],
+        "stage_label": coverage["stage_label"],
+        "stage_segment_index": coverage["stage_segment_index"],
+        "coverage_ratio": coverage["coverage_ratio"],
+        "observed_table_frames": coverage["observed_table_frames"],
+        "label": (
+            f"{timestamp_s:.1f}s {event_type}: ID {coverage['track_id']} "
+            f"{coverage['dominant_role']} during {coverage['stage_label']}"
+        ),
     }
 
 

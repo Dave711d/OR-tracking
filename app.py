@@ -172,6 +172,25 @@ def _run_analysis(
             st.success(f"At table now: {latest['who_at_table']}")
 
     tavr_summary = summarize_tavr_metrics(result.metrics)
+    view_rows = tavr_summary.get("view_segments", [])
+    if view_rows:
+        st.subheader("View segments")
+        view_columns = [
+            "view",
+            "start_s",
+            "end_s",
+            "duration_s",
+            "tracking_available",
+            "mean_colorfulness",
+            "dominant_stage",
+            "peak_table_count",
+        ]
+        st.dataframe(
+            pd.DataFrame(view_rows)[view_columns].head(20),
+            width="stretch",
+            hide_index=True,
+        )
+
     staffing = tavr_summary.get("stage_staffing_summary", [])
     if staffing:
         st.subheader("Stage staffing summary")
@@ -197,6 +216,24 @@ def _run_analysis(
         ]
         st.dataframe(
             pd.DataFrame(coverage)[coverage_columns].head(40),
+            width="stretch",
+            hide_index=True,
+        )
+
+    events = tavr_summary.get("table_transition_events", [])
+    if events:
+        st.subheader("Table transition events")
+        event_columns = [
+            "timestamp_s",
+            "event_type",
+            "track_id",
+            "dominant_role",
+            "stage_label",
+            "coverage_ratio",
+            "observed_table_frames",
+        ]
+        st.dataframe(
+            pd.DataFrame(events)[event_columns].head(50),
             width="stretch",
             hide_index=True,
         )

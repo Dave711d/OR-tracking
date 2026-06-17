@@ -104,6 +104,8 @@ The JSON output includes:
 
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
+- `view_segments`: contiguous room/non-room stretches with duration,
+  colorfulness, dominant stage, and whether table tracking is available.
 - `track_role_report`: latest role dwell for every track ID seen in the clip.
 - `current_table_roster`: the most recent table-side roster.
 - `peak_table_roster`: roster from the frame with the highest table-side count.
@@ -111,6 +113,8 @@ The JSON output includes:
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
   and end timestamps, observed table frames, dominant role, and dominant stage.
+- `table_transition_events`: table entry, table exit, stage-start presence, and
+  stage-end presence events derived from the stage coverage rows.
 - `stage_table_coverage`: one row per table-side track per contiguous stage
   segment, including stage start/end, first/last seen timestamps, coverage
   ratio, dominant role, and whether the track entered or exited during the
