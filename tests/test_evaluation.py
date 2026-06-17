@@ -5,7 +5,11 @@ import pytest
 
 from evaluate_tavr import parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
-from or_tracking.evaluation import summarize_tavr_metrics, table_presence_intervals
+from or_tracking.evaluation import (
+    score_tavr_metrics,
+    summarize_tavr_metrics,
+    table_presence_intervals,
+)
 from or_tracking.models import FrameMetrics
 from or_tracking.synthetic import generate_synthetic_tavr_video
 from or_tracking.tavr import (
@@ -81,6 +85,46 @@ def test_table_presence_intervals_group_by_track_and_gap() -> None:
     assert intervals[0]["interval_duration_s"] == 0.2
     assert intervals[1]["dominant_stage"] == "valve_deployment"
     assert intervals[2]["dominant_role"] == "table_operator"
+
+
+def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "access_sheathing", []),
+        _table_metric(20, 2.0, "valve_deployment", [9, 10]),
+        _table_metric(21, 2.1, "valve_deployment", [9, 10]),
+        _table_metric(22, 2.2, "closure_finish", [9]),
+    ]
+    labels = {
+        "stage_segments": [
+            {"start_s": 0.0, "end_s": 0.2, "stage": "access_sheathing"},
+            {"start_s": 2.0, "end_s": 2.2, "stage": "valve_deployment"},
+        ],
+        "table_count_segments": [
+            {"start_s": 0.0, "end_s": 0.1, "min_count": 1},
+            {"start_s": 2.0, "end_s": 2.1, "min_count": 2},
+            {"start_s": 0.0, "end_s": 2.2, "min_peak_count": 2},
+        ],
+        "table_presence_expectations": [
+            {
+                "start_s": 2.0,
+                "end_s": 2.2,
+                "role": "table_operator",
+                "min_intervals": 1,
+                "min_observed_table_frames": 3,
+            }
+        ],
+    }
+
+    score = score_tavr_metrics(metrics, labels)
+
+    assert score["stage_score"]["covered_frames"] == 6
+    assert score["stage_score"]["accuracy"] == 0.833
+    assert score["stage_score"]["confusion"]["valve_deployment"]["closure_finish"] == 1
+    assert score["table_count_score"]["pass_rate"] == 1.0
+    assert score["table_presence_score"]["pass_rate"] == 1.0
+    assert score["table_presence_score"]["expectations"][0]["matched_count"] == 1
 
 
 def test_parse_roi_accepts_normalized_crop() -> None:

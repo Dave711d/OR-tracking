@@ -111,9 +111,37 @@ The JSON output includes:
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,
   fragmented tracks, or unusually noisy motion detections.
+- `label_score`: when `--labels` is provided, stage accuracy/confusion, table
+  count range pass rates, and table-presence expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
+
+## Label Scoring
+
+Use `--labels path/to/labels.json` to score a clip against expected stage and
+table-presence labels:
+
+```bash
+python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2700_30s.mp4 \
+  --roi 0,0.46,0.31,0.89 \
+  --initial-stage post_deploy_assessment \
+  --min-area 300 \
+  --max-frames 900 \
+  --no-annotated-video \
+  --labels docs/evaluation/sentara_live_2700_room_post.labels.json
+```
+
+The label file can include:
+
+- `stage_segments`: expected stage over timestamp windows.
+- `table_count_segments`: expected minimum/maximum table-side count windows, or
+  `min_peak_count` when the requirement is that the table count reaches a peak
+  during the window.
+- `table_presence_expectations`: expected role-specific table-side intervals.
+
+Labels are deliberately lightweight JSON so they can be hand-authored from
+public clips, broadcast timestamps, or future labelled theatre footage.
 
 ## Caveats
 

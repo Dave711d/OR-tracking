@@ -2,7 +2,7 @@
 
 from .tracker import MotionTrackerConfig, ORActivityTracker
 from .tavr import TAVR_STAGE_LABELS, TAVR_STAGE_ORDER, TAVRFrameState
-from .evaluation import summarize_tavr_metrics
+from .evaluation import score_tavr_metrics, summarize_tavr_metrics
 from .video import TrackingRunResult, process_video_file
 
 __all__ = [
@@ -13,5 +13,6 @@ __all__ = [
     "TAVR_STAGE_ORDER",
     "TrackingRunResult",
     "process_video_file",
+    "score_tavr_metrics",
     "summarize_tavr_metrics",
 ]

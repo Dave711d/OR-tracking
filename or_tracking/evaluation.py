@@ -33,6 +33,26 @@ def summarize_tavr_metrics(
     }
 
 
+def score_tavr_metrics(
+    metrics: Sequence[FrameMetrics],
+    labels: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Score tracker output against lightweight human/test labels."""
+
+    tavr_metrics = [metric for metric in metrics if metric.tavr is not None]
+    return {
+        "stage_score": _stage_score(tavr_metrics, labels.get("stage_segments", [])),
+        "table_count_score": _table_count_score(
+            tavr_metrics,
+            labels.get("table_count_segments", []),
+        ),
+        "table_presence_score": _table_presence_score(
+            tavr_metrics,
+            labels.get("table_presence_expectations", []),
+        ),
+    }
+
+
 def tavr_stage_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
     """Group contiguous TAVR stage estimates with table-roster context."""
 
@@ -360,6 +380,149 @@ def _tavr_state(metric: FrameMetrics) -> TAVRFrameState:
     return metric.tavr
 
 
+def _stage_score(
+    metrics: Sequence[FrameMetrics],
+    stage_segments: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not stage_segments:
+        return {"covered_frames": 0, "accuracy": None, "segments": [], "confusion": {}}
+
+    correct = 0
+    covered = 0
+    confusion: Dict[str, Dict[str, int]] = {}
+    segment_scores = []
+    for segment in stage_segments:
+        expected_stage = str(segment["stage"])
+        segment_metrics = _metrics_in_window(metrics, segment)
+        segment_correct = 0
+        for metric in segment_metrics:
+            predicted_stage = _tavr_state(metric).stage
+            if predicted_stage == expected_stage:
+                correct += 1
+                segment_correct += 1
+            covered += 1
+            confusion.setdefault(expected_stage, {})
+            confusion[expected_stage][predicted_stage] = (
+                confusion[expected_stage].get(predicted_stage, 0) + 1
+            )
+        segment_scores.append(
+            {
+                "stage": expected_stage,
+                "start_s": segment.get("start_s"),
+                "end_s": segment.get("end_s"),
+                "frames": len(segment_metrics),
+                "accuracy": _ratio(segment_correct, len(segment_metrics)),
+            }
+        )
+
+    return {
+        "covered_frames": covered,
+        "accuracy": _ratio(correct, covered),
+        "segments": segment_scores,
+        "confusion": confusion,
+    }
+
+
+def _table_count_score(
+    metrics: Sequence[FrameMetrics],
+    count_segments: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not count_segments:
+        return {"segments": [], "pass_rate": None}
+
+    passed = 0
+    segment_scores = []
+    for segment in count_segments:
+        segment_metrics = _metrics_in_window(metrics, segment)
+        counts = [_tavr_state(metric).table_count for metric in segment_metrics]
+        min_count = segment.get("min_count")
+        max_count = segment.get("max_count")
+        min_peak_count = segment.get("min_peak_count")
+        min_within_range_rate = float(segment.get("min_within_range_rate", 1.0))
+        within = [
+            count
+            for count in counts
+            if (min_count is None or count >= min_count)
+            and (max_count is None or count <= max_count)
+        ]
+        within_rate = _ratio(len(within), len(counts))
+        peak_table_count = max(counts) if counts else 0
+        range_pass = (
+            within_rate is not None
+            and (min_count is not None or max_count is not None)
+            and within_rate >= min_within_range_rate
+        )
+        if min_count is None and max_count is None:
+            range_pass = True
+        peak_pass = min_peak_count is None or peak_table_count >= min_peak_count
+        segment_pass = bool(counts) and range_pass and peak_pass
+        if segment_pass:
+            passed += 1
+        segment_scores.append(
+            {
+                "start_s": segment.get("start_s"),
+                "end_s": segment.get("end_s"),
+                "min_count": min_count,
+                "max_count": max_count,
+                "min_peak_count": min_peak_count,
+                "min_within_range_rate": min_within_range_rate,
+                "frames": len(counts),
+                "mean_table_count": round(sum(counts) / len(counts), 3) if counts else None,
+                "peak_table_count": peak_table_count,
+                "within_range_rate": within_rate,
+                "passed": segment_pass,
+            }
+        )
+
+    return {
+        "segments": segment_scores,
+        "pass_rate": _ratio(passed, len(count_segments)),
+    }
+
+
+def _table_presence_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    intervals = table_presence_intervals(metrics, min_observed_table_frames=3)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        role = expectation.get("role")
+        min_intervals = int(expectation.get("min_intervals", 1))
+        min_observed_table_frames = int(expectation.get("min_observed_table_frames", 3))
+        overlapping = [
+            interval
+            for interval in intervals
+            if _interval_overlaps_expectation(interval, expectation)
+            and (role is None or interval["dominant_role"] == role)
+            and interval["observed_table_frames"] >= min_observed_table_frames
+        ]
+        expectation_pass = len(overlapping) >= min_intervals
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "role": role,
+                "min_intervals": min_intervals,
+                "min_observed_table_frames": min_observed_table_frames,
+                "matched_intervals": overlapping,
+                "matched_count": len(overlapping),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _table_observations(
     metrics: Sequence[FrameMetrics],
 ) -> Dict[int, List[Dict[str, Any]]]:
@@ -468,3 +631,31 @@ def _sample_period_s(metrics: Sequence[FrameMetrics]) -> float:
         return 0.0
     deltas.sort()
     return deltas[len(deltas) // 2]
+
+
+def _metrics_in_window(
+    metrics: Sequence[FrameMetrics],
+    window: Dict[str, Any],
+) -> List[FrameMetrics]:
+    start_s = float(window.get("start_s", float("-inf")))
+    end_s = float(window.get("end_s", float("inf")))
+    return [
+        metric
+        for metric in metrics
+        if start_s <= metric.timestamp_s <= end_s
+    ]
+
+
+def _interval_overlaps_expectation(
+    interval: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> bool:
+    start_s = float(expectation.get("start_s", float("-inf")))
+    end_s = float(expectation.get("end_s", float("inf")))
+    return interval["start_s"] <= end_s and interval["end_s"] >= start_s
+
+
+def _ratio(numerator: int, denominator: int) -> Optional[float]:
+    if denominator <= 0:
+        return None
+    return round(numerator / denominator, 3)

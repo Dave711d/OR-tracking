@@ -7,7 +7,12 @@ import json
 from pathlib import Path
 from typing import Tuple
 
-from or_tracking import MotionTrackerConfig, TAVR_STAGE_ORDER, process_video_file
+from or_tracking import (
+    MotionTrackerConfig,
+    TAVR_STAGE_ORDER,
+    process_video_file,
+    score_tavr_metrics,
+)
 from or_tracking.evaluation import summarize_tavr_metrics
 
 
@@ -59,6 +64,11 @@ def parse_args() -> argparse.Namespace:
         help="Flag stage estimates below this confidence",
     )
     parser.add_argument(
+        "--labels",
+        type=Path,
+        help="Optional JSON labels file for stage/table scoring",
+    )
+    parser.add_argument(
         "--no-annotated-video",
         action="store_true",
         help="Skip annotated MP4 generation",
@@ -85,6 +95,10 @@ def main() -> None:
         roi=args.roi,
         write_annotated_video=not args.no_annotated_video,
     )
+    tavr_summary = summarize_tavr_metrics(
+        result.metrics,
+        confidence_threshold=args.confidence_threshold,
+    )
     payload = {
         "input_path": str(result.input_path),
         "csv_path": str(result.csv_path),
@@ -105,11 +119,12 @@ def main() -> None:
             "min_stage_confidence": args.min_stage_confidence,
             "confidence_threshold": args.confidence_threshold,
         },
-        "tavr": summarize_tavr_metrics(
-            result.metrics,
-            confidence_threshold=args.confidence_threshold,
-        ),
+        "tavr": tavr_summary,
     }
+    if args.labels:
+        labels = json.loads(args.labels.read_text(encoding="utf-8"))
+        payload["label_path"] = str(args.labels)
+        payload["label_score"] = score_tavr_metrics(result.metrics, labels)
     print(json.dumps(payload, indent=2))
 
 

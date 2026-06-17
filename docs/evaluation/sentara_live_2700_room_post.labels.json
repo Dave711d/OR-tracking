@@ -1,0 +1,34 @@
+{
+  "name": "Sentara live TAVR 2700s room inset",
+  "source_url": "https://bcmmedia.s3.amazonaws.com/bcp/video/transcodes/live-tavr-transcatheter-aortic-valve-replacement/1710771171/live-tavr-transcatheter-aortic-valve-replacement-720p.mp4",
+  "clip_hint": "Extract a 30s clip from 2700s, then evaluate the room-camera inset ROI.",
+  "command_hint": "python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2700_30s.mp4 --roi 0,0.46,0.31,0.89 --initial-stage post_deploy_assessment --min-area 300 --max-frames 900 --no-annotated-video --labels docs/evaluation/sentara_live_2700_room_post.labels.json",
+  "stage_segments": [
+    {
+      "start_s": 0.0,
+      "end_s": 2.5,
+      "stage": "post_deploy_assessment"
+    },
+    {
+      "start_s": 2.6,
+      "end_s": 29.9,
+      "stage": "closure_finish"
+    }
+  ],
+  "table_count_segments": [
+    {
+      "start_s": 14.5,
+      "end_s": 16.5,
+      "min_peak_count": 4
+    }
+  ],
+  "table_presence_expectations": [
+    {
+      "start_s": 14.5,
+      "end_s": 16.5,
+      "role": "table_operator",
+      "min_intervals": 2,
+      "min_observed_table_frames": 3
+    }
+  ]
+}

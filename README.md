@@ -57,6 +57,18 @@ The evaluator prints JSON with the stage timeline, current and peak table
 rosters, per-track role dwell, table-presence intervals, and low-confidence
 segments to inspect before changing heuristics.
 
+To compare output against expected stage/table labels:
+
+```bash
+python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2700_30s.mp4 \
+  --roi 0,0.46,0.31,0.89 \
+  --initial-stage post_deploy_assessment \
+  --min-area 300 \
+  --max-frames 900 \
+  --no-annotated-video \
+  --labels docs/evaluation/sentara_live_2700_room_post.labels.json
+```
+
 For long cases, evaluate targeted slices while preserving source timestamps:
 
 ```bash
