@@ -10,6 +10,17 @@
   },
   "cases": [
     {
+      "name": "sentara_900_room_to_fluoro_low_motion",
+      "video_path": "samples/live_tavr_slices/live_tavr_900_30s.mp4",
+      "labels_path": "docs/evaluation/sentara_live_900_room_to_fluoro_low_motion.labels.json",
+      "config": {
+        "roi": [0.0, 0.46, 0.31, 0.89],
+        "initial_stage": "access_sheathing",
+        "min_area": 300,
+        "max_frames": 900
+      }
+    },
+    {
       "name": "sentara_1800_mixed_room",
       "video_path": "samples/live_tavr_slices/live_tavr_1800_30s.mp4",
       "labels_path": "docs/evaluation/sentara_live_1800_mixed_room.labels.json",

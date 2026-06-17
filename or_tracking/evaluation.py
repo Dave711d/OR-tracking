@@ -136,6 +136,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "track_count",
         "frames_processed",
         "peak_people_count",
+        "peak_table_count",
+        "mean_movement_px",
         "frames",
         "ratio",
     ],
@@ -732,6 +734,37 @@ def tavr_quality_flags(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
                 ),
                 "frames": non_room_frames,
                 "ratio": round(non_room_ratio, 3),
+            }
+        )
+
+    room_metrics = [
+        metric for metric in metrics if "non_room_view" not in metric.alert_flags
+    ]
+    room_frames = len(room_metrics)
+    room_ratio = room_frames / max(len(metrics), 1)
+    room_peak_people = max((metric.people_count for metric in room_metrics), default=0)
+    room_peak_table = max(
+        (_tavr_state(metric).table_count for metric in room_metrics),
+        default=0,
+    )
+    room_mean_movement = (
+        sum(metric.movement_px for metric in room_metrics) / room_frames
+        if room_frames
+        else 0.0
+    )
+    if room_frames >= 60 and room_peak_people <= 1 and room_peak_table == 0:
+        flags.append(
+            {
+                "code": "low_motion_room_view",
+                "message": (
+                    "Room view is visible, but foreground motion evidence is sparse; "
+                    "table staffing may be undercounted in this segment."
+                ),
+                "frames": room_frames,
+                "ratio": round(room_ratio, 3),
+                "peak_people_count": room_peak_people,
+                "peak_table_count": room_peak_table,
+                "mean_movement_px": round(room_mean_movement, 3),
             }
         )
 

@@ -90,6 +90,25 @@ def test_summarize_tavr_metrics_flags_non_room_view() -> None:
     assert non_room[0]["ratio"] == 0.5
 
 
+def test_summarize_tavr_metrics_flags_low_motion_room_view() -> None:
+    metrics = [
+        _metric(index, index / 10, "access_sheathing", view_colorfulness=35.0)
+        for index in range(70)
+    ]
+
+    summary = summarize_tavr_metrics(metrics)
+
+    low_motion = [
+        flag
+        for flag in summary["quality_flags"]
+        if flag["code"] == "low_motion_room_view"
+    ]
+    assert low_motion
+    assert low_motion[0]["frames"] == 70
+    assert low_motion[0]["peak_people_count"] == 0
+    assert low_motion[0]["peak_table_count"] == 0
+
+
 def test_view_segments_group_room_and_non_room_stretches() -> None:
     metrics = [
         _metric(0, 0.0, "valve_deployment", view_colorfulness=34.0),

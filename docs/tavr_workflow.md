@@ -125,8 +125,8 @@ The JSON output includes:
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,
-  fragmented tracks, non-room/fluoroscopy view, or unusually noisy motion
-  detections.
+  fragmented tracks, non-room/fluoroscopy view, low-motion room views that may
+  undercount staff, or unusually noisy motion detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
   stage-staffing / quality-flag expectation pass rates.
@@ -184,6 +184,9 @@ label section falls below its configured threshold.
 
 The current local Sentara suite covers:
 
+- `sentara_900_room_to_fluoro_low_motion`: short room-view stretch with sparse
+  motion evidence followed by fluoroscopy, proving the system flags likely
+  undercount instead of inventing table staff.
 - `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
   roster expectations once the room view returns.
 - `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
