@@ -211,6 +211,7 @@ class TAVRWorkflowAnalyzer:
         role_track_ids: Mapping[str, Sequence[int]],
         frame_index: int,
         movement_px: float,
+        stage_observable: bool = True,
     ) -> TAVRFrameState:
         normalized_role_track_ids = {
             role: sorted(set(track_ids)) for role, track_ids in role_track_ids.items()
@@ -228,6 +229,24 @@ class TAVRWorkflowAnalyzer:
             frame_index=frame_index,
         )
         signals = _signals(zone_counts, len(detections), movement_px)
+        signals["stage_observable"] = 1.0 if stage_observable else 0.0
+        if not stage_observable:
+            stage = TAVR_STAGE_ORDER[self.current_stage_index]
+            return TAVRFrameState(
+                stage=stage,
+                stage_label=TAVR_STAGE_LABELS[stage],
+                confidence=0.2,
+                table_count=len(set(table_track_ids)),
+                table_track_ids=sorted(set(table_track_ids)),
+                role_counts=role_counts,
+                role_track_ids=normalized_role_track_ids,
+                track_role_summaries=track_role_summaries,
+                signals=signals,
+                note=(
+                    f"{TAVR_STAGE_NOTES[stage]} Stage held because the room "
+                    "view is unavailable."
+                ),
+            )
         stage_scores = _stage_scores(signals, frame_index)
         stage_index, confidence = self._choose_stage(stage_scores, frame_index)
         if stage_index != self.current_stage_index:

@@ -146,6 +146,8 @@ that look like non-room / fluoroscopy views are flagged as `non_room_view`, and
 staff/table detections are suppressed for those frames to avoid inventing
 table-side rosters from imaging motion. Stage staffing and coverage tables keep
 both total-stage rates and room-view-only rates for those mixed-view clips.
+Procedure-stage advancement is held on non-room frames and reported with low
+confidence until room-video evidence returns.
 
 ## Vercel static demo
 

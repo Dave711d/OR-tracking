@@ -142,6 +142,8 @@ def test_tracker_suppresses_obvious_non_room_view() -> None:
     assert metrics.people_count == 0
     assert metrics.tavr is not None
     assert metrics.tavr.table_count == 0
+    assert metrics.tavr.confidence < 0.45
+    assert metrics.tavr.signals["stage_observable"] == 0.0
 
 
 def test_tracker_config_can_seed_tavr_initial_stage() -> None:

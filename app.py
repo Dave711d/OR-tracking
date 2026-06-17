@@ -263,6 +263,45 @@ def _run_analysis(
             hide_index=True,
         )
 
+    quality_flags = tavr_summary.get("quality_flags", [])
+    if quality_flags:
+        st.subheader("Quality flags")
+        quality_df = pd.DataFrame(quality_flags)
+        quality_columns = [
+            column
+            for column in [
+                "code",
+                "ratio",
+                "frames",
+                "confidence_threshold",
+                "peak_people_count",
+                "peak_table_count",
+                "mean_movement_px",
+                "message",
+            ]
+            if column in quality_df.columns
+        ]
+        st.dataframe(
+            quality_df[quality_columns],
+            width="stretch",
+            hide_index=True,
+        )
+
+    low_confidence = tavr_summary.get("low_confidence_segments", [])
+    if low_confidence:
+        st.subheader("Low-confidence stage spans")
+        confidence_columns = [
+            "start_s",
+            "end_s",
+            "min_confidence",
+            "max_confidence",
+        ]
+        st.dataframe(
+            pd.DataFrame(low_confidence)[confidence_columns].head(30),
+            width="stretch",
+            hide_index=True,
+        )
+
     chart_col, table_col = st.columns([3, 2])
     with chart_col:
         if not metrics_df.empty:

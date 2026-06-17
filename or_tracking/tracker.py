@@ -50,6 +50,7 @@ class MotionTrackerConfig:
     crowding_threshold: int = 4
     zones: ZoneMap = field(default_factory=_default_zones)
     suppress_non_room_tracking: bool = True
+    freeze_non_room_tavr_stage: bool = True
     non_room_colorfulness_threshold: float = 8.0
     enable_tavr: bool = True
     tavr_initial_stage: str = "room_prep_drape"
@@ -221,6 +222,10 @@ class ORActivityTracker:
                 frame.shape[1],
                 frame.shape[0],
             )
+            stage_observable = not (
+                self.config.freeze_non_room_tavr_stage
+                and "non_room_view" in view_flags
+            )
             tavr = self._tavr.update(
                 detections=detections,
                 zone_counts=zone_counts,
@@ -228,6 +233,7 @@ class ORActivityTracker:
                 role_track_ids=role_track_ids,
                 frame_index=frame_index,
                 movement_px=movement_px,
+                stage_observable=stage_observable,
             )
         return FrameMetrics(
             frame_index=frame_index,

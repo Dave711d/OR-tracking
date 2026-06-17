@@ -15,6 +15,10 @@
     {
       "code": "non_room_view",
       "min_ratio": 0.95
+    },
+    {
+      "code": "low_stage_confidence",
+      "min_ratio": 0.95
     }
   ]
 }

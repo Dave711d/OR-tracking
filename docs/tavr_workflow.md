@@ -60,7 +60,9 @@ The current model uses deterministic room-video heuristics:
 - A colorfulness guardrail for broadcast ROIs that switch to fluoroscopy or
   other non-room views. Those frames are flagged as `non_room_view`, and
   staff/table detections are suppressed so imaging motion does not become a
-  fabricated table roster.
+  fabricated table roster. Procedure-stage advancement is also held on those
+  frames and emitted with low confidence, so seeded or last-known stage context
+  is not mistaken for fresh room-video evidence.
 - A sequential stage model with minimum dwell time so the estimate progresses
   like a procedure timeline rather than flickering frame by frame.
 
@@ -127,7 +129,8 @@ The JSON output includes:
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,
   fragmented tracks, non-room/fluoroscopy view, low-motion room views that may
-  undercount staff, or unusually noisy motion detections.
+  undercount staff, low stage-confidence spans, or unusually noisy motion
+  detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
   stage-staffing / quality-flag expectation pass rates.
@@ -162,7 +165,7 @@ The label file can include:
   stage peak count, mean table count, table-occupancy rate, room-view mean table
   count, room-view table-occupancy rate, or tracking-available rate.
 - `quality_flag_expectations`: expected quality flags, such as requiring
-  `non_room_view` to cover a fluoroscopy-only ROI.
+  `non_room_view` and `low_stage_confidence` to cover a fluoroscopy-only ROI.
 
 Labels are deliberately lightweight JSON so they can be hand-authored from
 public clips, broadcast timestamps, or future labelled theatre footage.

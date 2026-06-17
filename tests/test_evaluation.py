@@ -110,6 +110,28 @@ def test_summarize_tavr_metrics_flags_low_motion_room_view() -> None:
     assert low_motion[0]["peak_table_count"] == 0
 
 
+def test_summarize_tavr_metrics_flags_low_stage_confidence() -> None:
+    metrics = [
+        _metric(index, index / 10, "valve_deployment", confidence=0.2)
+        for index in range(8)
+    ] + [
+        _metric(8, 0.8, "valve_deployment", confidence=0.8),
+        _metric(9, 0.9, "valve_deployment", confidence=0.8),
+    ]
+
+    summary = summarize_tavr_metrics(metrics)
+
+    low_confidence = [
+        flag
+        for flag in summary["quality_flags"]
+        if flag["code"] == "low_stage_confidence"
+    ]
+    assert low_confidence
+    assert low_confidence[0]["frames"] == 8
+    assert low_confidence[0]["ratio"] == 0.8
+    assert low_confidence[0]["confidence_threshold"] == 0.45
+
+
 def test_view_segments_group_room_and_non_room_stretches() -> None:
     metrics = [
         _metric(0, 0.0, "valve_deployment", view_colorfulness=34.0),
@@ -386,6 +408,7 @@ def _metric(
     stage: str,
     alert_flags: Optional[List[str]] = None,
     view_colorfulness: float = 0.0,
+    confidence: float = 0.8,
 ) -> FrameMetrics:
     return FrameMetrics(
         frame_index=frame_index,
@@ -395,7 +418,7 @@ def _metric(
         tavr=TAVRFrameState(
             stage=stage,
             stage_label=TAVR_STAGE_LABELS[stage],
-            confidence=0.8,
+            confidence=confidence,
             table_count=0,
             table_track_ids=[],
             role_counts={},

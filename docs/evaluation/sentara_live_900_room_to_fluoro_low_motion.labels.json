@@ -27,6 +27,10 @@
       "code": "low_motion_room_view",
       "min_frames": 60,
       "min_ratio": 0.1
+    },
+    {
+      "code": "low_stage_confidence",
+      "min_ratio": 0.95
     }
   ]
 }

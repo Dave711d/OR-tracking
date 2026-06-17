@@ -127,6 +127,40 @@ def test_tavr_workflow_can_start_from_seeded_stage() -> None:
     assert state.stage_label == "Valve deployment"
 
 
+def test_tavr_workflow_holds_stage_when_room_view_unavailable() -> None:
+    analyzer = TAVRWorkflowAnalyzer(
+        initial_stage="access_sheathing",
+        min_stage_frames=0,
+    )
+    detection = Detection(1, (10, 10, 20, 40), (20, 30), 700)
+
+    held = analyzer.update(
+        [detection],
+        {"imaging": 2, "table": 2},
+        [1],
+        {"imaging": [1], "table_operator": [1]},
+        0,
+        0,
+        stage_observable=False,
+    )
+    advanced = analyzer.update(
+        [detection],
+        {"imaging": 2, "table": 2},
+        [1],
+        {"imaging": [1], "table_operator": [1]},
+        1,
+        0,
+        stage_observable=True,
+    )
+
+    assert held.stage == "access_sheathing"
+    assert held.confidence == 0.2
+    assert held.signals["stage_observable"] == 0.0
+    assert "Stage held" in held.note
+    assert advanced.stage == "angio_alignment_crossing"
+    assert advanced.signals["stage_observable"] == 1.0
+
+
 def test_tavr_workflow_rejects_unknown_initial_stage() -> None:
     try:
         TAVRWorkflowAnalyzer(initial_stage="not_a_tavr_stage")

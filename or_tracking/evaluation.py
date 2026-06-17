@@ -149,6 +149,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "peak_people_count",
         "peak_table_count",
         "mean_movement_px",
+        "confidence_threshold",
         "frames",
         "ratio",
     ],
@@ -750,6 +751,26 @@ def tavr_quality_flags(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
                     "graphics, camera motion, or montage edits may be included."
                 ),
                 "peak_people_count": peak_people_count,
+            }
+        )
+
+    confidence_threshold = 0.45
+    low_confidence_frames = sum(
+        1 for metric in metrics if _tavr_state(metric).confidence < confidence_threshold
+    )
+    low_confidence_ratio = low_confidence_frames / max(len(metrics), 1)
+    if low_confidence_ratio >= 0.2:
+        flags.append(
+            {
+                "code": "low_stage_confidence",
+                "message": (
+                    "Procedure-stage inference is visually weak for a substantial "
+                    "portion of the clip; treat stage labels as seeded or held "
+                    "context in those frames."
+                ),
+                "confidence_threshold": confidence_threshold,
+                "frames": low_confidence_frames,
+                "ratio": round(low_confidence_ratio, 3),
             }
         )
 
