@@ -12,6 +12,7 @@ from or_tracking import (
     TAVR_STAGE_ORDER,
     process_video_file,
     score_tavr_metrics,
+    write_tavr_summary_csvs,
 )
 from or_tracking.evaluation import summarize_tavr_metrics
 
@@ -99,9 +100,16 @@ def main() -> None:
         result.metrics,
         confidence_threshold=args.confidence_threshold,
     )
+    run_stem = result.csv_path.name.replace("_metrics.csv", "")
+    tavr_csv_paths = write_tavr_summary_csvs(
+        args.output_dir,
+        run_stem,
+        tavr_summary,
+    )
     payload = {
         "input_path": str(result.input_path),
         "csv_path": str(result.csv_path),
+        "tavr_csv_paths": tavr_csv_paths,
         "annotated_video_path": (
             str(result.annotated_video_path) if result.annotated_video_path else None
         ),

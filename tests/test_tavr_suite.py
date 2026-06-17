@@ -74,4 +74,6 @@ def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
     assert summary["case_count"] == 1
     assert summary["passed_count"] == 1
     assert Path(summary["cases"][0]["result_path"]).exists()
+    assert summary["cases"][0]["tavr_csv_paths"]["stage_timeline"]
+    assert Path(summary["cases"][0]["tavr_csv_paths"]["stage_timeline"]).exists()
     assert Path(summary["summary_path"]).exists()

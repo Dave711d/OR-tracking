@@ -176,8 +176,11 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outpu
 The default suite is manifest-driven rather than shell-string-driven. Each case
 declares a clip path, label path, ROI, starting stage, frame limit, and tracking
 configuration. The runner writes per-case JSON plus
-`outputs/tavr_suite/suite_summary.json`, and exits non-zero if any scored label
-section falls below its configured threshold.
+`outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
+summary tables as per-case CSV files, including view segments, stage staffing,
+stage table coverage, table transition events, table presence intervals, quality
+flags, and low-confidence segments. The command exits non-zero if any scored
+label section falls below its configured threshold.
 
 The current local Sentara suite covers:
 

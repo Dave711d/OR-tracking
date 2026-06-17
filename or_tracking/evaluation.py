@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import csv
+import json
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from .models import FrameMetrics
@@ -12,6 +15,139 @@ from .tavr import (
     TAVR_STAGE_ORDER,
     TrackRoleSummary,
 )
+
+
+TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
+    "view_segments": [
+        "view",
+        "is_room_view",
+        "tracking_available",
+        "start_frame",
+        "end_frame",
+        "start_s",
+        "end_s",
+        "duration_s",
+        "frames",
+        "mean_colorfulness",
+        "mean_table_count",
+        "peak_table_count",
+        "dominant_stage",
+        "stage_counts",
+        "label",
+    ],
+    "stage_timeline": [
+        "stage",
+        "stage_label",
+        "start_frame",
+        "end_frame",
+        "start_s",
+        "end_s",
+        "peak_table_count",
+        "peak_table_roster",
+        "table_presence_roster",
+        "table_roster",
+        "note",
+    ],
+    "stage_staffing_summary": [
+        "stage",
+        "stage_label",
+        "segment_count",
+        "start_frame",
+        "end_frame",
+        "start_s",
+        "end_s",
+        "duration_s",
+        "frames",
+        "mean_table_count",
+        "peak_table_count",
+        "table_occupancy_rate",
+        "table_count_distribution",
+        "role_counts",
+        "unique_table_track_count",
+        "table_roster",
+    ],
+    "stage_table_coverage": [
+        "stage_segment_index",
+        "stage",
+        "stage_label",
+        "stage_start_frame",
+        "stage_end_frame",
+        "stage_start_s",
+        "stage_end_s",
+        "stage_duration_s",
+        "track_id",
+        "dominant_role",
+        "observed_table_frames",
+        "first_seen_frame",
+        "last_seen_frame",
+        "first_seen_s",
+        "last_seen_s",
+        "coverage_ratio",
+        "estimated_table_duration_s",
+        "entered_during_stage",
+        "exited_during_stage",
+        "spans_full_stage",
+        "role_counts",
+        "label",
+    ],
+    "table_transition_events": [
+        "event_type",
+        "timestamp_s",
+        "frame_index",
+        "track_id",
+        "dominant_role",
+        "stage",
+        "stage_label",
+        "stage_segment_index",
+        "coverage_ratio",
+        "observed_table_frames",
+        "label",
+    ],
+    "table_presence_intervals": [
+        "track_id",
+        "dominant_role",
+        "dominant_stage",
+        "start_frame",
+        "end_frame",
+        "start_s",
+        "end_s",
+        "observed_table_frames",
+        "interval_duration_s",
+        "role_counts",
+        "stage_counts",
+        "label",
+    ],
+    "track_role_report": [
+        "track_id",
+        "dominant_role",
+        "frames_seen",
+        "first_frame",
+        "last_frame",
+        "table_frames",
+        "table_presence_ratio",
+        "role_counts",
+    ],
+    "quality_flags": [
+        "code",
+        "message",
+        "stage_count",
+        "duration_s",
+        "closure_start_s",
+        "track_count",
+        "frames_processed",
+        "peak_people_count",
+        "frames",
+        "ratio",
+    ],
+    "low_confidence_segments": [
+        "start_frame",
+        "end_frame",
+        "start_s",
+        "end_s",
+        "min_confidence",
+        "max_confidence",
+    ],
+}
 
 
 def summarize_tavr_metrics(
@@ -41,6 +177,26 @@ def summarize_tavr_metrics(
         ),
         "quality_flags": tavr_quality_flags(tavr_metrics),
     }
+
+
+def write_tavr_summary_csvs(
+    output_dir: str | Path,
+    run_stem: str,
+    tavr_summary: Dict[str, Any],
+) -> Dict[str, str]:
+    """Write derived TAVR summary tables as CSV files."""
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    paths = {}
+    for table_name, fieldnames in TAVR_SUMMARY_CSV_TABLES.items():
+        rows = tavr_summary.get(table_name, [])
+        if not rows:
+            continue
+        path = output_path / f"{run_stem}_{table_name}.csv"
+        _write_summary_rows(path, rows, fieldnames)
+        paths[table_name] = str(path)
+    return paths
 
 
 def score_tavr_metrics(
@@ -688,6 +844,39 @@ def _table_transition_event(
             f"{coverage['dominant_role']} during {coverage['stage_label']}"
         ),
     }
+
+
+def _write_summary_rows(
+    path: Path,
+    rows: Sequence[Dict[str, Any]],
+    fieldnames: Sequence[str],
+) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(
+                {
+                    field: _csv_cell(row.get(field))
+                    for field in fieldnames
+                }
+            )
+
+
+def _csv_cell(value: Any) -> Any:
+    if value is None:
+        return ""
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, list):
+        labels = [
+            item.get("label")
+            for item in value
+            if isinstance(item, dict) and item.get("label")
+        ]
+        if labels:
+            return "; ".join(str(label) for label in labels)
+    return json.dumps(value, sort_keys=True)
 
 
 def _confidence_item(

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import tempfile
+import zipfile
 from pathlib import Path
 from typing import Any, Optional, Tuple
 
@@ -15,6 +17,7 @@ from or_tracking import (
     TAVR_STAGE_ORDER,
     process_video_file,
     summarize_tavr_metrics,
+    write_tavr_summary_csvs,
 )
 from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 
@@ -172,6 +175,8 @@ def _run_analysis(
             st.success(f"At table now: {latest['who_at_table']}")
 
     tavr_summary = summarize_tavr_metrics(result.metrics)
+    run_stem = result.csv_path.name.replace("_metrics.csv", "")
+    tavr_csv_paths = write_tavr_summary_csvs("outputs", run_stem, tavr_summary)
     view_rows = tavr_summary.get("view_segments", [])
     if view_rows:
         st.subheader("View segments")
@@ -286,7 +291,7 @@ def _run_analysis(
             hide_index=True,
         )
 
-    downloads = st.columns(2)
+    downloads = st.columns(3)
     with downloads[0]:
         st.download_button(
             "Download metrics CSV",
@@ -296,6 +301,15 @@ def _run_analysis(
             width="stretch",
         )
     with downloads[1]:
+        if tavr_csv_paths:
+            st.download_button(
+                "Download TAVR tables",
+                _zip_paths(tavr_csv_paths),
+                file_name=f"{run_stem}_tavr_tables.zip",
+                mime="application/zip",
+                width="stretch",
+            )
+    with downloads[2]:
         if result.annotated_video_path and result.annotated_video_path.exists():
             st.download_button(
                 "Download annotated MP4",
@@ -336,6 +350,16 @@ def _count_label(counts: dict[str, int]) -> str:
     return ", ".join(
         f"{key}:{value}" for key, value in sorted(counts.items()) if value
     )
+
+
+def _zip_paths(paths: dict[str, str]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for table_name, path_text in sorted(paths.items()):
+            path = Path(path_text)
+            if path.exists():
+                archive.write(path, arcname=path.name)
+    return buffer.getvalue()
 
 
 if __name__ == "__main__":

@@ -58,6 +58,8 @@ The evaluator prints JSON with the stage timeline, view segments, current and
 peak table rosters, per-track role dwell, table-presence intervals, table
 entry/exit events, stage-by-stage table coverage, stage staffing summaries, and
 low-confidence segments to inspect before changing heuristics.
+It also writes those derived TAVR tables as CSV files alongside the frame-level
+metrics CSV.
 
 To compare output against expected stage/table labels:
 
@@ -123,7 +125,12 @@ during a stage.
 It also writes:
 
 - `outputs/*_metrics.csv`
+- `outputs/*_stage_table_coverage.csv`, `*_table_transition_events.csv`, and
+  related derived TAVR table CSVs
 - `outputs/*_tracked.mp4` when annotated video is enabled
+
+The Streamlit app includes a `Download TAVR tables` ZIP containing the derived
+stage, view, roster, event, and quality CSVs for the current run.
 
 For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
 `tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`,

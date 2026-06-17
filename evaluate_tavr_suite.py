@@ -8,7 +8,12 @@ import re
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from or_tracking import MotionTrackerConfig, process_video_file, score_tavr_metrics
+from or_tracking import (
+    MotionTrackerConfig,
+    process_video_file,
+    score_tavr_metrics,
+    write_tavr_summary_csvs,
+)
 from or_tracking.evaluation import summarize_tavr_metrics
 
 
@@ -133,12 +138,19 @@ def _run_case(
             write_annotated_video=write_annotated_video,
         )
         tavr_summary = summarize_tavr_metrics(result.metrics)
+        run_stem = result.csv_path.name.replace("_metrics.csv", "")
+        tavr_csv_paths = write_tavr_summary_csvs(
+            case_output_dir,
+            run_stem,
+            tavr_summary,
+        )
         label_score = score_tavr_metrics(result.metrics, labels)
         payload = {
             "case": name,
             "input_path": str(result.input_path),
             "label_path": str(labels_path),
             "csv_path": str(result.csv_path),
+            "tavr_csv_paths": tavr_csv_paths,
             "annotated_video_path": (
                 str(result.annotated_video_path) if result.annotated_video_path else None
             ),
@@ -158,6 +170,7 @@ def _run_case(
             "name": name,
             "passed": score_summary["passed"],
             "result_path": str(output_path),
+            "tavr_csv_paths": tavr_csv_paths,
             "score_summary": score_summary,
             "quality_flags": tavr_summary.get("quality_flags", []),
         }

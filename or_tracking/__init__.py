@@ -8,6 +8,7 @@ from .evaluation import (
     summarize_tavr_metrics,
     table_transition_events,
     view_segments,
+    write_tavr_summary_csvs,
 )
 from .video import TrackingRunResult, process_video_file
 
@@ -24,4 +25,5 @@ __all__ = [
     "summarize_tavr_metrics",
     "table_transition_events",
     "view_segments",
+    "write_tavr_summary_csvs",
 ]

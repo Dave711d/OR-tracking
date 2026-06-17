@@ -13,6 +13,7 @@ from or_tracking.evaluation import (
     table_presence_intervals,
     table_transition_events,
     view_segments,
+    write_tavr_summary_csvs,
 )
 from or_tracking.models import FrameMetrics
 from or_tracking.synthetic import generate_synthetic_tavr_video
@@ -190,6 +191,31 @@ def test_table_transition_events_report_stage_entries_and_exits() -> None:
         ("table_exit", "valve_deployment", 7),
         ("table_present_at_stage_end", "valve_deployment", 8),
     ]
+
+
+def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "access_sheathing", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(4, 0.4, "valve_deployment", [7, 8]),
+        _table_metric(5, 0.5, "valve_deployment", [7, 8]),
+    ]
+    summary = summarize_tavr_metrics(metrics)
+
+    paths = write_tavr_summary_csvs(tmp_path, "case", summary)
+
+    assert {
+        "stage_timeline",
+        "stage_table_coverage",
+        "table_transition_events",
+        "view_segments",
+    }.issubset(paths)
+    coverage_csv = Path(paths["stage_table_coverage"]).read_text(encoding="utf-8")
+    assert "track_id" in coverage_csv
+    assert "coverage_ratio" in coverage_csv
+    assert "ID 7" in coverage_csv
 
 
 def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
