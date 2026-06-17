@@ -44,6 +44,10 @@ For each processed frame, the tracker emits:
 - Zone and motion signals used by the heuristic
 
 These values are written to the metrics CSV and shown in Streamlit.
+The static Vercel demo mirrors the operator-facing shape with a browser-only
+synthetic TAVR run that shows the current procedure milestone, observed prior
+milestones, first/last seen timing, peak table-side count, and unique
+table-side IDs.
 
 ## Visual Signals
 

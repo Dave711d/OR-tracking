@@ -249,17 +249,20 @@ input[type="range"] {
   gap: 8px;
 }
 
-.coverage-list {
+.coverage-list,
+.milestone-list {
   display: grid;
   gap: 8px;
 }
 
-.coverage-list div {
+.coverage-list div,
+.milestone-list div {
   align-items: flex-start;
   padding: 10px 12px;
 }
 
-.coverage-list span {
+.coverage-list span,
+.milestone-list span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 650;
@@ -267,17 +270,32 @@ input[type="range"] {
 }
 
 .count-list b,
-.coverage-list b {
+.coverage-list b,
+.milestone-list b {
   color: var(--warn);
   font-size: 18px;
 }
 
-.coverage-list b {
+.coverage-list b,
+.milestone-list b {
   color: var(--accent);
   font-size: 12px;
   line-height: 1.25;
   text-align: right;
   white-space: nowrap;
+}
+
+.milestone-list div[data-status="current"] {
+  border-color: rgba(55, 214, 163, 0.72);
+}
+
+.milestone-list div[data-status="not-observed"] b {
+  color: var(--muted);
+}
+
+.milestone-list b {
+  max-width: 118px;
+  white-space: normal;
 }
 
 @media (max-width: 900px) {

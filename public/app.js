@@ -12,6 +12,7 @@ const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
 const stageCoverageList = document.querySelector("#stageCoverageList");
+const milestoneList = document.querySelector("#milestoneList");
 const activityMetric = document.querySelector("#activityMetric");
 const elapsedMetric = document.querySelector("#elapsedMetric");
 const entryZone = document.querySelector("#entryZone");
@@ -158,10 +159,15 @@ const SYNTHETIC_CYCLE_SECONDS = TAVR_STAGES.reduce(
   (total, stage) => total + stage.duration,
   0,
 );
+const TAVR_STAGE_LOOKUP = new Map(
+  TAVR_STAGES.map((stage, index) => [stage.key, { ...stage, index }]),
+);
 
 let previousFrame = null;
 let activityHistory = [];
 let stageCoverage = new Map();
+let milestoneProgress = new Map();
+let currentMilestoneKey = null;
 let rafId = null;
 let syntheticMode = false;
 let syntheticStartedAt = 0;
@@ -528,6 +534,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
   renderTableRoster(summary.tableRoster);
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
+  updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
   tableZone.textContent = String(summary.zones.table);
@@ -668,6 +675,63 @@ function renderStageCoverage() {
   });
 }
 
+function updateProcedureMilestones(stage, roster, tableSideCount, elapsedSeconds) {
+  const stageMeta = TAVR_STAGE_LOOKUP.get(stage.key);
+  if (!stageMeta) {
+    renderProcedureMilestones();
+    return;
+  }
+
+  currentMilestoneKey = stage.key;
+  const item = milestoneProgress.get(stage.key) || {
+    stageKey: stage.key,
+    stageLabel: stage.label,
+    firstSeen: elapsedSeconds,
+    lastSeen: elapsedSeconds,
+    frames: 0,
+    peakTableCount: 0,
+    trackIds: new Set(),
+  };
+  item.frames += 1;
+  item.firstSeen = Math.min(item.firstSeen, elapsedSeconds);
+  item.lastSeen = Math.max(item.lastSeen, elapsedSeconds);
+  item.peakTableCount = Math.max(item.peakTableCount, tableSideCount);
+  roster.forEach(({ id }) => item.trackIds.add(id));
+  milestoneProgress.set(stage.key, item);
+  renderProcedureMilestones();
+}
+
+function renderProcedureMilestones() {
+  milestoneList.replaceChildren();
+  const currentIndex = TAVR_STAGE_LOOKUP.get(currentMilestoneKey)?.index ?? -1;
+
+  TAVR_STAGES.forEach((stage, index) => {
+    const item = milestoneProgress.get(stage.key);
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    const status = getMilestoneStatus(stage.key, index, currentIndex, Boolean(item));
+
+    row.dataset.status = status.key;
+    label.textContent = `${stage.label}: ${status.label}`;
+    value.textContent = item
+      ? `${item.firstSeen.toFixed(1)}-${item.lastSeen.toFixed(1)}s; ` +
+        `peak ${item.peakTableCount}; staff ${item.trackIds.size}`
+      : "not seen";
+    row.append(label, value);
+    milestoneList.append(row);
+  });
+}
+
+function getMilestoneStatus(stageKey, stageIndex, currentIndex, observed) {
+  if (!observed) return { key: "not-observed", label: "not observed" };
+  if (stageKey === currentMilestoneKey) return { key: "current", label: "current" };
+  if (stageIndex < currentIndex || currentIndex < 0) {
+    return { key: "observed-prior", label: "observed prior" };
+  }
+  return { key: "observed", label: "observed" };
+}
+
 function renderTableRoster(roster) {
   tableRoster.replaceChildren();
   if (!roster.length) {
@@ -689,11 +753,14 @@ function resetMetrics(options = {}) {
   previousFrame = null;
   activityHistory = [];
   stageCoverage = new Map();
+  milestoneProgress = new Map();
+  currentMilestoneKey = null;
   stageMetric.textContent = "Idle";
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";
   renderTableRoster([]);
   renderStageCoverage();
+  renderProcedureMilestones();
   activityMetric.textContent = "0";
   elapsedMetric.textContent = "0.0s";
   entryZone.textContent = "0";

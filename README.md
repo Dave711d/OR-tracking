@@ -164,7 +164,10 @@ confidence until room-video evidence returns.
 
 Vercel hosts the browser demo from `public/`. It accepts local video uploads and
 performs client-side frame differencing, motion clustering, zone counts, and an
-activity sparkline.
+activity sparkline. The synthetic TAVR demo also shows procedure milestone
+progress in canonical order, including the current observed stage, prior
+observed stages, first/last seen times, peak table-side count, and unique
+table-side IDs for each milestone.
 
 ```bash
 npm install
