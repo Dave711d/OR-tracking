@@ -8,6 +8,10 @@ samples/*.avi
 samples/*.m4v
 samples/*.mov
 samples/*.mp4
+samples/**/*.avi
+samples/**/*.m4v
+samples/**/*.mov
+samples/**/*.mp4
 tests/
 .venv/
 app.py
