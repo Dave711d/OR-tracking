@@ -129,6 +129,34 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "dropped_table_roster",
         "label",
     ],
+    "stage_evidence_summary": [
+        "stage_segment_index",
+        "stage",
+        "stage_label",
+        "start_frame",
+        "end_frame",
+        "start_s",
+        "end_s",
+        "duration_s",
+        "frames",
+        "room_view_frames",
+        "non_room_view_frames",
+        "observable_rate",
+        "mean_confidence",
+        "min_confidence",
+        "max_confidence",
+        "evidence_level",
+        "dominant_signal",
+        "mean_table_signal",
+        "mean_access_signal",
+        "mean_imaging_signal",
+        "mean_device_signal",
+        "mean_anesthesia_signal",
+        "mean_stillness_signal",
+        "mean_crowd_signal",
+        "support_label",
+        "label",
+    ],
     "procedure_event_timeline": [
         "event_type",
         "timestamp_s",
@@ -250,6 +278,7 @@ def summarize_tavr_metrics(
         "table_transition_events": table_transition_events(tavr_metrics),
         "stage_table_coverage": stage_table_coverage(tavr_metrics),
         "stage_handoff_summary": stage_handoff_summary(tavr_metrics),
+        "stage_evidence_summary": stage_evidence_summary(tavr_metrics),
         "procedure_event_timeline": procedure_event_timeline(tavr_metrics),
         "stage_staffing_summary": stage_staffing_summary(tavr_metrics),
         "low_confidence_segments": low_confidence_segments(
@@ -304,6 +333,10 @@ def score_tavr_metrics(
         "stage_handoff_score": _stage_handoff_score(
             tavr_metrics,
             labels.get("stage_handoff_expectations", []),
+        ),
+        "stage_evidence_score": _stage_evidence_score(
+            tavr_metrics,
+            labels.get("stage_evidence_expectations", []),
         ),
         "event_timeline_score": _event_timeline_score(
             tavr_metrics,
@@ -817,6 +850,18 @@ def stage_handoff_summary(
     return summaries
 
 
+def stage_evidence_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Summarize visual support for each contiguous stage segment."""
+
+    if not metrics:
+        return []
+
+    return [
+        _stage_evidence_item(segment_index, segment_metrics)
+        for segment_index, segment_metrics in enumerate(_stage_metric_segments(metrics))
+    ]
+
+
 def procedure_event_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
     """Return a single chronological event list for stage/view/table review."""
 
@@ -1225,6 +1270,116 @@ def _stage_handoff_item(
         ],
         "label": _handoff_label(stage_state.stage_label, handoff_type, lead, active_roster),
     }
+
+
+def _stage_evidence_item(
+    segment_index: int,
+    segment_metrics: Sequence[FrameMetrics],
+) -> Dict[str, Any]:
+    stage_state = _tavr_state(segment_metrics[0])
+    start_metric = segment_metrics[0]
+    end_metric = segment_metrics[-1]
+    sample_period_s = _sample_period_s(segment_metrics)
+    duration_s = max(
+        0.0,
+        end_metric.timestamp_s - start_metric.timestamp_s + sample_period_s,
+    )
+    frames = len(segment_metrics)
+    room_view_frames = sum(
+        1 for metric in segment_metrics if _view_label(metric) == "room"
+    )
+    confidences = [_tavr_state(metric).confidence for metric in segment_metrics]
+    observable_values = [
+        _tavr_state(metric).signals.get(
+            "stage_observable",
+            1.0 if _view_label(metric) == "room" else 0.0,
+        )
+        for metric in segment_metrics
+    ]
+    signal_means = {
+        name: _mean_signal(segment_metrics, name)
+        for name in [
+            "table",
+            "access",
+            "imaging",
+            "device",
+            "anesthesia",
+            "stillness",
+            "crowd",
+        ]
+    }
+    dominant_signal = _dominant_signal(signal_means)
+    mean_confidence = round(sum(confidences) / len(confidences), 3)
+    observable_rate = round(sum(observable_values) / len(observable_values), 3)
+    evidence_level = _stage_evidence_level(
+        observable_rate=observable_rate,
+        mean_confidence=mean_confidence,
+        room_view_frames=room_view_frames,
+    )
+    support_label = (
+        f"observable={observable_rate:.0%}, confidence={mean_confidence:.2f}, "
+        f"strongest={dominant_signal}:{signal_means[dominant_signal]:.2f}"
+    )
+    return {
+        "stage_segment_index": segment_index,
+        "stage": stage_state.stage,
+        "stage_label": stage_state.stage_label,
+        "start_frame": start_metric.frame_index,
+        "end_frame": end_metric.frame_index,
+        "start_s": round(float(start_metric.timestamp_s), 3),
+        "end_s": round(float(end_metric.timestamp_s), 3),
+        "duration_s": round(float(duration_s), 3),
+        "frames": frames,
+        "room_view_frames": room_view_frames,
+        "non_room_view_frames": frames - room_view_frames,
+        "observable_rate": observable_rate,
+        "mean_confidence": mean_confidence,
+        "min_confidence": round(min(confidences), 3),
+        "max_confidence": round(max(confidences), 3),
+        "evidence_level": evidence_level,
+        "dominant_signal": dominant_signal,
+        "mean_table_signal": signal_means["table"],
+        "mean_access_signal": signal_means["access"],
+        "mean_imaging_signal": signal_means["imaging"],
+        "mean_device_signal": signal_means["device"],
+        "mean_anesthesia_signal": signal_means["anesthesia"],
+        "mean_stillness_signal": signal_means["stillness"],
+        "mean_crowd_signal": signal_means["crowd"],
+        "support_label": support_label,
+        "label": (
+            f"{stage_state.stage_label}: {evidence_level}; {support_label}"
+        ),
+    }
+
+
+def _mean_signal(
+    segment_metrics: Sequence[FrameMetrics],
+    name: str,
+) -> float:
+    values = [_tavr_state(metric).signals.get(name, 0.0) for metric in segment_metrics]
+    if not values:
+        return 0.0
+    return round(sum(values) / len(values), 3)
+
+
+def _dominant_signal(signal_means: Dict[str, float]) -> str:
+    if not signal_means:
+        return "none"
+    return max(signal_means.items(), key=lambda item: (item[1], item[0]))[0]
+
+
+def _stage_evidence_level(
+    observable_rate: float,
+    mean_confidence: float,
+    room_view_frames: int,
+) -> str:
+    if room_view_frames <= 0 or observable_rate <= 0.0:
+        return "held_non_room"
+    if observable_rate >= 0.8 and mean_confidence >= 0.5:
+        return "strong_visual_support"
+    if observable_rate >= 0.5 and mean_confidence >= 0.35:
+        return "moderate_visual_support"
+    return "weak_visual_support"
 
 
 def _stage_started_event(
@@ -1889,6 +2044,50 @@ def _stage_handoff_score(
     }
 
 
+def _stage_evidence_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    evidence_rows = stage_evidence_summary(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        candidates = [
+            row
+            for row in evidence_rows
+            if _stage_evidence_matches_expectation(row, expectation)
+        ]
+        scored_candidates = [
+            _score_stage_evidence_candidate(row, expectation)
+            for row in candidates
+        ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "stage": expectation.get("stage"),
+                "stage_segment_index": expectation.get("stage_segment_index"),
+                "evidence_levels": sorted(_expected_evidence_levels(expectation))
+                or None,
+                "dominant_signal": expectation.get("dominant_signal"),
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _event_timeline_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -2025,6 +2224,103 @@ def _expected_handoff_types(expectation: Dict[str, Any]) -> set[str]:
     if isinstance(values, str):
         return {values}
     return {str(value) for value in values}
+
+
+def _expected_evidence_levels(expectation: Dict[str, Any]) -> set[str]:
+    values = expectation.get("evidence_levels")
+    if values is None and expectation.get("evidence_level") is not None:
+        values = [expectation["evidence_level"]]
+    if values is None:
+        return set()
+    if isinstance(values, str):
+        return {values}
+    return {str(value) for value in values}
+
+
+def _stage_evidence_matches_expectation(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> bool:
+    stage = expectation.get("stage")
+    stage_segment_index = expectation.get("stage_segment_index")
+    start_s = float(expectation.get("start_s", float("-inf")))
+    end_s = float(expectation.get("end_s", float("inf")))
+    return (
+        (stage is None or row["stage"] == stage)
+        and (
+            stage_segment_index is None
+            or row["stage_segment_index"] == int(stage_segment_index)
+        )
+        and row["start_s"] <= end_s
+        and row["end_s"] >= start_s
+    )
+
+
+def _score_stage_evidence_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    expected_levels = _expected_evidence_levels(expectation)
+    dominant_signal = expectation.get("dominant_signal")
+    min_observable_rate = expectation.get("min_observable_rate")
+    max_observable_rate = expectation.get("max_observable_rate")
+    min_mean_confidence = expectation.get("min_mean_confidence")
+    max_mean_confidence = expectation.get("max_mean_confidence")
+    min_room_view_frames = expectation.get("min_room_view_frames")
+    max_room_view_frames = expectation.get("max_room_view_frames")
+    min_non_room_view_frames = expectation.get("min_non_room_view_frames")
+    checks = {
+        "evidence_level": (
+            not expected_levels or row["evidence_level"] in expected_levels
+        ),
+        "dominant_signal": (
+            dominant_signal is None or row["dominant_signal"] == dominant_signal
+        ),
+        "min_observable_rate": (
+            min_observable_rate is None
+            or row["observable_rate"] >= float(min_observable_rate)
+        ),
+        "max_observable_rate": (
+            max_observable_rate is None
+            or row["observable_rate"] <= float(max_observable_rate)
+        ),
+        "min_mean_confidence": (
+            min_mean_confidence is None
+            or row["mean_confidence"] >= float(min_mean_confidence)
+        ),
+        "max_mean_confidence": (
+            max_mean_confidence is None
+            or row["mean_confidence"] <= float(max_mean_confidence)
+        ),
+        "min_room_view_frames": (
+            min_room_view_frames is None
+            or row["room_view_frames"] >= int(min_room_view_frames)
+        ),
+        "max_room_view_frames": (
+            max_room_view_frames is None
+            or row["room_view_frames"] <= int(max_room_view_frames)
+        ),
+        "min_non_room_view_frames": (
+            min_non_room_view_frames is None
+            or row["non_room_view_frames"] >= int(min_non_room_view_frames)
+        ),
+    }
+    return {
+        "stage_segment_index": row["stage_segment_index"],
+        "stage": row["stage"],
+        "stage_label": row["stage_label"],
+        "start_s": row["start_s"],
+        "end_s": row["end_s"],
+        "evidence_level": row["evidence_level"],
+        "dominant_signal": row["dominant_signal"],
+        "observable_rate": row["observable_rate"],
+        "mean_confidence": row["mean_confidence"],
+        "room_view_frames": row["room_view_frames"],
+        "non_room_view_frames": row["non_room_view_frames"],
+        "support_label": row["support_label"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
 
 
 def _event_matches_expectation(

@@ -205,6 +205,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    evidence = tavr_summary.get("stage_evidence_summary", [])
+    if evidence:
+        st.subheader("Stage evidence summary")
+        st.dataframe(
+            pd.DataFrame(_stage_evidence_rows(evidence)),
+            width="stretch",
+            hide_index=True,
+        )
+
     staffing = tavr_summary.get("stage_staffing_summary", [])
     if staffing:
         st.subheader("Stage staffing summary")
@@ -484,6 +493,27 @@ def _procedure_event_rows(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "table_track_ids": _id_label(item.get("table_track_ids", [])),
                 "roster": _roster_label(item.get("roster", [])),
                 "label": item.get("label", ""),
+            }
+        )
+    return rows
+
+
+def _stage_evidence_rows(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in evidence:
+        rows.append(
+            {
+                "stage_label": item["stage_label"],
+                "start_s": item["start_s"],
+                "end_s": item["end_s"],
+                "duration_s": item["duration_s"],
+                "evidence_level": item["evidence_level"],
+                "observable_rate": item["observable_rate"],
+                "mean_confidence": item["mean_confidence"],
+                "room_view_frames": item["room_view_frames"],
+                "non_room_view_frames": item["non_room_view_frames"],
+                "dominant_signal": item["dominant_signal"],
+                "support": item["support_label"],
             }
         )
     return rows

@@ -57,8 +57,8 @@ python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
 The evaluator prints JSON with the stage timeline, view segments, current and
 peak table rosters, per-track role dwell, table-presence intervals, table
 entry/exit events, stage-by-stage table coverage, stage handoff summaries, stage
-staffing summaries, a unified procedure event timeline, and low-confidence
-segments to inspect before changing heuristics.
+evidence summaries, stage staffing summaries, a unified procedure event
+timeline, and low-confidence segments to inspect before changing heuristics.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 
@@ -118,22 +118,23 @@ Open the local URL Streamlit prints, upload a video, or click `Use synthetic
 sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
 The app shows the latest table roster, last observed table roster, and
-`View segments`, `Procedure event timeline`, `Stage staffing summary`,
-`Stage handoff summary`, `Stage table coverage`,
+`View segments`, `Procedure event timeline`, `Stage evidence summary`,
+`Stage staffing summary`, `Stage handoff summary`, `Stage table coverage`,
 `Table transition events`, and `Table presence intervals` tables. Together
 these show when the room camera is actually visible, which track IDs were
 table-side in each TAVR phase, how long they were present, their dominant role,
-whether they entered or exited during a stage, and which table-side IDs
-continued, appeared, or dropped at each stage boundary. Mixed room/fluoroscopy
-runs also include room-view frame counts, tracking-available rates, and
-room-view table occupancy so staff/table coverage is not understated by frames
-where the room was not visible.
+whether they entered or exited during a stage, which table-side IDs continued,
+appeared, or dropped at each stage boundary, and whether each stage estimate is
+strong, weak, or held because the room view was unavailable. Mixed
+room/fluoroscopy runs also include room-view frame counts, tracking-available
+rates, and room-view table occupancy so staff/table coverage is not understated
+by frames where the room was not visible.
 It also writes:
 
 - `outputs/*_metrics.csv`
 - `outputs/*_stage_table_coverage.csv`, `*_stage_handoff_summary.csv`,
-  `*_procedure_event_timeline.csv`, `*_table_transition_events.csv`, and
-  related derived TAVR table CSVs
+  `*_stage_evidence_summary.csv`, `*_procedure_event_timeline.csv`,
+  `*_table_transition_events.csv`, and related derived TAVR table CSVs
 - `outputs/*_tracked.mp4` when annotated video is enabled
 
 The Streamlit app includes a `Download TAVR tables` ZIP containing the derived

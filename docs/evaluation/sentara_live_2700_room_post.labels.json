@@ -105,6 +105,24 @@
       "max_table_count": 0
     }
   ],
+  "stage_evidence_expectations": [
+    {
+      "stage": "post_deploy_assessment",
+      "evidence_level": "weak_visual_support",
+      "min_observable_rate": 1.0,
+      "max_mean_confidence": 0.35,
+      "min_room_view_frames": 70
+    },
+    {
+      "stage": "closure_finish",
+      "evidence_level": "weak_visual_support",
+      "min_observable_rate": 0.45,
+      "max_observable_rate": 0.5,
+      "max_mean_confidence": 0.35,
+      "min_room_view_frames": 300,
+      "min_non_room_view_frames": 400
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

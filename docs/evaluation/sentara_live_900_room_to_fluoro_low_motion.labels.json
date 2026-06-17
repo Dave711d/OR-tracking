@@ -38,6 +38,15 @@
       "max_table_count": 0
     }
   ],
+  "stage_evidence_expectations": [
+    {
+      "stage": "access_sheathing",
+      "evidence_level": "weak_visual_support",
+      "max_observable_rate": 0.2,
+      "max_mean_confidence": 0.25,
+      "min_non_room_view_frames": 700
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

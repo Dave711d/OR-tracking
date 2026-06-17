@@ -31,6 +31,15 @@
       "max_table_count": 0
     }
   ],
+  "stage_evidence_expectations": [
+    {
+      "stage": "valve_deployment",
+      "evidence_level": "held_non_room",
+      "max_observable_rate": 0.0,
+      "max_mean_confidence": 0.2,
+      "min_non_room_view_frames": 800
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

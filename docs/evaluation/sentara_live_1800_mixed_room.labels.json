@@ -78,6 +78,22 @@
       "tracking_available": true
     }
   ],
+  "stage_evidence_expectations": [
+    {
+      "stage": "valve_delivery_positioning",
+      "evidence_level": "held_non_room",
+      "max_observable_rate": 0.0,
+      "max_mean_confidence": 0.2,
+      "min_non_room_view_frames": 200
+    },
+    {
+      "stage": "valve_deployment",
+      "evidence_level": "strong_visual_support",
+      "min_observable_rate": 1.0,
+      "min_mean_confidence": 0.5,
+      "min_room_view_frames": 600
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",
