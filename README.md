@@ -148,6 +148,7 @@ milestones have been observed, which
 milestone is the current observed stage, which track IDs were table-side in each
 TAVR phase, how long they were present, their operator-facing table role and raw
 dominant role, which raw IDs were stitched into a canonical table person,
+how many canonical table people were present in each stage or milestone,
 whether they entered or exited during a stage, which table-side IDs continued,
 appeared, or dropped at each stage boundary, and whether each
 stage estimate is strong, weak, or held because the room view was unavailable. Mixed

@@ -481,6 +481,9 @@ def _stage_staffing_rows(staffing: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "table_occupancy_rate": item["table_occupancy_rate"],
                 "room_table_occupancy_rate": item["room_table_occupancy_rate"],
                 "unique_table_track_count": item["unique_table_track_count"],
+                "canonical_table_people": item.get(
+                    "canonical_table_identity_count", 0
+                ),
                 "role_mix": _count_label(item.get("role_counts", {})),
                 "table_roster": roster or "none",
             }
@@ -592,6 +595,9 @@ def _procedure_milestone_rows(milestones: list[dict[str, Any]]) -> list[dict[str
                 "mean_confidence": item.get("mean_confidence"),
                 "peak_table_count": item.get("peak_table_count", 0),
                 "unique_table_tracks": item.get("unique_table_track_count", 0),
+                "canonical_table_people": item.get(
+                    "canonical_table_identity_count", 0
+                ),
                 "support": item.get("support_label") or item.get("label") or "",
             }
         )

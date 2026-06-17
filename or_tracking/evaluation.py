@@ -152,6 +152,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "table_count_distribution",
         "role_counts",
         "unique_table_track_count",
+        "canonical_table_identity_count",
         "table_roster",
     ],
     "stage_table_coverage": [
@@ -263,6 +264,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "mean_confidence",
         "peak_table_count",
         "unique_table_track_count",
+        "canonical_table_identity_count",
         "support_label",
         "label",
     ],
@@ -1134,6 +1136,7 @@ def stage_staffing_summary(
     accumulators: Dict[str, Dict[str, Any]] = {}
     timeline = tavr_stage_timeline(metrics)
     segment_counts = _counts(item["stage"] for item in timeline)
+    identity_map, _ = _table_identity_map(metrics)
 
     for metric in metrics:
         state = _tavr_state(metric)
@@ -1201,6 +1204,13 @@ def stage_staffing_summary(
             for track in accumulator["tracks"].values()
             if track["observed_table_frames"] >= min_observed_table_frames
         ]
+        canonical_table_identity_ids = {
+            int(identity_map[track["track_id"]]["canonical_table_id"])
+            if track["track_id"] in identity_map
+            else int(track["track_id"])
+            for track in accumulator["tracks"].values()
+            if track["observed_table_frames"] >= min_observed_table_frames
+        }
         table_roster.sort(
             key=lambda item: (
                 -item["observed_table_frames"],
@@ -1254,6 +1264,7 @@ def stage_staffing_summary(
                 "table_count_distribution": _counts(str(count) for count in table_counts),
                 "role_counts": dict(sorted(accumulator["role_counts"].items())),
                 "unique_table_track_count": len(accumulator["tracks"]),
+                "canonical_table_identity_count": len(canonical_table_identity_ids),
                 "table_roster": table_roster,
             }
         )
@@ -1927,6 +1938,7 @@ def _procedure_milestone_item(
             "mean_confidence": None,
             "peak_table_count": 0,
             "unique_table_track_count": 0,
+            "canonical_table_identity_count": 0,
             "support_label": "",
             "label": f"{stage_label}: not observed in this clip",
         }
@@ -1938,9 +1950,13 @@ def _procedure_milestone_item(
     status = "current_observed" if is_current_observed_stage else "observed_prior"
     peak_table_count = int(staffing.get("peak_table_count", 0) or 0)
     unique_table_track_count = int(staffing.get("unique_table_track_count", 0) or 0)
+    canonical_table_identity_count = int(
+        staffing.get("canonical_table_identity_count", unique_table_track_count) or 0
+    )
     support_label = (
         f"{status}; evidence={evidence_level}; observable={observable_rate:.0%}; "
-        f"confidence={mean_confidence:.2f}; table_peak={peak_table_count}"
+        f"confidence={mean_confidence:.2f}; table_peak={peak_table_count}; "
+        f"table_people={canonical_table_identity_count}"
     )
     return {
         "milestone_index": milestone_index,
@@ -1958,6 +1974,7 @@ def _procedure_milestone_item(
         "mean_confidence": mean_confidence,
         "peak_table_count": peak_table_count,
         "unique_table_track_count": unique_table_track_count,
+        "canonical_table_identity_count": canonical_table_identity_count,
         "support_label": support_label,
         "label": f"{stage_label}: {support_label}",
     }
@@ -2786,6 +2803,12 @@ def _stage_staffing_score(
         min_room_table_occupancy_rate = expectation.get(
             "min_room_table_occupancy_rate"
         )
+        min_canonical_table_identity_count = expectation.get(
+            "min_canonical_table_identity_count"
+        )
+        max_canonical_table_identity_count = expectation.get(
+            "max_canonical_table_identity_count"
+        )
         stage_summary = stage_summaries.get(stage)
         matching_roster = []
         if stage_summary is not None:
@@ -2848,6 +2871,22 @@ def _stage_staffing_score(
                     >= min_room_table_occupancy_rate
                 )
             ),
+            "min_canonical_table_identity_count": (
+                min_canonical_table_identity_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["canonical_table_identity_count"]
+                    >= int(min_canonical_table_identity_count)
+                )
+            ),
+            "max_canonical_table_identity_count": (
+                max_canonical_table_identity_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["canonical_table_identity_count"]
+                    <= int(max_canonical_table_identity_count)
+                )
+            ),
         }
         expectation_pass = all(checks.values())
         if expectation_pass:
@@ -2866,6 +2905,17 @@ def _stage_staffing_score(
                 "min_tracking_available_rate": min_tracking_available_rate,
                 "min_room_mean_count": min_room_mean_count,
                 "min_room_table_occupancy_rate": min_room_table_occupancy_rate,
+                "canonical_table_identity_count": (
+                    stage_summary.get("canonical_table_identity_count")
+                    if stage_summary is not None
+                    else None
+                ),
+                "min_canonical_table_identity_count": (
+                    min_canonical_table_identity_count
+                ),
+                "max_canonical_table_identity_count": (
+                    max_canonical_table_identity_count
+                ),
                 "matched_tracks": matching_roster,
                 "matched_track_count": len(matching_roster),
                 "checks": checks,
@@ -3397,6 +3447,12 @@ def _score_procedure_milestone_candidate(
     max_peak_table_count = expectation.get("max_peak_table_count")
     min_unique_table_track_count = expectation.get("min_unique_table_track_count")
     max_unique_table_track_count = expectation.get("max_unique_table_track_count")
+    min_canonical_table_identity_count = expectation.get(
+        "min_canonical_table_identity_count"
+    )
+    max_canonical_table_identity_count = expectation.get(
+        "max_canonical_table_identity_count"
+    )
     checks = {
         "observed_in_clip": (
             observed_in_clip is None
@@ -3457,6 +3513,16 @@ def _score_procedure_milestone_candidate(
             max_unique_table_track_count is None
             or row["unique_table_track_count"] <= int(max_unique_table_track_count)
         ),
+        "min_canonical_table_identity_count": (
+            min_canonical_table_identity_count is None
+            or row["canonical_table_identity_count"]
+            >= int(min_canonical_table_identity_count)
+        ),
+        "max_canonical_table_identity_count": (
+            max_canonical_table_identity_count is None
+            or row["canonical_table_identity_count"]
+            <= int(max_canonical_table_identity_count)
+        ),
     }
     return {
         "stage": row["stage"],
@@ -3469,6 +3535,7 @@ def _score_procedure_milestone_candidate(
         "mean_confidence": row["mean_confidence"],
         "peak_table_count": row["peak_table_count"],
         "unique_table_track_count": row["unique_table_track_count"],
+        "canonical_table_identity_count": row["canonical_table_identity_count"],
         "label": row["label"],
         "checks": checks,
         "passed": all(checks.values()),

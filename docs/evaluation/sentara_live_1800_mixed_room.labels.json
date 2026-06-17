@@ -3,6 +3,18 @@
   "source_url": "https://bcmmedia.s3.amazonaws.com/bcp/video/transcodes/live-tavr-transcatheter-aortic-valve-replacement/1710771171/live-tavr-transcatheter-aortic-valve-replacement-720p.mp4",
   "clip_hint": "Extract a 30s clip from 1800s. The ROI starts as fluoroscopy, then switches back to the room-camera inset around 8s.",
   "command_hint": "python evaluate_tavr.py samples/live_tavr_slices/live_tavr_1800_30s.mp4 --roi 0,0.46,0.31,0.89 --initial-stage valve_delivery_positioning --min-area 300 --max-frames 900 --no-annotated-video --labels docs/evaluation/sentara_live_1800_mixed_room.labels.json",
+  "stage_segments": [
+    {
+      "start_s": 0.0,
+      "end_s": 7.9,
+      "stage": "valve_delivery_positioning"
+    },
+    {
+      "start_s": 8.1,
+      "end_s": 29.9,
+      "stage": "valve_deployment"
+    }
+  ],
   "table_count_segments": [
     {
       "start_s": 8.0,
@@ -31,6 +43,8 @@
       "min_tracks": 4,
       "min_observed_table_frames": 3,
       "min_peak_count": 3,
+      "min_canonical_table_identity_count": 8,
+      "max_canonical_table_identity_count": 10,
       "min_tracking_available_rate": 0.7,
       "min_room_mean_count": 0.25,
       "min_room_table_occupancy_rate": 0.15
@@ -115,7 +129,9 @@
       "min_observable_rate": 1.0,
       "min_mean_confidence": 0.5,
       "min_peak_table_count": 3,
-      "min_unique_table_track_count": 10
+      "min_unique_table_track_count": 10,
+      "min_canonical_table_identity_count": 8,
+      "max_canonical_table_identity_count": 10
     },
     {
       "stage": "closure_finish",

@@ -357,6 +357,7 @@ def test_procedure_milestones_report_current_observed_stage() -> None:
     assert deployment["is_current_observed_stage"] is True
     assert deployment["peak_table_count"] == 2
     assert deployment["unique_table_track_count"] == 2
+    assert deployment["canonical_table_identity_count"] == 2
     assert deployment["evidence_level"] == "strong_visual_support"
     assert closure["milestone_status"] == "not_observed_in_clip"
     assert closure["observed_in_clip"] is False
@@ -591,6 +592,8 @@ def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
     team = table_team_summary(metrics, min_observed_table_frames=1)
     coverage = stage_table_coverage(metrics)
     handoffs = stage_handoff_summary(metrics)
+    staffing = stage_staffing_summary(metrics, min_observed_table_frames=1)
+    milestones = procedure_milestones(metrics)
 
     assert len(identities) == 1
     assert identities[0]["merged_track_ids"] == [7, 8, 9]
@@ -609,6 +612,12 @@ def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
 
     assert handoffs[0]["active_table_track_count"] == 1
     assert handoffs[0]["active_table_roster"][0]["merged_track_ids"] == [7, 8, 9]
+
+    assert staffing[0]["unique_table_track_count"] == 3
+    assert staffing[0]["canonical_table_identity_count"] == 1
+    deployment = next(item for item in milestones if item["stage"] == "valve_deployment")
+    assert deployment["unique_table_track_count"] == 3
+    assert deployment["canonical_table_identity_count"] == 1
 
 
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
@@ -749,6 +758,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "room_coverage_ratio" in coverage_csv
     assert "tracking_available_rate" in staffing_csv
     assert "table_operator" in staffing_csv
+    assert "canonical_table_identity_count" in staffing_csv
     assert "room_table_occupancy_rate" in staffing_csv
     assert "handoff_type" in handoff_csv
     assert "lead_table_team_role" in handoff_csv
@@ -767,6 +777,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "merged_track_ids" in identities_csv
     assert "milestone_status" in milestones_csv
     assert "current_observed" in milestones_csv
+    assert "canonical_table_identity_count" in milestones_csv
     assert "event_type" in event_csv
     assert "table_handoff" in event_csv
     assert "table_team_role" in event_csv
@@ -815,6 +826,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_tracking_available_rate": 0.5,
                 "min_room_mean_count": 1.0,
                 "min_room_table_occupancy_rate": 1.0,
+                "min_canonical_table_identity_count": 2,
+                "max_canonical_table_identity_count": 2,
             }
         ],
         "stage_handoff_expectations": [
@@ -860,6 +873,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "evidence_level": "strong_visual_support",
                 "min_peak_table_count": 2,
                 "min_unique_table_track_count": 2,
+                "min_canonical_table_identity_count": 2,
+                "max_canonical_table_identity_count": 2,
             },
             {
                 "stage": "closure_finish",

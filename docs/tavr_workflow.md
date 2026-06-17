@@ -169,7 +169,8 @@ The JSON output includes:
 - `procedure_milestones`: one row per canonical TAVR stage showing whether that
   milestone was observed in the clip, whether it is the current observed stage,
   the first/last observed timestamps, duration, evidence level, observable rate,
-  mean confidence, peak table-side count, and unique table-side track count.
+  mean confidence, peak table-side count, raw unique table-side track count, and
+  canonical table-person count after identity stitching.
   Unobserved stages remain explicit rows so a partial clip does not imply prior
   or later procedural progress that was not visible.
 - `procedure_event_timeline`: one chronological review table combining stage
@@ -179,8 +180,9 @@ The JSON output includes:
   human-readable label.
 - `stage_staffing_summary`: one compact row per observed stage with duration,
   room-view frame counts, tracking-available rate, mean/peak table count,
-  total-stage and room-view table occupancy, role mix, and the meaningful
-  table-side roster for that stage.
+  total-stage and room-view table occupancy, raw unique track count, canonical
+  table-person count, role mix, and the meaningful table-side roster for that
+  stage.
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,
@@ -221,7 +223,8 @@ The label file can include:
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
-  count, room-view table-occupancy rate, or tracking-available rate. `role`
+  count, room-view table-occupancy rate, canonical table-person count bounds, or
+  tracking-available rate. `role`
   matches the operator-facing table role; use `dominant_role` when you need to
   constrain the raw zone-history role.
 - `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
@@ -241,7 +244,7 @@ The label file can include:
   a prior milestone to remain `observed_prior`, requiring an unseen closure
   milestone to stay `not_observed_in_clip`, or constraining the evidence level,
   observable rate, mean confidence, peak table-side count, and unique
-  table-side track count for the milestone.
+  table-side track count or canonical table-person count for the milestone.
 - `procedure_status_expectations`: expected one-row operator status, including
   current stage, current milestone status, next stage, current view, tracking
   availability, effective table source/count/freshness, evidence level,
