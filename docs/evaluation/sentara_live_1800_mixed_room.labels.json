@@ -42,8 +42,8 @@
       "role": "table_operator",
       "handoff_type": "table_roster_started",
       "lead_role": "table_operator",
-      "min_active_tracks": 10,
-      "min_new_tracks": 10,
+      "min_active_tracks": 8,
+      "min_new_tracks": 8,
       "min_lead_observed_table_frames": 20,
       "min_tracking_available_rate": 0.7
     }
@@ -65,7 +65,7 @@
       "role": "table_operator",
       "start_s": 8.0,
       "end_s": 8.2,
-      "min_tracks": 10,
+      "min_tracks": 8,
       "min_table_count": 10,
       "tracking_available": true
     },
@@ -167,7 +167,7 @@
       "status": "historical_seen",
       "role": "table_operator",
       "table_team_role": "table_operator",
-      "min_tracks": 2,
+      "min_tracks": 1,
       "min_observed_table_frames": 10,
       "require_in_current_table_roster": false,
       "require_in_peak_table_roster": true,

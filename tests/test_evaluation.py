@@ -22,7 +22,7 @@ from or_tracking.evaluation import (
     view_segments,
     write_tavr_summary_csvs,
 )
-from or_tracking.models import FrameMetrics
+from or_tracking.models import Detection, FrameMetrics
 from or_tracking.synthetic import generate_synthetic_tavr_video
 from or_tracking.tavr import (
     TAVR_STAGE_LABELS,
@@ -541,6 +541,76 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
     assert score["event_timeline_score"]["pass_rate"] == 1.0
 
 
+def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [7],
+            centroids_by_track={7: (120, 220)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [7],
+            centroids_by_track={7: (123, 222)},
+        ),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [8],
+            centroids_by_track={8: (126, 224)},
+        ),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [8],
+            centroids_by_track={8: (129, 225)},
+        ),
+        _table_metric(
+            4,
+            0.4,
+            "valve_deployment",
+            [9],
+            centroids_by_track={9: (132, 227)},
+        ),
+        _table_metric(
+            5,
+            0.5,
+            "valve_deployment",
+            [9],
+            centroids_by_track={9: (135, 228)},
+        ),
+    ]
+
+    identities = summarize_tavr_metrics(metrics)["table_identity_groups"]
+    team = table_team_summary(metrics, min_observed_table_frames=1)
+    coverage = stage_table_coverage(metrics)
+    handoffs = stage_handoff_summary(metrics)
+
+    assert len(identities) == 1
+    assert identities[0]["merged_track_ids"] == [7, 8, 9]
+    assert identities[0]["observed_table_frames"] == 6
+
+    assert len(team) == 1
+    assert team[0]["canonical_table_id"] == identities[0]["canonical_table_id"]
+    assert team[0]["track_id"] == 7
+    assert team[0]["merged_track_ids"] == [7, 8, 9]
+    assert team[0]["table_frames"] == 6
+
+    assert len(coverage) == 1
+    assert coverage[0]["canonical_table_id"] == identities[0]["canonical_table_id"]
+    assert coverage[0]["merged_track_ids"] == [7, 8, 9]
+    assert coverage[0]["observed_table_frames"] == 6
+
+    assert handoffs[0]["active_table_track_count"] == 1
+    assert handoffs[0]["active_table_roster"][0]["merged_track_ids"] == [7, 8, 9]
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -656,6 +726,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_evidence_summary",
         "procedure_status_summary",
         "table_team_summary",
+        "table_identity_groups",
         "procedure_milestones",
         "procedure_event_timeline",
         "table_roster_snapshots",
@@ -668,6 +739,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     evidence_csv = Path(paths["stage_evidence_summary"]).read_text(encoding="utf-8")
     status_csv = Path(paths["procedure_status_summary"]).read_text(encoding="utf-8")
     team_csv = Path(paths["table_team_summary"]).read_text(encoding="utf-8")
+    identities_csv = Path(paths["table_identity_groups"]).read_text(encoding="utf-8")
     milestones_csv = Path(paths["procedure_milestones"]).read_text(encoding="utf-8")
     event_csv = Path(paths["procedure_event_timeline"]).read_text(encoding="utf-8")
     snapshots_csv = Path(paths["table_roster_snapshots"]).read_text(encoding="utf-8")
@@ -687,8 +759,12 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "Current observed stage" in status_csv
     assert "effective_table_source" in status_csv
     assert "team_status" in team_csv
+    assert "canonical_table_id" in team_csv
+    assert "merged_track_ids" in team_csv
     assert "active_current" in team_csv
     assert "table_team_role" in team_csv
+    assert "canonical_table_id" in identities_csv
+    assert "merged_track_ids" in identities_csv
     assert "milestone_status" in milestones_csv
     assert "current_observed" in milestones_csv
     assert "event_type" in event_csv
@@ -939,6 +1015,7 @@ def _table_metric(
     table_track_ids: list[int],
     alert_flags: Optional[List[str]] = None,
     roles_by_track: Optional[dict[int, str]] = None,
+    centroids_by_track: Optional[dict[int, tuple[int, int]]] = None,
 ) -> FrameMetrics:
     role_counts: dict[str, int] = {}
     role_track_ids: dict[str, list[int]] = {}
@@ -950,6 +1027,15 @@ def _table_metric(
     return FrameMetrics(
         frame_index=frame_index,
         timestamp_s=timestamp_s,
+        detections=[
+            Detection(
+                track_id=track_id,
+                bbox=(cx - 5, cy - 10, 10, 20),
+                centroid=(cx, cy),
+                area=200,
+            )
+            for track_id, (cx, cy) in (centroids_by_track or {}).items()
+        ],
         alert_flags=alert_flags or [],
         tavr=TAVRFrameState(
             stage=stage,

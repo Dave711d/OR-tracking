@@ -196,6 +196,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    identity_rows = tavr_summary.get("table_identity_groups", [])
+    if identity_rows:
+        st.subheader("Table identity groups")
+        st.dataframe(
+            pd.DataFrame(_table_identity_rows(identity_rows)),
+            width="stretch",
+            hide_index=True,
+        )
+
     view_rows = tavr_summary.get("view_segments", [])
     if view_rows:
         st.subheader("View segments")
@@ -595,6 +604,8 @@ def _table_team_rows(team_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         rows.append(
             {
                 "track_id": item.get("track_id"),
+                "canonical_id": item.get("canonical_table_id"),
+                "merged_track_ids": _id_label(item.get("merged_track_ids", [])),
                 "status": _status_label(item.get("team_status")),
                 "table_role": _status_label(item.get("table_team_role")),
                 "dominant_role": _status_label(item.get("dominant_role")),
@@ -609,6 +620,25 @@ def _table_team_rows(team_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "table_presence_ratio": item.get("table_presence_ratio"),
                 "dominant_stage": item.get("dominant_stage_label") or "n/a",
                 "label": item.get("label", ""),
+            }
+        )
+    return rows
+
+
+def _table_identity_rows(identity_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in identity_rows:
+        rows.append(
+            {
+                "canonical_id": item.get("canonical_table_id"),
+                "representative_track_id": item.get("track_id"),
+                "merged_track_ids": _id_label(item.get("merged_track_ids", [])),
+                "table_role": _status_label(item.get("table_team_role")),
+                "dominant_role": _status_label(item.get("dominant_role")),
+                "role_confidence": item.get("table_team_role_confidence"),
+                "first_seen_s": item.get("first_seen_s"),
+                "last_seen_s": item.get("last_seen_s"),
+                "table_frames": item.get("observed_table_frames", 0),
             }
         )
     return rows

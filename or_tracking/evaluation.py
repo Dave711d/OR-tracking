@@ -59,6 +59,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
     ],
     "table_team_summary": [
         "track_id",
+        "canonical_table_id",
+        "merged_track_ids",
         "team_status",
         "dominant_role",
         "table_team_role",
@@ -83,6 +85,21 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_counts",
         "role_counts",
         "label",
+    ],
+    "table_identity_groups": [
+        "canonical_table_id",
+        "track_id",
+        "merged_track_ids",
+        "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
+        "first_seen_frame",
+        "last_seen_frame",
+        "first_seen_s",
+        "last_seen_s",
+        "observed_table_frames",
+        "role_counts",
+        "stage_counts",
     ],
     "view_segments": [
         "view",
@@ -150,6 +167,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_non_room_view_frames",
         "tracking_available_rate",
         "track_id",
+        "canonical_table_id",
+        "merged_track_ids",
         "dominant_role",
         "table_team_role",
         "table_team_role_confidence",
@@ -273,6 +292,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "timestamp_s",
         "frame_index",
         "track_id",
+        "canonical_table_id",
+        "merged_track_ids",
         "dominant_role",
         "table_team_role",
         "table_team_role_confidence",
@@ -363,6 +384,7 @@ def summarize_tavr_metrics(
     return {
         "procedure_status_summary": procedure_status_summary(tavr_metrics),
         "table_team_summary": table_team_summary(tavr_metrics),
+        "table_identity_groups": table_identity_groups(tavr_metrics),
         "stage_timeline": tavr_stage_timeline(tavr_metrics),
         "track_role_report": tavr_track_role_report(tavr_metrics),
         "current_table_roster": current_table_roster(tavr_metrics),
@@ -693,6 +715,13 @@ def table_roster_snapshots(metrics: Sequence[FrameMetrics]) -> List[Dict[str, An
     return rows
 
 
+def table_identity_groups(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return canonical table-person groups stitched from raw table track IDs."""
+
+    _, groups = _table_identity_map(metrics)
+    return groups
+
+
 def table_presence_roster(
     metrics: Sequence[FrameMetrics],
     min_table_frames: int = 3,
@@ -737,6 +766,7 @@ def table_team_summary(
     effective_ids = set(status_row.get("effective_table_track_ids", []))
     last_ids = set(status_row.get("last_observed_table_track_ids", []))
     peak_ids = set(status_row.get("peak_table_track_ids", []))
+    identity_map, _ = _table_identity_map(metrics)
     frame_times = {
         metric.frame_index: float(metric.timestamp_s)
         for metric in metrics
@@ -745,21 +775,51 @@ def table_team_summary(
     team: Dict[int, Dict[str, Any]] = {}
     for summary in tavr_track_role_report(metrics):
         track_id = int(summary["track_id"])
-        team[track_id] = {
-            "track_id": track_id,
-            "dominant_role": summary.get("dominant_role") or "unassigned",
-            "frames_seen": int(summary.get("frames_seen", 0) or 0),
-            "first_seen_frame": summary.get("first_frame"),
-            "last_seen_frame": summary.get("last_frame"),
-            "first_seen_s": frame_times.get(summary.get("first_frame")),
-            "last_seen_s": frame_times.get(summary.get("last_frame")),
-            "observed_table_frames": 0,
-            "table_frames": int(summary.get("table_frames", 0) or 0),
-            "role_counts": {},
-            "stage_counts": {},
-            "table_observed_duration_s": 0.0,
-            "interval_count": 0,
-        }
+        identity = identity_map.get(track_id)
+        canonical_id = identity["canonical_table_id"] if identity else track_id
+        merged_track_ids = (
+            set(identity["merged_track_ids"]) if identity else {track_id}
+        )
+        row = team.setdefault(
+            canonical_id,
+            {
+                "track_id": min(merged_track_ids),
+                "canonical_table_id": canonical_id,
+                "merged_track_ids": set(merged_track_ids),
+                "dominant_role": summary.get("dominant_role") or "unassigned",
+                "frames_seen": 0,
+                "first_seen_frame": None,
+                "last_seen_frame": None,
+                "first_seen_s": None,
+                "last_seen_s": None,
+                "observed_table_frames": 0,
+                "table_frames": 0,
+                "role_counts": {},
+                "stage_counts": {},
+                "table_observed_duration_s": 0.0,
+                "interval_count": 0,
+            },
+        )
+        row["merged_track_ids"].update(merged_track_ids)
+        row["track_id"] = min(row["merged_track_ids"])
+        row["frames_seen"] += int(summary.get("frames_seen", 0) or 0)
+        row["table_frames"] += int(summary.get("table_frames", 0) or 0)
+        row["first_seen_frame"] = _min_optional(
+            row.get("first_seen_frame"),
+            summary.get("first_frame"),
+        )
+        row["last_seen_frame"] = _max_optional(
+            row.get("last_seen_frame"),
+            summary.get("last_frame"),
+        )
+        row["first_seen_s"] = _min_optional(
+            row.get("first_seen_s"),
+            frame_times.get(summary.get("first_frame")),
+        )
+        row["last_seen_s"] = _max_optional(
+            row.get("last_seen_s"),
+            frame_times.get(summary.get("last_frame")),
+        )
 
     for roster in [
         status_row.get("current_table_roster", []),
@@ -769,10 +829,17 @@ def table_team_summary(
     ]:
         for item in roster:
             track_id = int(item["track_id"])
+            identity = identity_map.get(track_id)
+            canonical_id = identity["canonical_table_id"] if identity else track_id
+            merged_track_ids = (
+                set(identity["merged_track_ids"]) if identity else {track_id}
+            )
             row = team.setdefault(
-                track_id,
+                canonical_id,
                 {
-                    "track_id": track_id,
+                    "track_id": min(merged_track_ids),
+                    "canonical_table_id": canonical_id,
+                    "merged_track_ids": set(merged_track_ids),
                     "dominant_role": item.get("dominant_role") or "unassigned",
                     "frames_seen": int(item.get("frames_seen", 0) or 0),
                     "first_seen_frame": None,
@@ -787,20 +854,29 @@ def table_team_summary(
                     "interval_count": 0,
                 },
             )
-            role = item.get("dominant_role") or "unassigned"
+            row["merged_track_ids"].update(merged_track_ids)
+            row["track_id"] = min(row["merged_track_ids"])
+            role = item.get("table_team_role") or item.get("dominant_role") or "unassigned"
             row["role_counts"][role] = row["role_counts"].get(role, 0) + 1
             if row["dominant_role"] == "unassigned":
-                row["dominant_role"] = role
+                row["dominant_role"] = item.get("dominant_role") or role
 
     for interval in table_presence_intervals(
         metrics,
         min_observed_table_frames=1,
     ):
         track_id = int(interval["track_id"])
+        identity = identity_map.get(track_id)
+        canonical_id = identity["canonical_table_id"] if identity else track_id
+        merged_track_ids = (
+            set(identity["merged_track_ids"]) if identity else {track_id}
+        )
         row = team.setdefault(
-            track_id,
+            canonical_id,
             {
-                "track_id": track_id,
+                "track_id": min(merged_track_ids),
+                "canonical_table_id": canonical_id,
+                "merged_track_ids": set(merged_track_ids),
                 "dominant_role": interval.get("dominant_role") or "unassigned",
                 "frames_seen": 0,
                 "first_seen_frame": None,
@@ -815,6 +891,8 @@ def table_team_summary(
                 "interval_count": 0,
             },
         )
+        row["merged_track_ids"].update(merged_track_ids)
+        row["track_id"] = min(row["merged_track_ids"])
         row["first_seen_frame"] = _min_optional(
             row.get("first_seen_frame"),
             interval.get("start_frame"),
@@ -842,17 +920,19 @@ def table_team_summary(
         _merge_counts(row["stage_counts"], interval.get("stage_counts", {}))
 
     rows: List[Dict[str, Any]] = []
-    for track_id, row in team.items():
+    for canonical_id, row in team.items():
+        merged_track_ids = sorted(int(track_id) for track_id in row["merged_track_ids"])
+        raw_ids = set(merged_track_ids)
         table_frames = max(
             int(row.get("table_frames", 0) or 0),
             int(row.get("observed_table_frames", 0) or 0),
         )
         if (
             table_frames < min_observed_table_frames
-            and track_id not in current_ids
-            and track_id not in effective_ids
-            and track_id not in last_ids
-            and track_id not in peak_ids
+            and not (raw_ids & current_ids)
+            and not (raw_ids & effective_ids)
+            and not (raw_ids & last_ids)
+            and not (raw_ids & peak_ids)
         ):
             continue
 
@@ -874,24 +954,29 @@ def table_team_summary(
             table_frames,
         )
         dominant_stage = _dominant_from_counts(row["stage_counts"])
-        team_status = _table_team_status(
-            track_id=track_id,
-            current_ids=current_ids,
-            effective_ids=effective_ids,
-            last_ids=last_ids,
+        is_current_member = bool(raw_ids & current_ids)
+        is_effective_member = bool(raw_ids & effective_ids)
+        is_last_member = bool(raw_ids & last_ids)
+        is_peak_member = bool(raw_ids & peak_ids)
+        team_status = _table_team_status_from_membership(
+            is_current_member=is_current_member,
+            is_effective_member=is_effective_member,
+            is_last_member=is_last_member,
             age_from_clip_end_s=age_from_clip_end_s,
             recent_age_s=recent_age_s,
         )
         item = {
-            "track_id": track_id,
+            "track_id": row["track_id"],
+            "canonical_table_id": canonical_id,
+            "merged_track_ids": merged_track_ids,
             "team_status": team_status,
             "dominant_role": dominant_role,
             "table_team_role": table_team_role,
             "table_team_role_confidence": table_team_role_confidence,
-            "is_current_table_member": track_id in current_ids,
-            "is_effective_table_member": track_id in effective_ids,
-            "is_last_observed_table_member": track_id in last_ids,
-            "is_peak_table_member": track_id in peak_ids,
+            "is_current_table_member": is_current_member,
+            "is_effective_table_member": is_effective_member,
+            "is_last_observed_table_member": is_last_member,
+            "is_peak_table_member": is_peak_member,
             "first_seen_frame": row.get("first_seen_frame"),
             "last_seen_frame": row.get("last_seen_frame"),
             "first_seen_s": _round_optional(row.get("first_seen_s")),
@@ -1193,6 +1278,7 @@ def stage_table_coverage(
         return []
 
     rows: List[Dict[str, Any]] = []
+    identity_map, _ = _table_identity_map(metrics)
     active_state = _tavr_state(metrics[0])
     segment_start = 0
     segment_index = 0
@@ -1204,6 +1290,7 @@ def stage_table_coverage(
                     metrics[segment_start:index],
                     segment_index=segment_index,
                     min_observed_table_frames=min_observed_table_frames,
+                    identity_map=identity_map,
                 )
             )
             segment_index += 1
@@ -1215,6 +1302,7 @@ def stage_table_coverage(
             metrics[segment_start:],
             segment_index=segment_index,
             min_observed_table_frames=min_observed_table_frames,
+            identity_map=identity_map,
         )
     )
     return rows
@@ -2004,6 +2092,26 @@ def _table_team_status(
     return "historical_seen"
 
 
+def _table_team_status_from_membership(
+    is_current_member: bool,
+    is_effective_member: bool,
+    is_last_member: bool,
+    age_from_clip_end_s: Optional[float],
+    recent_age_s: float,
+) -> str:
+    if is_current_member:
+        return "active_current"
+    if is_effective_member:
+        return "recent_last_observed"
+    if (
+        is_last_member
+        and age_from_clip_end_s is not None
+        and age_from_clip_end_s <= recent_age_s
+    ):
+        return "recent_last_observed"
+    return "historical_seen"
+
+
 def _table_team_role(
     role_counts: Dict[str, int],
     dominant_role: str,
@@ -2305,6 +2413,8 @@ def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
 def _handoff_roster_item(row: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "track_id": row["track_id"],
+        "canonical_table_id": row["canonical_table_id"],
+        "merged_track_ids": row["merged_track_ids"],
         "dominant_role": row["dominant_role"],
         "table_team_role": row["table_team_role"],
         "table_team_role_confidence": row["table_team_role_confidence"],
@@ -2428,6 +2538,8 @@ def _table_transition_event(
         "timestamp_s": timestamp_s,
         "frame_index": frame,
         "track_id": coverage["track_id"],
+        "canonical_table_id": coverage["canonical_table_id"],
+        "merged_track_ids": coverage["merged_track_ids"],
         "dominant_role": coverage["dominant_role"],
         "table_team_role": coverage["table_team_role"],
         "table_team_role_confidence": coverage["table_team_role_confidence"],
@@ -3897,17 +4009,216 @@ def _table_observations(
     observations: Dict[int, List[Dict[str, Any]]] = {}
     for metric in metrics:
         state = _tavr_state(metric)
+        detections_by_id = {
+            detection.track_id: detection for detection in metric.detections
+        }
         for track_id in state.table_track_ids:
             summary = state.track_role_summaries.get(track_id)
+            detection = detections_by_id.get(track_id)
             observations.setdefault(track_id, []).append(
                 {
                     "frame_index": metric.frame_index,
                     "timestamp_s": metric.timestamp_s,
                     "stage": state.stage,
                     "role": summary.dominant_role if summary else "unassigned",
+                    "cx": detection.centroid[0] if detection else None,
+                    "cy": detection.centroid[1] if detection else None,
+                    "area": detection.area if detection else None,
                 }
             )
     return observations
+
+
+def _table_identity_map(
+    metrics: Sequence[FrameMetrics],
+    max_gap_frames: int = 90,
+    max_gap_s: float = 2.5,
+    max_centroid_distance_px: float = 140.0,
+    max_area_ratio: float = 3.0,
+) -> tuple[Dict[int, Dict[str, Any]], List[Dict[str, Any]]]:
+    intervals = table_presence_intervals(metrics, min_observed_table_frames=1)
+    groups: List[Dict[str, Any]] = []
+    raw_to_group: Dict[int, Dict[str, Any]] = {}
+
+    for interval in sorted(
+        intervals,
+        key=lambda item: (item["start_s"], item["start_frame"], item["track_id"]),
+    ):
+        track_id = int(interval["track_id"])
+        group = raw_to_group.get(track_id)
+        if group is None:
+            group = _best_identity_group(
+                groups,
+                interval,
+                max_gap_frames=max_gap_frames,
+                max_gap_s=max_gap_s,
+                max_centroid_distance_px=max_centroid_distance_px,
+                max_area_ratio=max_area_ratio,
+            )
+        if group is None:
+            group = {
+                "raw_track_ids": set(),
+                "first_frame": interval["start_frame"],
+                "last_frame": interval["end_frame"],
+                "first_s": interval["start_s"],
+                "last_s": interval["end_s"],
+                "last_cx": interval.get("last_cx"),
+                "last_cy": interval.get("last_cy"),
+                "last_area": interval.get("last_area"),
+                "observed_table_frames": 0,
+                "role_counts": {},
+                "stage_counts": {},
+            }
+            groups.append(group)
+
+        _merge_identity_interval(group, interval)
+        raw_to_group[track_id] = group
+
+    groups.sort(
+        key=lambda item: (
+            item["first_s"],
+            min(item["raw_track_ids"]) if item["raw_track_ids"] else 0,
+        )
+    )
+    identity_map: Dict[int, Dict[str, Any]] = {}
+    public_groups: List[Dict[str, Any]] = []
+    for index, group in enumerate(groups, start=1):
+        merged_track_ids = sorted(int(track_id) for track_id in group["raw_track_ids"])
+        dominant_role = _dominant_role_from_counts(group["role_counts"])
+        table_team_role, table_team_role_confidence = _table_team_role(
+            group["role_counts"],
+            dominant_role,
+            int(group["observed_table_frames"]),
+        )
+        public_group = {
+            "canonical_table_id": index,
+            "track_id": merged_track_ids[0] if merged_track_ids else None,
+            "merged_track_ids": merged_track_ids,
+            "dominant_role": dominant_role,
+            "table_team_role": table_team_role,
+            "table_team_role_confidence": table_team_role_confidence,
+            "first_seen_frame": group["first_frame"],
+            "last_seen_frame": group["last_frame"],
+            "first_seen_s": group["first_s"],
+            "last_seen_s": group["last_s"],
+            "observed_table_frames": int(group["observed_table_frames"]),
+            "role_counts": dict(sorted(group["role_counts"].items())),
+            "stage_counts": dict(sorted(group["stage_counts"].items())),
+        }
+        public_groups.append(public_group)
+        for raw_track_id in merged_track_ids:
+            identity_map[raw_track_id] = public_group
+    return identity_map, public_groups
+
+
+def _best_identity_group(
+    groups: Sequence[Dict[str, Any]],
+    interval: Dict[str, Any],
+    max_gap_frames: int,
+    max_gap_s: float,
+    max_centroid_distance_px: float,
+    max_area_ratio: float,
+) -> Optional[Dict[str, Any]]:
+    candidates = [
+        group
+        for group in groups
+        if _identity_group_can_accept(
+            group,
+            interval,
+            max_gap_frames=max_gap_frames,
+            max_gap_s=max_gap_s,
+            max_centroid_distance_px=max_centroid_distance_px,
+            max_area_ratio=max_area_ratio,
+        )
+    ]
+    if not candidates:
+        return None
+    return min(
+        candidates,
+        key=lambda group: (
+            interval["start_s"] - group["last_s"],
+            _identity_centroid_distance(group, interval) or 0.0,
+            min(group["raw_track_ids"]) if group["raw_track_ids"] else 0,
+        ),
+    )
+
+
+def _identity_group_can_accept(
+    group: Dict[str, Any],
+    interval: Dict[str, Any],
+    max_gap_frames: int,
+    max_gap_s: float,
+    max_centroid_distance_px: float,
+    max_area_ratio: float,
+) -> bool:
+    frame_gap = int(interval["start_frame"]) - int(group["last_frame"])
+    time_gap = float(interval["start_s"]) - float(group["last_s"])
+    if frame_gap <= 0 or frame_gap > max_gap_frames:
+        return False
+    if time_gap < 0 or time_gap > max_gap_s:
+        return False
+    if not _identity_roles_compatible(group, interval):
+        return False
+
+    distance = _identity_centroid_distance(group, interval)
+    if distance is None or distance > max_centroid_distance_px:
+        return False
+
+    area_ratio = _identity_area_ratio(group.get("last_area"), interval.get("first_area"))
+    return area_ratio is None or area_ratio <= max_area_ratio
+
+
+def _identity_roles_compatible(
+    group: Dict[str, Any],
+    interval: Dict[str, Any],
+) -> bool:
+    group_role = _dominant_role_from_counts(group.get("role_counts", {}))
+    interval_role = interval.get("table_team_role") or interval.get("dominant_role")
+    if group_role == interval_role:
+        return True
+    table_roles = {"access_operator", "table_operator"}
+    return group_role in table_roles and interval_role in table_roles
+
+
+def _identity_centroid_distance(
+    group: Dict[str, Any],
+    interval: Dict[str, Any],
+) -> Optional[float]:
+    if (
+        group.get("last_cx") is None
+        or group.get("last_cy") is None
+        or interval.get("first_cx") is None
+        or interval.get("first_cy") is None
+    ):
+        return None
+    dx = float(group["last_cx"]) - float(interval["first_cx"])
+    dy = float(group["last_cy"]) - float(interval["first_cy"])
+    return (dx * dx + dy * dy) ** 0.5
+
+
+def _identity_area_ratio(first: Any, second: Any) -> Optional[float]:
+    if first is None or second is None:
+        return None
+    first_value = max(float(first), 1.0)
+    second_value = max(float(second), 1.0)
+    return max(first_value, second_value) / min(first_value, second_value)
+
+
+def _merge_identity_interval(
+    group: Dict[str, Any],
+    interval: Dict[str, Any],
+) -> None:
+    group["raw_track_ids"].add(int(interval["track_id"]))
+    group["first_frame"] = min(group["first_frame"], interval["start_frame"])
+    group["last_frame"] = max(group["last_frame"], interval["end_frame"])
+    group["first_s"] = min(group["first_s"], interval["start_s"])
+    group["last_s"] = max(group["last_s"], interval["end_s"])
+    group["last_cx"] = interval.get("last_cx")
+    group["last_cy"] = interval.get("last_cy")
+    group["last_area"] = interval.get("last_area")
+    group["observed_table_frames"] += int(interval["observed_table_frames"])
+    _merge_counts(group["role_counts"], interval.get("role_counts", {}))
+    _merge_counts(group["stage_counts"], interval.get("stage_counts", {}))
 
 
 def _observation_gap_exceeded(
@@ -3948,6 +4259,12 @@ def _table_interval_item(
         "end_frame": end["frame_index"],
         "start_s": round(float(start["timestamp_s"]), 3),
         "end_s": round(float(end["timestamp_s"]), 3),
+        "first_cx": start.get("cx"),
+        "first_cy": start.get("cy"),
+        "last_cx": end.get("cx"),
+        "last_cy": end.get("cy"),
+        "first_area": start.get("area"),
+        "last_area": end.get("area"),
         "observed_table_frames": len(observations),
         "interval_duration_s": round(float(duration_s), 3),
         "role_counts": role_counts,
@@ -4023,6 +4340,7 @@ def _stage_table_coverage_rows(
     segment_metrics: Sequence[FrameMetrics],
     segment_index: int,
     min_observed_table_frames: int,
+    identity_map: Optional[Dict[int, Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
     if not segment_metrics:
         return []
@@ -4046,10 +4364,19 @@ def _stage_table_coverage_rows(
         state = _tavr_state(metric)
         for track_id in state.table_track_ids:
             role = _role_for_track(state, track_id)
+            identity = (identity_map or {}).get(track_id)
+            canonical_table_id = (
+                identity["canonical_table_id"] if identity else track_id
+            )
+            merged_track_ids = (
+                list(identity["merged_track_ids"]) if identity else [track_id]
+            )
             track = tracks.setdefault(
-                track_id,
+                canonical_table_id,
                 {
-                    "track_id": track_id,
+                    "track_id": min(merged_track_ids),
+                    "canonical_table_id": canonical_table_id,
+                    "merged_track_ids": set(merged_track_ids),
                     "first_frame": metric.frame_index,
                     "last_frame": metric.frame_index,
                     "first_s": metric.timestamp_s,
@@ -4058,6 +4385,8 @@ def _stage_table_coverage_rows(
                     "role_counts": {},
                 },
             )
+            track["merged_track_ids"].add(track_id)
+            track["track_id"] = min(track["merged_track_ids"])
             track["first_frame"] = min(track["first_frame"], metric.frame_index)
             track["last_frame"] = max(track["last_frame"], metric.frame_index)
             track["first_s"] = min(track["first_s"], metric.timestamp_s)
@@ -4095,6 +4424,8 @@ def _stage_table_coverage_rows(
             "stage_non_room_view_frames": stage_non_room_view_frames,
             "tracking_available_rate": _ratio(stage_room_view_frames, stage_frames),
             "track_id": track["track_id"],
+            "canonical_table_id": track["canonical_table_id"],
+            "merged_track_ids": sorted(int(track_id) for track_id in track["merged_track_ids"]),
             "dominant_role": dominant_role,
             "table_team_role": table_team_role,
             "table_team_role_confidence": table_team_role_confidence,

@@ -73,7 +73,9 @@ with enough access/table evidence can read as a table operator even if its
 dominant zone history was imaging or another support area. Stage coverage,
 handoff, roster snapshot, and event timeline rows carry the same pair of roles,
 so the stage-by-stage review is consistent with the operator-facing table-team
-summary while preserving the raw audit trail.
+summary while preserving the raw audit trail. The evaluator also derives
+`table_identity_groups`, which stitch compatible sequential raw track IDs into
+canonical table-person groups and expose `merged_track_ids` for review.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 
@@ -133,7 +135,7 @@ Open the local URL Streamlit prints, upload a video, or click `Use synthetic
 sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
 The app shows a `Procedure status` summary, `Table team summary`, the latest
-table roster, last observed table roster, and `View segments`,
+table roster, last observed table roster, `Table identity groups`, and `View segments`,
 `Procedure event timeline`,
 `Procedure milestones`, `Stage evidence summary`, `Stage staffing summary`,
 `Stage handoff summary`, `Stage table coverage`, `Table transition events`, and
@@ -145,8 +147,9 @@ table-side, when the room camera is actually visible, which canonical TAVR
 milestones have been observed, which
 milestone is the current observed stage, which track IDs were table-side in each
 TAVR phase, how long they were present, their operator-facing table role and raw
-dominant role, whether they entered or exited during a stage, which table-side
-IDs continued, appeared, or dropped at each stage boundary, and whether each
+dominant role, which raw IDs were stitched into a canonical table person,
+whether they entered or exited during a stage, which table-side IDs continued,
+appeared, or dropped at each stage boundary, and whether each
 stage estimate is strong, weak, or held because the room view was unavailable. Mixed
 room/fluoroscopy runs also include room-view frame counts, tracking-available
 rates, and room-view table occupancy so staff/table coverage is not understated

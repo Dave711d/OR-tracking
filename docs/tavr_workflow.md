@@ -131,13 +131,19 @@ The JSON output includes:
 - `table_roster_snapshots`: row-oriented current, last-observed, and peak roster
   snapshots for CSV export.
 - `table_team_summary`: one row per meaningful table-side track across the clip.
-  Rows include `team_status` (`active_current`, `recent_last_observed`, or
-  `historical_seen`), raw `dominant_role`, operator-facing `table_team_role`,
-  table-role confidence, current/effective/last/peak roster membership flags,
-  first/last table-side timestamps, age from clip end, table frames,
-  table-presence ratio, dominant stage, role/stage counts, and a compact label.
-  This is the operator-facing "who is/was at the table" table when the latest
-  frame is non-room or the current room view is empty.
+  Rows include a representative raw `track_id`, `canonical_table_id`,
+  `merged_track_ids`, `team_status` (`active_current`,
+  `recent_last_observed`, or `historical_seen`), raw `dominant_role`,
+  operator-facing `table_team_role`, table-role confidence,
+  current/effective/last/peak roster membership flags, first/last table-side
+  timestamps, age from clip end, table frames, table-presence ratio, dominant
+  stage, role/stage counts, and a compact label. This is the operator-facing
+  "who is/was at the table" table when the latest frame is non-room or the
+  current room view is empty.
+- `table_identity_groups`: canonical table-person groups stitched from
+  compatible sequential raw track IDs using table-side timing, role, centroid,
+  and area continuity. These rows keep the representative raw track ID plus
+  `merged_track_ids` so identity stitching remains auditable.
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
@@ -147,8 +153,9 @@ The JSON output includes:
   stage-end presence events derived from the stage coverage rows.
 - `stage_table_coverage`: one row per table-side track per contiguous stage
   segment, including stage start/end, first/last seen timestamps, coverage
-  ratio, room-view coverage ratio, raw dominant role, operator-facing table role,
-  and whether the track entered or exited during the stage.
+  ratio, room-view coverage ratio, canonical table ID, merged raw track IDs, raw
+  dominant role, operator-facing table role, and whether the track entered or
+  exited during the stage.
 - `stage_handoff_summary`: one row per contiguous stage segment showing the
   lead table-side track, operator-facing lead role plus raw lead dominant role,
   active roster, table IDs that continued from the prior stage, new IDs, dropped
