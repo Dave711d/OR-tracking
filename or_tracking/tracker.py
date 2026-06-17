@@ -49,6 +49,8 @@ class MotionTrackerConfig:
     max_disappeared: int = 12
     crowding_threshold: int = 4
     zones: ZoneMap = field(default_factory=_default_zones)
+    suppress_non_room_tracking: bool = True
+    non_room_colorfulness_threshold: float = 8.0
     enable_tavr: bool = True
     tavr_initial_stage: str = "room_prep_drape"
     tavr_min_confidence_to_advance: float = 0.42
@@ -198,10 +200,14 @@ class ORActivityTracker:
         frame_index: int,
         timestamp_s: float,
     ) -> FrameMetrics:
+        view_colorfulness = _colorfulness(frame)
+        view_flags = self._view_quality_flags(view_colorfulness)
         candidates = self._detect_motion_candidates(frame)
+        if view_flags and self.config.suppress_non_room_tracking:
+            candidates = []
         detections, movement_px = self._tracker.update(candidates, frame_index)
         zone_counts = self._zone_counts(detections, frame.shape[1], frame.shape[0])
-        alert_flags = self._alert_flags(detections, zone_counts)
+        alert_flags = view_flags + self._alert_flags(detections, zone_counts)
         tavr = None
         if self._tavr is not None:
             table_track_ids = self._track_ids_in_zones(
@@ -230,6 +236,7 @@ class ORActivityTracker:
             movement_px=movement_px,
             zone_counts=zone_counts,
             alert_flags=alert_flags,
+            view_colorfulness=view_colorfulness,
             tavr=tavr,
         )
 
@@ -266,6 +273,8 @@ class ORActivityTracker:
                 f"{metrics.tavr.stage_label} | Table {metrics.tavr.table_count} | "
                 f"Conf {metrics.tavr.confidence:.2f}"
             )
+        if "non_room_view" in metrics.alert_flags:
+            status = "Non-room / fluoroscopy view | staff tracking suppressed"
         cv2.rectangle(annotated, (10, 10), (520, 46), (12, 18, 28), -1)
         cv2.putText(
             annotated,
@@ -393,6 +402,11 @@ class ORActivityTracker:
             flags.append("entry_activity")
         return flags
 
+    def _view_quality_flags(self, view_colorfulness: float) -> List[str]:
+        if view_colorfulness < self.config.non_room_colorfulness_threshold:
+            return ["non_room_view"]
+        return []
+
     def _draw_zones(self, frame: np.ndarray, width: int, height: int) -> None:
         for zone_name, (x0, y0, x1, y1) in self.config.zones.items():
             pt1 = (int(x0 * width), int(y0 * height))
@@ -417,3 +431,14 @@ def _distance(a: Point, b: Point) -> float:
 def _odd_kernel(value: int) -> int:
     value = max(int(value), 1)
     return value if value % 2 == 1 else value + 1
+
+
+def _colorfulness(frame: np.ndarray) -> float:
+    """Return a simple color-opponent score for room-vs-fluoroscopy gating."""
+
+    if frame.size == 0:
+        return 0.0
+    bgr = frame.astype("float32")
+    red_green = np.abs(bgr[:, :, 2] - bgr[:, :, 1]).mean()
+    yellow_blue = np.abs(0.5 * (bgr[:, :, 2] + bgr[:, :, 1]) - bgr[:, :, 0]).mean()
+    return float((red_green**2 + yellow_blue**2) ** 0.5)

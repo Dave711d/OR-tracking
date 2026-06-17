@@ -62,6 +62,10 @@ def score_tavr_metrics(
             tavr_metrics,
             labels.get("stage_staffing_expectations", []),
         ),
+        "quality_flag_score": _quality_flag_score(
+            tavr_metrics,
+            labels.get("quality_flag_expectations", []),
+        ),
     }
 
 
@@ -496,6 +500,24 @@ def tavr_quality_flags(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
             }
         )
 
+    non_room_frames = sum(
+        1 for metric in metrics if "non_room_view" in metric.alert_flags
+    )
+    non_room_ratio = non_room_frames / max(len(metrics), 1)
+    if non_room_ratio >= 0.2:
+        flags.append(
+            {
+                "code": "non_room_view",
+                "message": (
+                    "A substantial portion of the clip appears to be fluoroscopy "
+                    "or another non-room view; staff/table tracking is suppressed "
+                    "for those frames."
+                ),
+                "frames": non_room_frames,
+                "ratio": round(non_room_ratio, 3),
+            }
+        )
+
     return flags
 
 
@@ -769,6 +791,51 @@ def _stage_staffing_score(
                 "min_table_occupancy_rate": min_table_occupancy_rate,
                 "matched_tracks": matching_roster,
                 "matched_track_count": len(matching_roster),
+                "checks": checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
+def _quality_flag_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    flags = {flag["code"]: flag for flag in tavr_quality_flags(metrics)}
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        code = str(expectation["code"])
+        min_frames = int(expectation.get("min_frames", 1))
+        min_ratio = expectation.get("min_ratio")
+        max_ratio = expectation.get("max_ratio")
+        flag = flags.get(code)
+        frames = int(flag.get("frames", 0)) if flag else 0
+        ratio = float(flag.get("ratio", 0.0)) if flag else 0.0
+        checks = {
+            "present": flag is not None,
+            "min_frames": frames >= min_frames,
+            "min_ratio": min_ratio is None or ratio >= float(min_ratio),
+            "max_ratio": max_ratio is None or ratio <= float(max_ratio),
+        }
+        expectation_pass = all(checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "code": code,
+                "min_frames": min_frames,
+                "min_ratio": min_ratio,
+                "max_ratio": max_ratio,
+                "matched_flag": flag,
                 "checks": checks,
                 "passed": expectation_pass,
             }

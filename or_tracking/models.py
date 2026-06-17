@@ -46,6 +46,7 @@ class FrameMetrics:
     movement_px: float = 0.0
     zone_counts: Dict[str, int] = field(default_factory=dict)
     alert_flags: List[str] = field(default_factory=list)
+    view_colorfulness: float = 0.0
     tavr: Optional[Any] = None
 
     @property
@@ -70,6 +71,7 @@ class FrameMetrics:
             "people_count": self.people_count,
             "active_track_ids": tracks,
             "movement_px": round(float(self.movement_px), 2),
+            "view_colorfulness": round(float(self.view_colorfulness), 2),
             "zone_counts": zone_counts,
             "alert_flags": alerts,
         }

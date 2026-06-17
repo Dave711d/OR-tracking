@@ -17,15 +17,15 @@
   ],
   "table_count_segments": [
     {
-      "start_s": 14.5,
-      "end_s": 16.5,
+      "start_s": 3.5,
+      "end_s": 4.2,
       "min_peak_count": 4
     }
   ],
   "table_presence_expectations": [
     {
-      "start_s": 14.5,
-      "end_s": 16.5,
+      "start_s": 3.5,
+      "end_s": 4.2,
       "role": "table_operator",
       "min_intervals": 2,
       "min_observed_table_frames": 3
@@ -38,6 +38,12 @@
       "min_tracks": 2,
       "min_observed_table_frames": 3,
       "min_peak_count": 4
+    }
+  ],
+  "quality_flag_expectations": [
+    {
+      "code": "non_room_view",
+      "min_ratio": 0.2
     }
   ]
 }

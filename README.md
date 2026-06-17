@@ -15,7 +15,8 @@ added behind the same metrics surface later.
 - TAVR table-presence and procedure-stage inference
 - Per-track TAVR role dwell, current table roster, and evaluation summaries
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
-- Test-clip evaluator in `evaluate_tavr.py`
+- Single-clip evaluator in `evaluate_tavr.py`
+- Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
 - Browser-only Vercel demo in `public/`
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
@@ -70,6 +71,17 @@ python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2700_30s.mp4 \
   --labels docs/evaluation/sentara_live_2700_room_post.labels.json
 ```
 
+To run the current multi-clip real-footage regression suite:
+
+```bash
+python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite
+```
+
+The suite currently covers a mixed fluoroscopy-to-room clip, a fluoroscopy-only
+negative clip, and a post-deployment/closure room clip from the public Sentara
+TAVR video. It fails if scored label sections fall below their configured
+thresholds.
+
 For long cases, evaluate targeted slices while preserving source timestamps:
 
 ```bash
@@ -112,10 +124,16 @@ It also writes:
 - `outputs/*_tracked.mp4` when annotated video is enabled
 
 For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
-`tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`, and
-`tavr_signals`. The role/roster layer also emits `who_at_table`,
+`tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`,
+`view_colorfulness`, and `tavr_signals`. The role/roster layer also emits
+`who_at_table`,
 `role_track_ids`, and `track_role_summary` so a test run can be audited by track
 ID rather than only by frame-level counts.
+
+Broadcast footage can switch the ROI from room camera to fluoroscopy. Frames
+that look like non-room / fluoroscopy views are flagged as `non_room_view`, and
+staff/table detections are suppressed for those frames to avoid inventing
+table-side rosters from imaging motion.
 
 ## Vercel static demo
 

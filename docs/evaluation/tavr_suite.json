@@ -1,0 +1,46 @@
+{
+  "name": "Sentara public TAVR room/fluoro regression suite",
+  "description": "Local regression suite for pre-cut public Sentara TAVR slices. Label timestamps are clip-local because each video_path points at a 30s sample clip.",
+  "thresholds": {
+    "stage_accuracy": 1.0,
+    "table_count_pass_rate": 1.0,
+    "table_presence_pass_rate": 1.0,
+    "stage_staffing_pass_rate": 1.0,
+    "quality_flag_pass_rate": 1.0
+  },
+  "cases": [
+    {
+      "name": "sentara_1800_mixed_room",
+      "video_path": "samples/live_tavr_slices/live_tavr_1800_30s.mp4",
+      "labels_path": "docs/evaluation/sentara_live_1800_mixed_room.labels.json",
+      "config": {
+        "roi": [0.0, 0.46, 0.31, 0.89],
+        "initial_stage": "valve_delivery_positioning",
+        "min_area": 300,
+        "max_frames": 900
+      }
+    },
+    {
+      "name": "sentara_2400_fluoro_negative",
+      "video_path": "samples/live_tavr_slices/live_tavr_2400_30s.mp4",
+      "labels_path": "docs/evaluation/sentara_live_2400_fluoro_negative.labels.json",
+      "config": {
+        "roi": [0.0, 0.46, 0.31, 0.89],
+        "initial_stage": "valve_deployment",
+        "min_area": 300,
+        "max_frames": 900
+      }
+    },
+    {
+      "name": "sentara_2700_room_post",
+      "video_path": "samples/live_tavr_slices/live_tavr_2700_30s.mp4",
+      "labels_path": "docs/evaluation/sentara_live_2700_room_post.labels.json",
+      "config": {
+        "roi": [0.0, 0.46, 0.31, 0.89],
+        "initial_stage": "post_deploy_assessment",
+        "min_area": 300,
+        "max_frames": 900
+      }
+    }
+  ]
+}

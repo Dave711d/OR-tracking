@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import List, Optional
 
 import pytest
 
@@ -64,6 +65,24 @@ def test_summarize_tavr_metrics_flags_early_terminal_stage() -> None:
     assert {
         flag["code"] for flag in summary["quality_flags"]
     } >= {"early_terminal_stage"}
+
+
+def test_summarize_tavr_metrics_flags_non_room_view() -> None:
+    metrics = [
+        _metric(0, 0.0, "valve_deployment", alert_flags=["non_room_view"]),
+        _metric(1, 0.1, "valve_deployment", alert_flags=["non_room_view"]),
+        _metric(2, 0.2, "valve_deployment"),
+        _metric(3, 0.3, "valve_deployment"),
+    ]
+
+    summary = summarize_tavr_metrics(metrics)
+
+    non_room = [
+        flag for flag in summary["quality_flags"] if flag["code"] == "non_room_view"
+    ]
+    assert non_room
+    assert non_room[0]["frames"] == 2
+    assert non_room[0]["ratio"] == 0.5
 
 
 def test_table_presence_intervals_group_by_track_and_gap() -> None:
@@ -152,7 +171,13 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_table_occupancy_rate": 1.0,
             }
         ],
+        "quality_flag_expectations": [
+            {"code": "non_room_view", "min_ratio": 0.5}
+        ],
     }
+    metrics[0].alert_flags.append("non_room_view")
+    metrics[1].alert_flags.append("non_room_view")
+    metrics[2].alert_flags.append("non_room_view")
 
     score = score_tavr_metrics(metrics, labels)
 
@@ -164,6 +189,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["table_presence_score"]["expectations"][0]["matched_count"] == 1
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
+    assert score["quality_flag_score"]["pass_rate"] == 1.0
 
 
 def test_parse_roi_accepts_normalized_crop() -> None:
@@ -175,10 +201,16 @@ def test_parse_roi_rejects_invalid_crop() -> None:
         parse_roi("0.8,0.2,0.1,0.9")
 
 
-def _metric(frame_index: int, timestamp_s: float, stage: str) -> FrameMetrics:
+def _metric(
+    frame_index: int,
+    timestamp_s: float,
+    stage: str,
+    alert_flags: Optional[List[str]] = None,
+) -> FrameMetrics:
     return FrameMetrics(
         frame_index=frame_index,
         timestamp_s=timestamp_s,
+        alert_flags=alert_flags or [],
         tavr=TAVRFrameState(
             stage=stage,
             stage_label=TAVR_STAGE_LABELS[stage],

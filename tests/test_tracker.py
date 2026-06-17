@@ -43,6 +43,7 @@ def test_process_video_file_writes_metrics_and_summary(tmp_path: Path) -> None:
     assert result.summary.total_unique_tracks >= 1
     assert result.csv_path.exists()
     assert "people_count" in result.csv_path.read_text(encoding="utf-8")
+    assert "view_colorfulness" in result.csv_path.read_text(encoding="utf-8")
     assert result.annotated_video_path is not None
     assert result.annotated_video_path.exists()
 
@@ -125,6 +126,22 @@ def test_tracker_can_disable_tavr_inference(tmp_path: Path) -> None:
     capture.release()
 
     assert metrics.tavr is None
+
+
+def test_tracker_suppresses_obvious_non_room_view() -> None:
+    tracker = ORActivityTracker(MotionTrackerConfig(min_area=80))
+    base = np.full((120, 180, 3), 90, dtype=np.uint8)
+    changed = base.copy()
+    changed[50:95, 80:125] = 220
+
+    tracker.process_frame(base, 0, 0.0)
+    metrics = tracker.process_frame(changed, 1, 0.1)
+
+    assert "non_room_view" in metrics.alert_flags
+    assert metrics.view_colorfulness < 8.0
+    assert metrics.people_count == 0
+    assert metrics.tavr is not None
+    assert metrics.tavr.table_count == 0
 
 
 def test_tracker_config_can_seed_tavr_initial_stage() -> None:

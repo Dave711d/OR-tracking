@@ -57,6 +57,10 @@ The current model uses deterministic room-video heuristics:
 - Persistent role history per track, so "who is at the table" is reported as
   stable track IDs with dominant role and table-presence ratio rather than only
   a transient frame count.
+- A colorfulness guardrail for broadcast ROIs that switch to fluoroscopy or
+  other non-room views. Those frames are flagged as `non_room_view`, and
+  staff/table detections are suppressed so imaging motion does not become a
+  fabricated table roster.
 - A sequential stage model with minimum dwell time so the estimate progresses
   like a procedure timeline rather than flickering frame by frame.
 
@@ -117,10 +121,11 @@ The JSON output includes:
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,
-  fragmented tracks, or unusually noisy motion detections.
+  fragmented tracks, non-room/fluoroscopy view, or unusually noisy motion
+  detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
-  stage-staffing expectation pass rates.
+  stage-staffing / quality-flag expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -150,9 +155,34 @@ The label file can include:
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, or table-occupancy rate.
+- `quality_flag_expectations`: expected quality flags, such as requiring
+  `non_room_view` to cover a fluoroscopy-only ROI.
 
 Labels are deliberately lightweight JSON so they can be hand-authored from
 public clips, broadcast timestamps, or future labelled theatre footage.
+
+## Multi-Clip Suite
+
+Use the manifest runner to score several clips with one command:
+
+```bash
+python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite
+```
+
+The default suite is manifest-driven rather than shell-string-driven. Each case
+declares a clip path, label path, ROI, starting stage, frame limit, and tracking
+configuration. The runner writes per-case JSON plus
+`outputs/tavr_suite/suite_summary.json`, and exits non-zero if any scored label
+section falls below its configured threshold.
+
+The current local Sentara suite covers:
+
+- `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
+  roster expectations once the room view returns.
+- `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
+  table staff and should be flagged `non_room_view`.
+- `sentara_2700_room_post`: post-deployment / closure room-view segment with
+  stage, table count, presence, staffing, and quality expectations.
 
 ## Caveats
 

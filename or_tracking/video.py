@@ -121,6 +121,7 @@ def write_metrics_csv(path: str | Path, metrics: List[FrameMetrics]) -> None:
         "people_count",
         "active_track_ids",
         "movement_px",
+        "view_colorfulness",
         "zone_counts",
         "alert_flags",
         "tavr_stage",
