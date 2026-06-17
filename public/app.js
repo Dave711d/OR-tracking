@@ -15,6 +15,7 @@ const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
 const tableTeamList = document.querySelector("#tableTeamList");
 const stageCoverageList = document.querySelector("#stageCoverageList");
+const stageRosterList = document.querySelector("#stageRosterList");
 const milestoneList = document.querySelector("#milestoneList");
 const activityMetric = document.querySelector("#activityMetric");
 const elapsedMetric = document.querySelector("#elapsedMetric");
@@ -173,6 +174,8 @@ let previousFrame = null;
 let activityHistory = [];
 let tableTeam = new Map();
 let stageCoverage = new Map();
+let stageRosterSegments = [];
+let currentStageRosterSegment = null;
 let milestoneProgress = new Map();
 let currentMilestoneKey = null;
 let uploadedStageIndex = 0;
@@ -762,6 +765,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   renderTableRoster(summary.tableRoster);
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
+  updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
@@ -976,6 +980,119 @@ function renderStageCoverage() {
   });
 }
 
+function updateStageRoster(stage, roster, elapsedSeconds) {
+  if (!currentStageRosterSegment || currentStageRosterSegment.stageKey !== stage.key) {
+    currentStageRosterSegment = createStageRosterSegment(
+      stage,
+      roster,
+      elapsedSeconds,
+      currentStageRosterSegment,
+    );
+    stageRosterSegments.push(currentStageRosterSegment);
+  }
+
+  updateStageRosterSegment(currentStageRosterSegment, roster, elapsedSeconds);
+  renderStageRosterSummary();
+}
+
+function createStageRosterSegment(stage, roster, elapsedSeconds, previousSegment) {
+  const activeIds = roster.map(({ id }) => id);
+  const activeIdSet = new Set(activeIds);
+  const previousActiveIds = previousSegment ? previousSegment.activeIds : [];
+  const previousActiveIdSet = new Set(previousActiveIds);
+  const continuedIds = activeIds.filter((id) => previousActiveIdSet.has(id));
+  const newIds = activeIds.filter((id) => !previousActiveIdSet.has(id));
+  const droppedIds = previousActiveIds.filter((id) => !activeIdSet.has(id));
+
+  return {
+    stageKey: stage.key,
+    stageLabel: stage.label,
+    startSeen: elapsedSeconds,
+    lastSeen: elapsedSeconds,
+    frames: 0,
+    peakTableCount: 0,
+    activeIds: [],
+    continuedIds,
+    newIds,
+    droppedIds,
+    handoffType: classifyStageRosterHandoff(
+      previousSegment,
+      activeIds,
+      continuedIds,
+      newIds,
+      droppedIds,
+    ),
+    rosterStats: new Map(),
+  };
+}
+
+function updateStageRosterSegment(segment, roster, elapsedSeconds) {
+  segment.frames += 1;
+  segment.lastSeen = elapsedSeconds;
+  segment.peakTableCount = Math.max(segment.peakTableCount, roster.length);
+  segment.activeIds = roster.map(({ id }) => id);
+
+  roster.forEach(({ id, role }) => {
+    const item = segment.rosterStats.get(id) || {
+      id,
+      role,
+      frames: 0,
+      firstSeen: elapsedSeconds,
+      lastSeen: elapsedSeconds,
+    };
+    item.role = role;
+    item.frames += 1;
+    item.firstSeen = Math.min(item.firstSeen, elapsedSeconds);
+    item.lastSeen = Math.max(item.lastSeen, elapsedSeconds);
+    segment.rosterStats.set(id, item);
+  });
+}
+
+function classifyStageRosterHandoff(previousSegment, activeIds, continuedIds, newIds, droppedIds) {
+  if (!previousSegment) {
+    return activeIds.length ? "initial_table_roster" : "initial_no_table_evidence";
+  }
+  if (!activeIds.length && !droppedIds.length) return "no_table_evidence";
+  if (!activeIds.length) return "table_cleared";
+  if (!previousSegment.activeIds.length) return "table_roster_started";
+  if (newIds.length && droppedIds.length) return "roster_changed";
+  if (newIds.length) return "roster_added";
+  if (droppedIds.length) return "roster_removed";
+  return continuedIds.length ? "roster_continued" : "table_roster_started";
+}
+
+function renderStageRosterSummary() {
+  stageRosterList.replaceChildren();
+  const items = stageRosterSegments.slice(-8).reverse();
+
+  if (!items.length) {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    label.textContent = "None yet";
+    row.append(label);
+    stageRosterList.append(row);
+    return;
+  }
+
+  items.forEach((segment) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    const activeIds = compactIdList(segment.activeIds);
+    const newIds = compactIdList(segment.newIds);
+    const droppedIds = compactIdList(segment.droppedIds);
+
+    row.dataset.handoff = segment.handoffType.replaceAll("_", "-");
+    label.textContent = `${segment.stageLabel}: ${handoffLabel(segment.handoffType)}`;
+    value.textContent = (
+      `${segment.startSeen.toFixed(1)}-${segment.lastSeen.toFixed(1)}s; ` +
+      `peak ${segment.peakTableCount}; active ${activeIds}; +${newIds}; -${droppedIds}`
+    );
+    row.append(label, value);
+    stageRosterList.append(row);
+  });
+}
+
 function updateProcedureMilestones(stage, roster, tableSideCount, elapsedSeconds) {
   const stageMeta = TAVR_STAGE_LOOKUP.get(stage.key);
   if (!stageMeta) {
@@ -1067,12 +1184,25 @@ function statusLabel(status) {
   return "historical";
 }
 
+function handoffLabel(handoffType) {
+  return handoffType.replaceAll("_", " ");
+}
+
+function compactIdList(ids, maxVisible = 4) {
+  if (!ids.length) return "none";
+  const visible = ids.slice(0, maxVisible).join(",");
+  const hidden = ids.length - maxVisible;
+  return hidden > 0 ? `${visible}+${hidden}` : visible;
+}
+
 function resetMetrics(options = {}) {
   if (!options.keepSyntheticMode) syntheticMode = false;
   previousFrame = null;
   activityHistory = [];
   tableTeam = new Map();
   stageCoverage = new Map();
+  stageRosterSegments = [];
+  currentStageRosterSegment = null;
   milestoneProgress = new Map();
   currentMilestoneKey = null;
   uploadedStageIndex = selectedInitialStageIndex();
@@ -1083,6 +1213,7 @@ function resetMetrics(options = {}) {
   renderTableRoster([]);
   renderTableTeam();
   renderStageCoverage();
+  renderStageRosterSummary();
   renderProcedureMilestones();
   activityMetric.textContent = "0";
   elapsedMetric.textContent = "0.0s";

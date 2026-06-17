@@ -196,6 +196,7 @@ select {
 .count-list div,
 .coverage-list div,
 .team-list div,
+.stage-roster-list div,
 .roster-card {
   display: flex;
   align-items: center;
@@ -277,6 +278,7 @@ select {
 
 .coverage-list,
 .team-list,
+.stage-roster-list,
 .milestone-list {
   display: grid;
   gap: 8px;
@@ -284,6 +286,7 @@ select {
 
 .coverage-list div,
 .team-list div,
+.stage-roster-list div,
 .milestone-list div {
   align-items: flex-start;
   padding: 10px 12px;
@@ -291,6 +294,7 @@ select {
 
 .coverage-list span,
 .team-list span,
+.stage-roster-list span,
 .milestone-list span {
   color: var(--muted);
   font-size: 12px;
@@ -301,6 +305,7 @@ select {
 .count-list b,
 .coverage-list b,
 .team-list b,
+.stage-roster-list b,
 .milestone-list b {
   color: var(--warn);
   font-size: 18px;
@@ -308,6 +313,7 @@ select {
 
 .coverage-list b,
 .team-list b,
+.stage-roster-list b,
 .milestone-list b {
   color: var(--accent);
   font-size: 12px;
@@ -324,6 +330,17 @@ select {
   border-color: rgba(55, 214, 163, 0.72);
 }
 
+.stage-roster-list div[data-handoff="table-roster-started"],
+.stage-roster-list div[data-handoff="initial-table-roster"],
+.stage-roster-list div[data-handoff="roster-added"] {
+  border-color: rgba(55, 214, 163, 0.72);
+}
+
+.stage-roster-list div[data-handoff="table-cleared"] b,
+.stage-roster-list div[data-handoff="initial-no-table-evidence"] b {
+  color: var(--muted);
+}
+
 .team-list div[data-status="recent-last-observed"] b {
   color: var(--warn);
 }
@@ -333,6 +350,7 @@ select {
 }
 
 .team-list b,
+.stage-roster-list b,
 .milestone-list b {
   max-width: 118px;
   white-space: normal;

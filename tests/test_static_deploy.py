@@ -87,3 +87,17 @@ def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
     assert "function scoreTavrStages" in app_js
     assert "function chooseTavrStageIndex" in app_js
     assert "Uploaded review" not in analyze_frame_match.group("body")
+
+
+def test_static_demo_surfaces_stage_roster_summary() -> None:
+    index_html = Path("public/index.html").read_text(encoding="utf-8")
+    app_js = Path("public/app.js").read_text(encoding="utf-8")
+    styles = Path("public/styles.css").read_text(encoding="utf-8")
+
+    assert 'id="stageRosterList"' in index_html
+    assert "Stage roster" in index_html
+    assert "updateStageRoster(stage, summary.tableRoster, elapsedSeconds)" in app_js
+    assert "function renderStageRosterSummary" in app_js
+    assert "function classifyStageRosterHandoff" in app_js
+    assert "stageRosterSegments = []" in app_js
+    assert ".stage-roster-list" in styles
