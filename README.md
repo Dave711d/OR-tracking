@@ -53,9 +53,9 @@ To run a repeatable TAVR evaluation pass on any local clip:
 python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
 ```
 
-The evaluator prints JSON with the stage timeline, current table roster,
-per-track role dwell, and low-confidence segments to inspect before changing
-heuristics.
+The evaluator prints JSON with the stage timeline, current and peak table
+rosters, per-track role dwell, table-presence intervals, and low-confidence
+segments to inspect before changing heuristics.
 
 For long cases, evaluate targeted slices while preserving source timestamps:
 
@@ -89,7 +89,9 @@ streamlit run app.py --server.headless true
 Open the local URL Streamlit prints, upload a video, or click `Use synthetic
 sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
-The app writes:
+The app shows the latest table roster plus a `Table presence intervals` table
+with track ID, dominant role/stage, start/end time, and observed table frames.
+It also writes:
 
 - `outputs/*_metrics.csv`
 - `outputs/*_tracked.mp4` when annotated video is enabled

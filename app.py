@@ -14,6 +14,7 @@ from or_tracking import (
     TAVR_STAGE_LABELS,
     TAVR_STAGE_ORDER,
     process_video_file,
+    summarize_tavr_metrics,
 )
 from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 
@@ -169,6 +170,25 @@ def _run_analysis(
         )
         if latest.get("who_at_table"):
             st.success(f"At table now: {latest['who_at_table']}")
+
+    tavr_summary = summarize_tavr_metrics(result.metrics)
+    intervals = tavr_summary.get("table_presence_intervals", [])
+    if intervals:
+        st.subheader("Table presence intervals")
+        interval_columns = [
+            "track_id",
+            "dominant_role",
+            "dominant_stage",
+            "start_s",
+            "end_s",
+            "observed_table_frames",
+            "interval_duration_s",
+        ]
+        st.dataframe(
+            pd.DataFrame(intervals)[interval_columns].head(20),
+            width="stretch",
+            hide_index=True,
+        )
 
     chart_col, table_col = st.columns([3, 2])
     with chart_col:

@@ -5,7 +5,7 @@ import pytest
 
 from evaluate_tavr import parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
-from or_tracking.evaluation import summarize_tavr_metrics
+from or_tracking.evaluation import summarize_tavr_metrics, table_presence_intervals
 from or_tracking.models import FrameMetrics
 from or_tracking.synthetic import generate_synthetic_tavr_video
 from or_tracking.tavr import (
@@ -35,6 +35,11 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["peak_table_roster"]["table_count"] >= 1
     assert summary["peak_table_roster"]["roster"]
     assert summary["table_presence_roster"]
+    assert summary["table_presence_intervals"]
+    assert any(
+        item["table_presence_roster"]
+        for item in summary["stage_timeline"]
+    )
     assert "low_confidence_segments" in summary
     assert "quality_flags" in summary
 
@@ -52,6 +57,30 @@ def test_summarize_tavr_metrics_flags_early_terminal_stage() -> None:
     assert {
         flag["code"] for flag in summary["quality_flags"]
     } >= {"early_terminal_stage"}
+
+
+def test_table_presence_intervals_group_by_track_and_gap() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(20, 2.0, "valve_deployment", [7]),
+        _table_metric(21, 2.1, "valve_deployment", [7]),
+        _table_metric(22, 2.2, "valve_deployment", [9]),
+    ]
+
+    intervals = table_presence_intervals(
+        metrics,
+        max_gap_frames=3,
+        max_gap_s=0.5,
+        min_observed_table_frames=1,
+    )
+
+    assert [item["track_id"] for item in intervals] == [7, 7, 9]
+    assert intervals[0]["dominant_stage"] == "access_sheathing"
+    assert intervals[0]["observed_table_frames"] == 2
+    assert intervals[0]["interval_duration_s"] == 0.2
+    assert intervals[1]["dominant_stage"] == "valve_deployment"
+    assert intervals[2]["dominant_role"] == "table_operator"
 
 
 def test_parse_roi_accepts_normalized_crop() -> None:
@@ -79,4 +108,45 @@ def _metric(frame_index: int, timestamp_s: float, stage: str) -> FrameMetrics:
             signals={},
             note=TAVR_STAGE_NOTES[stage],
         ),
+    )
+
+
+def _table_metric(
+    frame_index: int,
+    timestamp_s: float,
+    stage: str,
+    table_track_ids: list[int],
+) -> FrameMetrics:
+    return FrameMetrics(
+        frame_index=frame_index,
+        timestamp_s=timestamp_s,
+        tavr=TAVRFrameState(
+            stage=stage,
+            stage_label=TAVR_STAGE_LABELS[stage],
+            confidence=0.8,
+            table_count=len(table_track_ids),
+            table_track_ids=table_track_ids,
+            role_counts={"table_operator": len(table_track_ids)},
+            role_track_ids={"table_operator": table_track_ids},
+            track_role_summaries={
+                track_id: _track_summary(track_id, frame_index)
+                for track_id in table_track_ids
+            },
+            signals={},
+            note=TAVR_STAGE_NOTES[stage],
+        ),
+    )
+
+
+def _track_summary(track_id: int, frame_index: int):
+    from or_tracking.tavr import TrackRoleSummary
+
+    return TrackRoleSummary(
+        track_id=track_id,
+        dominant_role="table_operator",
+        frames_seen=1,
+        first_frame=frame_index,
+        last_frame=frame_index,
+        table_frames=1,
+        role_counts={"table_operator": 1},
     )

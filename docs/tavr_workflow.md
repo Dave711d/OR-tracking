@@ -105,6 +105,8 @@ The JSON output includes:
 - `peak_table_roster`: roster from the frame with the highest table-side count.
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.
+- `table_presence_intervals`: entry/exit-style table-side intervals with start
+  and end timestamps, observed table frames, dominant role, and dominant stage.
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,

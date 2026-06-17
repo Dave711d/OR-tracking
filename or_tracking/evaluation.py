@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from .models import FrameMetrics
 from .tavr import TAVRFrameState, TrackRoleSummary
@@ -21,6 +21,10 @@ def summarize_tavr_metrics(
         "current_table_roster": current_table_roster(tavr_metrics),
         "peak_table_roster": peak_table_roster(tavr_metrics),
         "table_presence_roster": table_presence_roster(tavr_metrics),
+        "table_presence_intervals": table_presence_intervals(
+            tavr_metrics,
+            min_observed_table_frames=3,
+        ),
         "low_confidence_segments": low_confidence_segments(
             tavr_metrics,
             threshold=confidence_threshold,
@@ -142,6 +146,46 @@ def table_presence_roster(
             }
         )
     return roster
+
+
+def table_presence_intervals(
+    metrics: Sequence[FrameMetrics],
+    max_gap_frames: int = 12,
+    max_gap_s: float = 1.0,
+    min_observed_table_frames: int = 1,
+) -> List[Dict[str, Any]]:
+    """Return contiguous table-side intervals for each tracked ID."""
+
+    if not metrics:
+        return []
+
+    observations = _table_observations(metrics)
+    sample_period_s = _sample_period_s(metrics)
+    intervals: List[Dict[str, Any]] = []
+    for track_id in sorted(observations):
+        active: List[Dict[str, Any]] = []
+        for observation in observations[track_id]:
+            if active and _observation_gap_exceeded(
+                active[-1],
+                observation,
+                max_gap_frames=max_gap_frames,
+                max_gap_s=max_gap_s,
+            ):
+                if len(active) >= min_observed_table_frames:
+                    intervals.append(_table_interval_item(track_id, active, sample_period_s))
+                active = []
+            active.append(observation)
+        if len(active) >= min_observed_table_frames:
+            intervals.append(_table_interval_item(track_id, active, sample_period_s))
+
+    intervals.sort(
+        key=lambda item: (
+            item["start_s"],
+            item["track_id"],
+            -item["observed_table_frames"],
+        )
+    )
+    return intervals
 
 
 def _roster_from_state(state: TAVRFrameState) -> List[Dict[str, Any]]:
@@ -269,6 +313,7 @@ def _timeline_item(
     state: TAVRFrameState,
 ) -> Dict[str, Any]:
     end_state = _tavr_state(metrics[end_index])
+    segment_metrics = metrics[start_index : end_index + 1]
     return {
         "stage": state.stage,
         "stage_label": state.stage_label,
@@ -278,8 +323,10 @@ def _timeline_item(
         "end_s": metrics[end_index].timestamp_s,
         "peak_table_count": max(
             _tavr_state(metric).table_count
-            for metric in metrics[start_index : end_index + 1]
+            for metric in segment_metrics
         ),
+        "peak_table_roster": peak_table_roster(segment_metrics),
+        "table_presence_roster": _interval_roster(segment_metrics),
         "table_roster": [
             end_state.track_role_summaries[track_id].to_who_at_table()
             for track_id in end_state.table_track_ids
@@ -311,3 +358,113 @@ def _tavr_state(metric: FrameMetrics) -> TAVRFrameState:
     if metric.tavr is None:
         raise ValueError("TAVR evaluation requires metrics with TAVR state")
     return metric.tavr
+
+
+def _table_observations(
+    metrics: Sequence[FrameMetrics],
+) -> Dict[int, List[Dict[str, Any]]]:
+    observations: Dict[int, List[Dict[str, Any]]] = {}
+    for metric in metrics:
+        state = _tavr_state(metric)
+        for track_id in state.table_track_ids:
+            summary = state.track_role_summaries.get(track_id)
+            observations.setdefault(track_id, []).append(
+                {
+                    "frame_index": metric.frame_index,
+                    "timestamp_s": metric.timestamp_s,
+                    "stage": state.stage,
+                    "role": summary.dominant_role if summary else "unassigned",
+                }
+            )
+    return observations
+
+
+def _observation_gap_exceeded(
+    previous: Dict[str, Any],
+    current: Dict[str, Any],
+    max_gap_frames: int,
+    max_gap_s: float,
+) -> bool:
+    frame_gap = current["frame_index"] - previous["frame_index"]
+    time_gap = current["timestamp_s"] - previous["timestamp_s"]
+    return frame_gap > max_gap_frames or time_gap > max_gap_s
+
+
+def _table_interval_item(
+    track_id: int,
+    observations: Sequence[Dict[str, Any]],
+    sample_period_s: float,
+) -> Dict[str, Any]:
+    start = observations[0]
+    end = observations[-1]
+    role_counts = _counts(item["role"] for item in observations)
+    stage_counts = _counts(item["stage"] for item in observations)
+    dominant_role = _dominant_from_counts(role_counts)
+    dominant_stage = _dominant_from_counts(stage_counts)
+    duration_s = max(0.0, end["timestamp_s"] - start["timestamp_s"] + sample_period_s)
+    return {
+        "track_id": track_id,
+        "dominant_role": dominant_role,
+        "dominant_stage": dominant_stage,
+        "start_frame": start["frame_index"],
+        "end_frame": end["frame_index"],
+        "start_s": round(float(start["timestamp_s"]), 3),
+        "end_s": round(float(end["timestamp_s"]), 3),
+        "observed_table_frames": len(observations),
+        "interval_duration_s": round(float(duration_s), 3),
+        "role_counts": role_counts,
+        "stage_counts": stage_counts,
+        "label": (
+            f"ID {track_id} {dominant_role} "
+            f"{start['timestamp_s']:.1f}-{end['timestamp_s']:.1f}s"
+        ),
+    }
+
+
+def _interval_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    roster = []
+    for interval in table_presence_intervals(metrics):
+        roster.append(
+            {
+                "track_id": interval["track_id"],
+                "dominant_role": interval["dominant_role"],
+                "observed_table_frames": interval["observed_table_frames"],
+                "interval_duration_s": interval["interval_duration_s"],
+                "start_s": interval["start_s"],
+                "end_s": interval["end_s"],
+                "label": interval["label"],
+            }
+        )
+    roster.sort(
+        key=lambda item: (
+            -item["observed_table_frames"],
+            item["start_s"],
+            item["track_id"],
+        )
+    )
+    return roster
+
+
+def _counts(values: Iterable[str]) -> Dict[str, int]:
+    counts: Dict[str, int] = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _dominant_from_counts(counts: Dict[str, int]) -> str:
+    if not counts:
+        return "unassigned"
+    return max(counts.items(), key=lambda item: (item[1], item[0]))[0]
+
+
+def _sample_period_s(metrics: Sequence[FrameMetrics]) -> float:
+    deltas = [
+        current.timestamp_s - previous.timestamp_s
+        for previous, current in zip(metrics, metrics[1:])
+        if current.timestamp_s > previous.timestamp_s
+    ]
+    if not deltas:
+        return 0.0
+    deltas.sort()
+    return deltas[len(deltas) // 2]
