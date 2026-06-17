@@ -444,6 +444,29 @@ def test_table_team_summary_reports_active_recent_and_historical_members() -> No
     assert "historical seen" in room_by_id[8]["label"]
 
 
+def test_table_team_role_promotes_table_facing_role_over_raw_dominant() -> None:
+    metrics = [
+        _table_metric(
+            index,
+            index / 10,
+            "valve_deployment",
+            [13],
+            roles_by_track={
+                13: "table_operator" if index < 4 else "imaging",
+            },
+        )
+        for index in range(12)
+    ]
+
+    team = table_team_summary(metrics, min_observed_table_frames=1)
+    row = {item["track_id"]: item for item in team}[13]
+
+    assert row["dominant_role"] == "imaging"
+    assert row["table_team_role"] == "table_operator"
+    assert row["table_team_role_confidence"] == pytest.approx(0.333)
+    assert "table_operator (dominant imaging)" in row["label"]
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -836,7 +859,15 @@ def _table_metric(
     stage: str,
     table_track_ids: list[int],
     alert_flags: Optional[List[str]] = None,
+    roles_by_track: Optional[dict[int, str]] = None,
 ) -> FrameMetrics:
+    role_counts: dict[str, int] = {}
+    role_track_ids: dict[str, list[int]] = {}
+    for track_id in table_track_ids:
+        role = (roles_by_track or {}).get(track_id, "table_operator")
+        role_counts[role] = role_counts.get(role, 0) + 1
+        role_track_ids.setdefault(role, []).append(track_id)
+
     return FrameMetrics(
         frame_index=frame_index,
         timestamp_s=timestamp_s,
@@ -847,10 +878,14 @@ def _table_metric(
             confidence=0.8,
             table_count=len(table_track_ids),
             table_track_ids=table_track_ids,
-            role_counts={"table_operator": len(table_track_ids)},
-            role_track_ids={"table_operator": table_track_ids},
+            role_counts=role_counts,
+            role_track_ids=role_track_ids,
             track_role_summaries={
-                track_id: _track_summary(track_id, frame_index)
+                track_id: _track_summary(
+                    track_id,
+                    frame_index,
+                    role=(roles_by_track or {}).get(track_id, "table_operator"),
+                )
                 for track_id in table_track_ids
             },
             signals={},
@@ -859,15 +894,15 @@ def _table_metric(
     )
 
 
-def _track_summary(track_id: int, frame_index: int):
+def _track_summary(track_id: int, frame_index: int, role: str = "table_operator"):
     from or_tracking.tavr import TrackRoleSummary
 
     return TrackRoleSummary(
         track_id=track_id,
-        dominant_role="table_operator",
+        dominant_role=role,
         frames_seen=1,
         first_frame=frame_index,
         last_frame=frame_index,
         table_frames=1,
-        role_counts={"table_operator": 1},
+        role_counts={role: 1},
     )
