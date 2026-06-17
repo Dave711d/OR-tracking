@@ -1,0 +1,5 @@
+streamlit>=1.36,<2
+opencv-python-headless>=4.9,<5
+numpy>=1.26,<3
+pandas>=2.2,<3
+yt-dlp>=2024.8.6

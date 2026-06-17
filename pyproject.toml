@@ -1,0 +1,18 @@
+[project]
+name = "or-tracking"
+version = "0.1.0"
+description = "Deployable OR staff motion tracking prototype"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "streamlit>=1.36,<2",
+  "opencv-python-headless>=4.9,<5",
+  "numpy>=1.26,<3",
+  "pandas>=2.2,<3",
+  "yt-dlp>=2024.8.6",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

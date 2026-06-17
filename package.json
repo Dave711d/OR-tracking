@@ -1,0 +1,9 @@
+{
+  "name": "or-tracking-static-demo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && cp -R public/* dist/",
+    "start": "python3 -m http.server 4174 --directory public"
+  }
+}

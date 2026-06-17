@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OR Tracking Prototype</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <h1>OR Tracking Prototype</h1>
+            <p>Browser-based motion tracking for quick online review.</p>
+          </div>
+          <label class="upload-button">
+            <input id="videoInput" type="file" accept="video/*" />
+            <span>Upload video</span>
+          </label>
+        </header>
+
+        <section class="video-stage">
+          <video id="sourceVideo" muted playsinline controls></video>
+          <canvas id="overlayCanvas"></canvas>
+          <div id="emptyState" class="empty-state">
+            <strong>No video loaded</strong>
+            <span>Choose a local MP4, MOV, or M4V file.</span>
+          </div>
+        </section>
+
+        <section class="controls">
+          <button id="playButton" type="button">Play / pause</button>
+          <button id="syntheticButton" type="button">Synthetic demo</button>
+          <button id="resetButton" type="button">Reset metrics</button>
+          <label>
+            Sensitivity
+            <input id="sensitivity" type="range" min="12" max="80" value="34" />
+          </label>
+          <label>
+            Cell size
+            <input id="cellSize" type="range" min="14" max="40" value="24" />
+          </label>
+        </section>
+      </section>
+
+      <aside class="inspector">
+        <div class="metric">
+          <span>People-like motion</span>
+          <strong id="countMetric">0</strong>
+        </div>
+        <div class="metric">
+          <span>Activity score</span>
+          <strong id="activityMetric">0</strong>
+        </div>
+        <div class="metric">
+          <span>Elapsed</span>
+          <strong id="elapsedMetric">0.0s</strong>
+        </div>
+        <canvas id="sparkline" width="320" height="96"></canvas>
+        <div class="zone-list">
+          <div><span>Entry</span><b id="entryZone">0</b></div>
+          <div><span>Table</span><b id="tableZone">0</b></div>
+          <div><span>Anesthesia</span><b id="anesZone">0</b></div>
+        </div>
+      </aside>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
