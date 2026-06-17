@@ -40,3 +40,17 @@ def test_main_falls_back_to_fixture_when_download_fails(
 
     assert output.exists()
     assert "Download failed" in capsys.readouterr().out
+
+
+def test_main_can_generate_tavr_fixture(monkeypatch, tmp_path: Path) -> None:
+    output = tmp_path / "tavr.mp4"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["download_sample.py", "--tavr-fixture", "--output", str(output)],
+    )
+
+    download_sample.main()
+
+    assert output.exists()
+    assert output.stat().st_size > 0

@@ -15,17 +15,14 @@ import cv2
 import numpy as np
 
 from .models import BBox, Detection, FrameMetrics, Point
+from .tavr import ROLE_ZONE_MAP, TABLE_ZONES, TAVRWorkflowAnalyzer, tavr_default_zones
 
 
 ZoneMap = Mapping[str, Tuple[float, float, float, float]]
 
 
 def _default_zones() -> Dict[str, Tuple[float, float, float, float]]:
-    return {
-        "entry": (0.0, 0.0, 0.22, 1.0),
-        "table": (0.30, 0.24, 0.70, 0.82),
-        "anesthesia": (0.70, 0.0, 1.0, 0.42),
-    }
+    return tavr_default_zones()
 
 
 @dataclass
@@ -42,6 +39,7 @@ class MotionTrackerConfig:
     max_disappeared: int = 12
     crowding_threshold: int = 4
     zones: ZoneMap = field(default_factory=_default_zones)
+    enable_tavr: bool = True
 
 
 @dataclass
@@ -165,6 +163,7 @@ class ORActivityTracker:
             max_distance=self.config.max_match_distance,
             max_disappeared=self.config.max_disappeared,
         )
+        self._tavr = TAVRWorkflowAnalyzer() if self.config.enable_tavr else None
 
     @property
     def total_tracks_seen(self) -> int:
@@ -180,6 +179,27 @@ class ORActivityTracker:
         detections, movement_px = self._tracker.update(candidates, frame_index)
         zone_counts = self._zone_counts(detections, frame.shape[1], frame.shape[0])
         alert_flags = self._alert_flags(detections, zone_counts)
+        tavr = None
+        if self._tavr is not None:
+            table_track_ids = self._track_ids_in_zones(
+                detections,
+                frame.shape[1],
+                frame.shape[0],
+                TABLE_ZONES,
+            )
+            role_track_ids = self._role_track_ids(
+                detections,
+                frame.shape[1],
+                frame.shape[0],
+            )
+            tavr = self._tavr.update(
+                detections=detections,
+                zone_counts=zone_counts,
+                table_track_ids=table_track_ids,
+                role_track_ids=role_track_ids,
+                frame_index=frame_index,
+                movement_px=movement_px,
+            )
         return FrameMetrics(
             frame_index=frame_index,
             timestamp_s=timestamp_s,
@@ -187,6 +207,7 @@ class ORActivityTracker:
             movement_px=movement_px,
             zone_counts=zone_counts,
             alert_flags=alert_flags,
+            tavr=tavr,
         )
 
     def annotate_frame(
@@ -217,7 +238,12 @@ class ORActivityTracker:
         status = (
             f"People {metrics.people_count} | Move {metrics.movement_px:.0f}px"
         )
-        cv2.rectangle(annotated, (10, 10), (360, 46), (12, 18, 28), -1)
+        if metrics.tavr is not None:
+            status = (
+                f"{metrics.tavr.stage_label} | Table {metrics.tavr.table_count} | "
+                f"Conf {metrics.tavr.confidence:.2f}"
+            )
+        cv2.rectangle(annotated, (10, 10), (520, 46), (12, 18, 28), -1)
         cv2.putText(
             annotated,
             status,
@@ -275,6 +301,52 @@ class ORActivityTracker:
                 if x0 <= cx <= x1 and y0 <= cy <= y1:
                     counts[zone_name] += 1
         return counts
+
+    def _track_ids_in_zones(
+        self,
+        detections: Sequence[Detection],
+        width: int,
+        height: int,
+        zone_names: Sequence[str],
+    ) -> List[int]:
+        track_ids: List[int] = []
+        for detection in detections:
+            cx = detection.centroid[0] / max(width, 1)
+            cy = detection.centroid[1] / max(height, 1)
+            for zone_name in zone_names:
+                zone = self.config.zones.get(zone_name)
+                if zone is None:
+                    continue
+                x0, y0, x1, y1 = zone
+                if x0 <= cx <= x1 and y0 <= cy <= y1:
+                    track_ids.append(detection.track_id)
+                    break
+        return sorted(set(track_ids))
+
+    def _role_track_ids(
+        self,
+        detections: Sequence[Detection],
+        width: int,
+        height: int,
+    ) -> Dict[str, List[int]]:
+        role_track_ids: Dict[str, List[int]] = {
+            role: [] for role in sorted(set(ROLE_ZONE_MAP.values()))
+        }
+        for detection in detections:
+            cx = detection.centroid[0] / max(width, 1)
+            cy = detection.centroid[1] / max(height, 1)
+            for zone_name, role in ROLE_ZONE_MAP.items():
+                zone = self.config.zones.get(zone_name)
+                if zone is None:
+                    continue
+                x0, y0, x1, y1 = zone
+                if x0 <= cx <= x1 and y0 <= cy <= y1:
+                    role_track_ids[role].append(detection.track_id)
+
+        return {
+            role: sorted(set(track_ids))
+            for role, track_ids in role_track_ids.items()
+        }
 
     def _alert_flags(
         self, detections: Sequence[Detection], zone_counts: Mapping[str, int]

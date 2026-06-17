@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 BBox = Tuple[int, int, int, int]
@@ -46,6 +46,7 @@ class FrameMetrics:
     movement_px: float = 0.0
     zone_counts: Dict[str, int] = field(default_factory=dict)
     alert_flags: List[str] = field(default_factory=list)
+    tavr: Optional[Any] = None
 
     @property
     def people_count(self) -> int:
@@ -63,7 +64,7 @@ class FrameMetrics:
         )
         alerts = ",".join(sorted(self.alert_flags))
         tracks = ",".join(str(track_id) for track_id in self.active_track_ids)
-        return {
+        row = {
             "frame_index": self.frame_index,
             "timestamp_s": round(float(self.timestamp_s), 3),
             "people_count": self.people_count,
@@ -72,6 +73,9 @@ class FrameMetrics:
             "zone_counts": zone_counts,
             "alert_flags": alerts,
         }
+        if self.tavr is not None:
+            row.update(self.tavr.to_row_fields())
+        return row
 
 
 @dataclass
@@ -85,6 +89,8 @@ class TrackingSummary:
     total_unique_tracks: int
     activity_score: float
     alert_count: int
+    dominant_tavr_stage: str = ""
+    peak_table_count: int = 0
 
     @classmethod
     def from_metrics(cls, metrics: Sequence[FrameMetrics]) -> "TrackingSummary":
@@ -97,6 +103,8 @@ class TrackingSummary:
                 total_unique_tracks=0,
                 activity_score=0.0,
                 alert_count=0,
+                dominant_tavr_stage="",
+                peak_table_count=0,
             )
 
         counts = [metric.people_count for metric in metrics]
@@ -106,6 +114,9 @@ class TrackingSummary:
         duration = max(metric.timestamp_s for metric in metrics)
         movement = sum(metric.movement_px for metric in metrics)
         alert_count = sum(len(metric.alert_flags) for metric in metrics)
+        tavr_states = [metric.tavr for metric in metrics if metric.tavr is not None]
+        dominant_tavr_stage = _dominant_stage(tavr_states)
+        peak_table_count = max((state.table_count for state in tavr_states), default=0)
         return cls(
             frames_processed=len(metrics),
             duration_s=round(float(duration), 3),
@@ -114,6 +125,8 @@ class TrackingSummary:
             total_unique_tracks=len(track_ids),
             activity_score=round(movement / max(len(metrics), 1), 2),
             alert_count=alert_count,
+            dominant_tavr_stage=dominant_tavr_stage,
+            peak_table_count=peak_table_count,
         )
 
     def to_dict(self) -> Dict[str, object]:
@@ -125,8 +138,19 @@ class TrackingSummary:
             "total_unique_tracks": self.total_unique_tracks,
             "activity_score": self.activity_score,
             "alert_count": self.alert_count,
+            "dominant_tavr_stage": self.dominant_tavr_stage,
+            "peak_table_count": self.peak_table_count,
         }
 
 
 def rows_from_metrics(metrics: Iterable[FrameMetrics]) -> List[Dict[str, object]]:
     return [metric.to_row() for metric in metrics]
+
+
+def _dominant_stage(states: Sequence[Any]) -> str:
+    counts: Dict[str, int] = {}
+    for state in states:
+        counts[state.stage] = counts.get(state.stage, 0) + 1
+    if not counts:
+        return ""
+    return max(counts.items(), key=lambda item: item[1])[0]

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OR Tracking Prototype</title>
+    <title>TAVR OR Tracking Prototype</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -11,8 +11,8 @@
       <section class="workspace">
         <header class="topbar">
           <div>
-            <h1>OR Tracking Prototype</h1>
-            <p>Browser-based motion tracking for quick online review.</p>
+            <h1>TAVR OR Tracking Prototype</h1>
+            <p>Browser-based TAVR stage, table-side, and role/zone review.</p>
           </div>
           <label class="upload-button">
             <input id="videoInput" type="file" accept="video/*" />
@@ -45,9 +45,17 @@
       </section>
 
       <aside class="inspector">
+        <div class="metric metric-stage">
+          <span>TAVR stage</span>
+          <strong id="stageMetric">Idle</strong>
+        </div>
         <div class="metric">
-          <span>People-like motion</span>
+          <span>Tracked staff</span>
           <strong id="countMetric">0</strong>
+        </div>
+        <div class="metric">
+          <span>Table-side count</span>
+          <strong id="tableSideMetric">0</strong>
         </div>
         <div class="metric">
           <span>Activity score</span>
@@ -58,10 +66,29 @@
           <strong id="elapsedMetric">0.0s</strong>
         </div>
         <canvas id="sparkline" width="320" height="96"></canvas>
-        <div class="zone-list">
-          <div><span>Entry</span><b id="entryZone">0</b></div>
-          <div><span>Table</span><b id="tableZone">0</b></div>
-          <div><span>Anesthesia</span><b id="anesZone">0</b></div>
+        <div class="count-group">
+          <h2>Zones</h2>
+          <div class="count-list">
+            <div><span>Entry / supply</span><b id="entryZone">0</b></div>
+            <div><span>Access</span><b id="accessZone">0</b></div>
+            <div><span>Table</span><b id="tableZone">0</b></div>
+            <div><span>Table left</span><b id="tableLeftZone">0</b></div>
+            <div><span>Table right</span><b id="tableRightZone">0</b></div>
+            <div><span>Anesthesia</span><b id="anesZone">0</b></div>
+            <div><span>Imaging</span><b id="imagingZone">0</b></div>
+            <div><span>Device prep</span><b id="deviceZone">0</b></div>
+          </div>
+        </div>
+        <div class="count-group">
+          <h2>Role zones</h2>
+          <div class="count-list">
+            <div><span>Table operator</span><b id="tableOperatorRole">0</b></div>
+            <div><span>Access operator</span><b id="accessOperatorRole">0</b></div>
+            <div><span>Device prep</span><b id="devicePrepRole">0</b></div>
+            <div><span>Imaging</span><b id="imagingRole">0</b></div>
+            <div><span>Anesthesia</span><b id="anesthesiaRole">0</b></div>
+            <div><span>Entry / supply</span><b id="entryRole">0</b></div>
+          </div>
         </div>
       </aside>
     </main>

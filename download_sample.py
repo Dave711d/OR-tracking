@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 from typing import Dict
 
-from or_tracking.synthetic import generate_synthetic_or_video
+from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 
 
 DEFAULT_OUTPUT = Path("samples/or_sample.mp4")
@@ -50,6 +50,11 @@ def parse_args() -> argparse.Namespace:
         help="Generate a deterministic synthetic OR fixture instead of downloading",
     )
     parser.add_argument(
+        "--tavr-fixture",
+        action="store_true",
+        help="Generate deterministic synthetic TAVR procedure footage",
+    )
+    parser.add_argument(
         "--no-fallback",
         action="store_true",
         help="Fail if the remote download is blocked instead of generating a fixture",
@@ -59,8 +64,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    if args.fixture:
-        path = generate_synthetic_or_video(args.output)
+    if args.fixture or args.tavr_fixture:
+        generator = generate_synthetic_tavr_video if args.tavr_fixture else generate_synthetic_or_video
+        path = generator(args.output)
         print(path)
         return
     if not args.url:

@@ -130,6 +130,10 @@ video {
   color: var(--muted);
 }
 
+.empty-state[hidden] {
+  display: none;
+}
+
 .empty-state strong {
   color: var(--text);
   font-size: 18px;
@@ -164,7 +168,7 @@ input[type="range"] {
 }
 
 .metric,
-.zone-list div {
+.count-list div {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -176,7 +180,7 @@ input[type="range"] {
 }
 
 .metric span,
-.zone-list span {
+.count-list span {
   color: var(--muted);
   font-size: 13px;
   font-weight: 650;
@@ -187,6 +191,14 @@ input[type="range"] {
   line-height: 1;
 }
 
+.metric-stage strong {
+  max-width: 190px;
+  color: var(--accent);
+  font-size: 18px;
+  line-height: 1.15;
+  text-align: right;
+}
+
 #sparkline {
   width: 100%;
   height: 96px;
@@ -195,12 +207,25 @@ input[type="range"] {
   border-radius: 6px;
 }
 
-.zone-list {
+.count-group {
   display: grid;
   gap: 8px;
 }
 
-.zone-list b {
+.count-group h2 {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.count-list {
+  display: grid;
+  gap: 8px;
+}
+
+.count-list b {
   color: var(--warn);
   font-size: 18px;
 }

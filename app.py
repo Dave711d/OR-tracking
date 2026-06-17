@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from or_tracking import MotionTrackerConfig, process_video_file
-from or_tracking.synthetic import generate_synthetic_or_video
+from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 
 
 st.set_page_config(
@@ -25,7 +25,7 @@ def main() -> None:
     with st.sidebar:
         st.header("Run settings")
         max_frames = st.slider("Max frames", 60, 1800, 360, step=60)
-        min_area = st.slider("Minimum tracked area", 100, 5000, 700, step=100)
+        min_area = st.slider("Minimum tracked area", 100, 5000, 200, step=100)
         crowding_threshold = st.slider("Crowding threshold", 2, 8, 4)
         write_video = st.toggle("Create annotated video", value=True)
 
@@ -35,9 +35,11 @@ def main() -> None:
         accept_multiple_files=False,
     )
 
-    sample_col, upload_col = st.columns([1, 2])
+    sample_col, tavr_col, upload_col = st.columns([1, 1, 2])
     with sample_col:
         use_sample = st.button("Use synthetic sample", use_container_width=True)
+    with tavr_col:
+        use_tavr_sample = st.button("Use TAVR sample", use_container_width=True)
     with upload_col:
         run_uploaded = st.button(
             "Analyze uploaded video",
@@ -49,6 +51,11 @@ def main() -> None:
     if use_sample:
         sample_path = Path("samples/synthetic_or_sample.mp4")
         generate_synthetic_or_video(sample_path)
+        _run_analysis(sample_path, max_frames, min_area, crowding_threshold, write_video)
+
+    if use_tavr_sample:
+        sample_path = Path("samples/synthetic_tavr_sample.mp4")
+        generate_synthetic_tavr_video(sample_path)
         _run_analysis(sample_path, max_frames, min_area, crowding_threshold, write_video)
 
     if run_uploaded and uploaded_file is not None:
@@ -88,15 +95,25 @@ def _run_analysis(
     progress.empty()
 
     summary = result.summary.to_dict()
-    metric_cols = st.columns(5)
+    metric_cols = st.columns(7)
     metric_cols[0].metric("Frames", summary["frames_processed"])
     metric_cols[1].metric("Avg count", summary["average_people_count"])
     metric_cols[2].metric("Peak count", summary["peak_people_count"])
     metric_cols[3].metric("Tracks", summary["total_unique_tracks"])
     metric_cols[4].metric("Activity", summary["activity_score"])
+    metric_cols[5].metric("TAVR stage", summary.get("dominant_tavr_stage") or "n/a")
+    metric_cols[6].metric("Peak table", summary.get("peak_table_count", 0))
 
     rows = [metric.to_row() for metric in result.metrics]
     metrics_df = pd.DataFrame(rows)
+    if not metrics_df.empty and "tavr_stage_label" in metrics_df:
+        latest = metrics_df.iloc[-1]
+        st.info(
+            "Latest TAVR estimate: "
+            f"{latest.get('tavr_stage_label', 'n/a')} "
+            f"(confidence {latest.get('tavr_confidence', 0)}) | "
+            f"table IDs: {latest.get('table_track_ids', '') or 'none'}"
+        )
 
     chart_col, table_col = st.columns([3, 2])
     with chart_col:
@@ -105,7 +122,26 @@ def _run_analysis(
                 metrics_df.set_index("timestamp_s")[["people_count", "movement_px"]]
             )
     with table_col:
-        st.dataframe(metrics_df.tail(20), use_container_width=True, hide_index=True)
+        display_columns = [
+            column
+            for column in [
+                "timestamp_s",
+                "people_count",
+                "tavr_stage_label",
+                "tavr_confidence",
+                "table_count",
+                "table_track_ids",
+                "role_counts",
+                "movement_px",
+                "alert_flags",
+            ]
+            if column in metrics_df.columns
+        ]
+        st.dataframe(
+            metrics_df[display_columns].tail(20) if display_columns else metrics_df.tail(20),
+            use_container_width=True,
+            hide_index=True,
+        )
 
     downloads = st.columns(2)
     with downloads[0]:

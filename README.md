@@ -12,6 +12,7 @@ added behind the same metrics surface later.
 
 - Streamlit uploader and tracking dashboard in `app.py`
 - Deterministic video tracker in `or_tracking/`
+- TAVR table-presence and procedure-stage inference
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
 - Browser-only Vercel demo in `public/`
 - Tests and GitHub Actions CI
@@ -38,6 +39,12 @@ force an offline fixture directly:
 python download_sample.py --fixture
 ```
 
+For deterministic TAVR-stage test footage:
+
+```bash
+python download_sample.py --tavr-fixture --output samples/tavr_sample.mp4
+```
+
 ## Streamlit app
 
 Run the Python prototype locally:
@@ -47,10 +54,14 @@ streamlit run app.py --server.headless true
 ```
 
 Open the local URL Streamlit prints, upload a video, or click `Use synthetic
-sample`. The app writes:
+sample` / `Use TAVR sample`. The app writes:
 
 - `outputs/*_metrics.csv`
 - `outputs/*_tracked.mp4` when annotated video is enabled
+
+For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
+`tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`, and
+`tavr_signals`.
 
 ## Vercel static demo
 
@@ -79,3 +90,6 @@ This prototype is for workflow demonstration and engineering validation. It is
 not a clinical device, not a staff performance scoring system, and not suitable
 for patient-identifiable deployment without privacy, governance, and security
 review.
+
+See [docs/tavr_workflow.md](docs/tavr_workflow.md) for the TAVR stage taxonomy,
+source references, and inference caveats.
