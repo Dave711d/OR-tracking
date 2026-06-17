@@ -135,6 +135,12 @@ The JSON output includes:
   room-view availability, observable rate, mean/min/max stage confidence,
   dominant visual signal, and an evidence level: `strong_visual_support`,
   `moderate_visual_support`, `weak_visual_support`, or `held_non_room`.
+- `procedure_milestones`: one row per canonical TAVR stage showing whether that
+  milestone was observed in the clip, whether it is the current observed stage,
+  the first/last observed timestamps, duration, evidence level, observable rate,
+  mean confidence, peak table-side count, and unique table-side track count.
+  Unobserved stages remain explicit rows so a partial clip does not imply prior
+  or later procedural progress that was not visible.
 - `procedure_event_timeline`: one chronological review table combining stage
   starts, room/non-room view starts, stage handoffs, and table-count peaks. Each
   event keeps the relevant stage, view, table count, lead track, table track
@@ -151,7 +157,7 @@ The JSON output includes:
   detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
-  stage-staffing, stage-handoff, stage-evidence,
+  stage-staffing, stage-handoff, stage-evidence, procedure-milestone,
   procedure-event-timeline, roster-snapshot, and quality-flag expectation pass
   rates.
 
@@ -194,6 +200,12 @@ The label file can include:
   ambiguous post-deploy / closure segment to remain labelled weak rather than
   overconfident. Expectations can constrain evidence level, dominant signal,
   observable rate, mean confidence, and room/non-room frame counts.
+- `procedure_milestone_expectations`: expected canonical milestone progress,
+  such as requiring a deployment milestone to be observed and current, requiring
+  a prior milestone to remain `observed_prior`, requiring an unseen closure
+  milestone to stay `not_observed_in_clip`, or constraining the evidence level,
+  observable rate, mean confidence, peak table-side count, and unique
+  table-side track count for the milestone.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can
@@ -221,12 +233,12 @@ The default suite is manifest-driven rather than shell-string-driven. Each case
 declares a clip path, label path, ROI, starting stage, frame limit, and tracking
 configuration. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
-summary tables as per-case CSV files, including view segments, stage staffing,
-stage table coverage, stage handoff summaries, stage evidence summaries,
-procedure event timelines, table roster snapshots, table transition events,
-table presence intervals, quality flags, and low-confidence segments. The
-command exits non-zero if any scored label section falls below its configured
-threshold.
+summary tables as per-case CSV files, including view segments, procedure
+milestones, stage staffing, stage table coverage, stage handoff summaries, stage
+evidence summaries, procedure event timelines, table roster snapshots, table
+transition events, table presence intervals, quality flags, and low-confidence
+segments. The command exits non-zero if any scored label section falls below its
+configured threshold.
 
 The current local Sentara suite covers:
 

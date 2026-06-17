@@ -5,6 +5,7 @@ from .tavr import TAVR_STAGE_LABELS, TAVR_STAGE_ORDER, TAVRFrameState
 from .evaluation import (
     score_tavr_metrics,
     procedure_event_timeline,
+    procedure_milestones,
     stage_evidence_summary,
     stage_handoff_summary,
     stage_table_coverage,
@@ -24,6 +25,7 @@ __all__ = [
     "TrackingRunResult",
     "process_video_file",
     "procedure_event_timeline",
+    "procedure_milestones",
     "score_tavr_metrics",
     "stage_evidence_summary",
     "stage_handoff_summary",

@@ -47,6 +47,31 @@
       "min_non_room_view_frames": 700
     }
   ],
+  "procedure_milestone_expectations": [
+    {
+      "stage": "access_sheathing",
+      "observed_in_clip": true,
+      "is_current_observed_stage": true,
+      "milestone_status": "current_observed",
+      "evidence_level": "weak_visual_support",
+      "max_observable_rate": 0.2,
+      "max_mean_confidence": 0.25,
+      "max_peak_table_count": 0,
+      "max_unique_table_track_count": 0
+    },
+    {
+      "stage": "valve_deployment",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    },
+    {
+      "stage": "closure_finish",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

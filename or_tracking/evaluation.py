@@ -157,6 +157,25 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "support_label",
         "label",
     ],
+    "procedure_milestones": [
+        "milestone_index",
+        "stage",
+        "stage_label",
+        "observed_in_clip",
+        "milestone_status",
+        "is_current_observed_stage",
+        "first_observed_s",
+        "last_observed_s",
+        "duration_s",
+        "segment_count",
+        "evidence_level",
+        "observable_rate",
+        "mean_confidence",
+        "peak_table_count",
+        "unique_table_track_count",
+        "support_label",
+        "label",
+    ],
     "procedure_event_timeline": [
         "event_type",
         "timestamp_s",
@@ -279,6 +298,7 @@ def summarize_tavr_metrics(
         "stage_table_coverage": stage_table_coverage(tavr_metrics),
         "stage_handoff_summary": stage_handoff_summary(tavr_metrics),
         "stage_evidence_summary": stage_evidence_summary(tavr_metrics),
+        "procedure_milestones": procedure_milestones(tavr_metrics),
         "procedure_event_timeline": procedure_event_timeline(tavr_metrics),
         "stage_staffing_summary": stage_staffing_summary(tavr_metrics),
         "low_confidence_segments": low_confidence_segments(
@@ -337,6 +357,10 @@ def score_tavr_metrics(
         "stage_evidence_score": _stage_evidence_score(
             tavr_metrics,
             labels.get("stage_evidence_expectations", []),
+        ),
+        "procedure_milestone_score": _procedure_milestone_score(
+            tavr_metrics,
+            labels.get("procedure_milestone_expectations", []),
         ),
         "event_timeline_score": _event_timeline_score(
             tavr_metrics,
@@ -862,6 +886,38 @@ def stage_evidence_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, An
     ]
 
 
+def procedure_milestones(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return TAVR milestone progress rows in canonical procedure order."""
+
+    if not metrics:
+        return []
+
+    evidence_rows = stage_evidence_summary(metrics)
+    staffing_rows = {
+        row["stage"]: row
+        for row in stage_staffing_summary(metrics, min_observed_table_frames=1)
+    }
+    evidence_by_stage: Dict[str, List[Dict[str, Any]]] = {}
+    for row in evidence_rows:
+        evidence_by_stage.setdefault(row["stage"], []).append(row)
+    latest_stage = evidence_rows[-1]["stage"] if evidence_rows else None
+
+    milestones = []
+    for index, stage in enumerate(TAVR_STAGE_ORDER):
+        stage_rows = evidence_by_stage.get(stage, [])
+        staffing = staffing_rows.get(stage, {})
+        milestones.append(
+            _procedure_milestone_item(
+                milestone_index=index,
+                stage=stage,
+                evidence_rows=stage_rows,
+                staffing=staffing,
+                is_current_observed_stage=stage == latest_stage,
+            )
+        )
+    return milestones
+
+
 def procedure_event_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
     """Return a single chronological event list for stage/view/table review."""
 
@@ -1350,6 +1406,101 @@ def _stage_evidence_item(
             f"{stage_state.stage_label}: {evidence_level}; {support_label}"
         ),
     }
+
+
+def _procedure_milestone_item(
+    milestone_index: int,
+    stage: str,
+    evidence_rows: Sequence[Dict[str, Any]],
+    staffing: Dict[str, Any],
+    is_current_observed_stage: bool,
+) -> Dict[str, Any]:
+    observed = bool(evidence_rows)
+    stage_label = TAVR_STAGE_LABELS.get(stage, stage)
+    if not observed:
+        return {
+            "milestone_index": milestone_index,
+            "stage": stage,
+            "stage_label": stage_label,
+            "observed_in_clip": False,
+            "milestone_status": "not_observed_in_clip",
+            "is_current_observed_stage": False,
+            "first_observed_s": None,
+            "last_observed_s": None,
+            "duration_s": 0.0,
+            "segment_count": 0,
+            "evidence_level": None,
+            "observable_rate": None,
+            "mean_confidence": None,
+            "peak_table_count": 0,
+            "unique_table_track_count": 0,
+            "support_label": "",
+            "label": f"{stage_label}: not observed in this clip",
+        }
+
+    duration_s = round(sum(row["duration_s"] for row in evidence_rows), 3)
+    observable_rate = _weighted_average(evidence_rows, "observable_rate", "frames")
+    mean_confidence = _weighted_average(evidence_rows, "mean_confidence", "frames")
+    evidence_level = _dominant_evidence_level(evidence_rows)
+    status = "current_observed" if is_current_observed_stage else "observed_prior"
+    peak_table_count = int(staffing.get("peak_table_count", 0) or 0)
+    unique_table_track_count = int(staffing.get("unique_table_track_count", 0) or 0)
+    support_label = (
+        f"{status}; evidence={evidence_level}; observable={observable_rate:.0%}; "
+        f"confidence={mean_confidence:.2f}; table_peak={peak_table_count}"
+    )
+    return {
+        "milestone_index": milestone_index,
+        "stage": stage,
+        "stage_label": stage_label,
+        "observed_in_clip": True,
+        "milestone_status": status,
+        "is_current_observed_stage": is_current_observed_stage,
+        "first_observed_s": round(min(row["start_s"] for row in evidence_rows), 3),
+        "last_observed_s": round(max(row["end_s"] for row in evidence_rows), 3),
+        "duration_s": duration_s,
+        "segment_count": len(evidence_rows),
+        "evidence_level": evidence_level,
+        "observable_rate": observable_rate,
+        "mean_confidence": mean_confidence,
+        "peak_table_count": peak_table_count,
+        "unique_table_track_count": unique_table_track_count,
+        "support_label": support_label,
+        "label": f"{stage_label}: {support_label}",
+    }
+
+
+def _weighted_average(
+    rows: Sequence[Dict[str, Any]],
+    value_key: str,
+    weight_key: str,
+) -> float:
+    total_weight = sum(int(row.get(weight_key, 0) or 0) for row in rows)
+    if total_weight <= 0:
+        return 0.0
+    total_value = sum(
+        float(row.get(value_key, 0.0) or 0.0) * int(row.get(weight_key, 0) or 0)
+        for row in rows
+    )
+    return round(total_value / total_weight, 3)
+
+
+def _dominant_evidence_level(rows: Sequence[Dict[str, Any]]) -> str:
+    if not rows:
+        return "not_observed"
+    level_rank = {
+        "held_non_room": 0,
+        "weak_visual_support": 1,
+        "moderate_visual_support": 2,
+        "strong_visual_support": 3,
+    }
+    return max(
+        rows,
+        key=lambda row: (
+            level_rank.get(row["evidence_level"], -1),
+            row.get("duration_s", 0.0),
+        ),
+    )["evidence_level"]
 
 
 def _mean_signal(
@@ -2088,6 +2239,45 @@ def _stage_evidence_score(
     }
 
 
+def _procedure_milestone_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    milestones = procedure_milestones(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        stage = str(expectation["stage"])
+        candidates = [row for row in milestones if row["stage"] == stage]
+        scored_candidates = [
+            _score_procedure_milestone_candidate(row, expectation)
+            for row in candidates
+        ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "stage": stage,
+                "milestone_status": expectation.get("milestone_status"),
+                "observed_in_clip": expectation.get("observed_in_clip"),
+                "is_current_observed_stage": expectation.get("is_current_observed_stage"),
+                "evidence_level": expectation.get("evidence_level"),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _event_timeline_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -2318,6 +2508,100 @@ def _score_stage_evidence_candidate(
         "room_view_frames": row["room_view_frames"],
         "non_room_view_frames": row["non_room_view_frames"],
         "support_label": row["support_label"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _score_procedure_milestone_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    observed_in_clip = expectation.get("observed_in_clip")
+    is_current_observed_stage = expectation.get("is_current_observed_stage")
+    milestone_status = expectation.get("milestone_status")
+    evidence_level = expectation.get("evidence_level")
+    min_observable_rate = expectation.get("min_observable_rate")
+    max_observable_rate = expectation.get("max_observable_rate")
+    min_mean_confidence = expectation.get("min_mean_confidence")
+    max_mean_confidence = expectation.get("max_mean_confidence")
+    min_peak_table_count = expectation.get("min_peak_table_count")
+    max_peak_table_count = expectation.get("max_peak_table_count")
+    min_unique_table_track_count = expectation.get("min_unique_table_track_count")
+    max_unique_table_track_count = expectation.get("max_unique_table_track_count")
+    checks = {
+        "observed_in_clip": (
+            observed_in_clip is None
+            or bool(row["observed_in_clip"]) == bool(observed_in_clip)
+        ),
+        "is_current_observed_stage": (
+            is_current_observed_stage is None
+            or bool(row["is_current_observed_stage"])
+            == bool(is_current_observed_stage)
+        ),
+        "milestone_status": (
+            milestone_status is None or row["milestone_status"] == milestone_status
+        ),
+        "evidence_level": (
+            evidence_level is None or row["evidence_level"] == evidence_level
+        ),
+        "min_observable_rate": (
+            min_observable_rate is None
+            or (
+                row["observable_rate"] is not None
+                and row["observable_rate"] >= float(min_observable_rate)
+            )
+        ),
+        "max_observable_rate": (
+            max_observable_rate is None
+            or (
+                row["observable_rate"] is not None
+                and row["observable_rate"] <= float(max_observable_rate)
+            )
+        ),
+        "min_mean_confidence": (
+            min_mean_confidence is None
+            or (
+                row["mean_confidence"] is not None
+                and row["mean_confidence"] >= float(min_mean_confidence)
+            )
+        ),
+        "max_mean_confidence": (
+            max_mean_confidence is None
+            or (
+                row["mean_confidence"] is not None
+                and row["mean_confidence"] <= float(max_mean_confidence)
+            )
+        ),
+        "min_peak_table_count": (
+            min_peak_table_count is None
+            or row["peak_table_count"] >= int(min_peak_table_count)
+        ),
+        "max_peak_table_count": (
+            max_peak_table_count is None
+            or row["peak_table_count"] <= int(max_peak_table_count)
+        ),
+        "min_unique_table_track_count": (
+            min_unique_table_track_count is None
+            or row["unique_table_track_count"] >= int(min_unique_table_track_count)
+        ),
+        "max_unique_table_track_count": (
+            max_unique_table_track_count is None
+            or row["unique_table_track_count"] <= int(max_unique_table_track_count)
+        ),
+    }
+    return {
+        "stage": row["stage"],
+        "stage_label": row["stage_label"],
+        "observed_in_clip": row["observed_in_clip"],
+        "milestone_status": row["milestone_status"],
+        "is_current_observed_stage": row["is_current_observed_stage"],
+        "evidence_level": row["evidence_level"],
+        "observable_rate": row["observable_rate"],
+        "mean_confidence": row["mean_confidence"],
+        "peak_table_count": row["peak_table_count"],
+        "unique_table_track_count": row["unique_table_track_count"],
+        "label": row["label"],
         "checks": checks,
         "passed": all(checks.values()),
     }

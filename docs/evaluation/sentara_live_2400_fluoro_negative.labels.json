@@ -40,6 +40,25 @@
       "min_non_room_view_frames": 800
     }
   ],
+  "procedure_milestone_expectations": [
+    {
+      "stage": "valve_deployment",
+      "observed_in_clip": true,
+      "is_current_observed_stage": true,
+      "milestone_status": "current_observed",
+      "evidence_level": "held_non_room",
+      "max_observable_rate": 0.0,
+      "max_mean_confidence": 0.2,
+      "max_peak_table_count": 0,
+      "max_unique_table_track_count": 0
+    },
+    {
+      "stage": "closure_finish",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

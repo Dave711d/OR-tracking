@@ -205,6 +205,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    milestones = tavr_summary.get("procedure_milestones", [])
+    if milestones:
+        st.subheader("Procedure milestones")
+        st.dataframe(
+            pd.DataFrame(_procedure_milestone_rows(milestones)),
+            width="stretch",
+            hide_index=True,
+        )
+
     evidence = tavr_summary.get("stage_evidence_summary", [])
     if evidence:
         st.subheader("Stage evidence summary")
@@ -498,6 +507,29 @@ def _procedure_event_rows(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
+def _procedure_milestone_rows(milestones: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in milestones:
+        rows.append(
+            {
+                "stage": item.get("stage_label") or item.get("stage") or "n/a",
+                "status": _status_label(item.get("milestone_status")),
+                "current": _yes_no(item.get("is_current_observed_stage")),
+                "observed": _yes_no(item.get("observed_in_clip")),
+                "first_observed_s": item.get("first_observed_s"),
+                "last_observed_s": item.get("last_observed_s"),
+                "duration_s": item.get("duration_s"),
+                "evidence": _status_label(item.get("evidence_level")),
+                "observable_rate": item.get("observable_rate"),
+                "mean_confidence": item.get("mean_confidence"),
+                "peak_table_count": item.get("peak_table_count", 0),
+                "unique_table_tracks": item.get("unique_table_track_count", 0),
+                "support": item.get("support_label") or item.get("label") or "",
+            }
+        )
+    return rows
+
+
 def _stage_evidence_rows(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     for item in evidence:
@@ -531,6 +563,14 @@ def _count_label(counts: dict[str, int]) -> str:
     return ", ".join(
         f"{key}:{value}" for key, value in sorted(counts.items()) if value
     )
+
+
+def _yes_no(value: Any) -> str:
+    return "yes" if bool(value) else "no"
+
+
+def _status_label(value: Any) -> str:
+    return str(value or "n/a").replace("_", " ")
 
 
 def _zip_paths(paths: dict[str, str]) -> bytes:
