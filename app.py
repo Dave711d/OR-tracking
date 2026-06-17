@@ -42,6 +42,15 @@ def main() -> None:
             TAVR_STAGE_ORDER,
             format_func=lambda stage: TAVR_STAGE_LABELS[stage],
         )
+        static_table_fallback = st.toggle(
+            "Static table fallback",
+            value=False,
+            help=(
+                "Opt-in low-motion review mode: count conservative static "
+                "table-zone silhouettes when room view is visible and table "
+                "motion is otherwise absent."
+            ),
+        )
         use_roi = st.toggle("Crop to ROI", value=False)
         roi = None
         if use_roi:
@@ -86,6 +95,7 @@ def main() -> None:
             min_area,
             crowding_threshold,
             initial_stage,
+            static_table_fallback,
             roi,
             write_video,
         )
@@ -99,6 +109,7 @@ def main() -> None:
             min_area,
             crowding_threshold,
             initial_stage,
+            static_table_fallback,
             roi,
             write_video,
         )
@@ -114,6 +125,7 @@ def main() -> None:
             min_area,
             crowding_threshold,
             initial_stage,
+            static_table_fallback,
             roi,
             write_video,
         )
@@ -125,6 +137,7 @@ def _run_analysis(
     min_area: int,
     crowding_threshold: int,
     initial_stage: str,
+    static_table_fallback: bool,
     roi: Optional[Tuple[float, float, float, float]],
     write_video: bool,
 ) -> None:
@@ -132,6 +145,7 @@ def _run_analysis(
         min_area=min_area,
         crowding_threshold=crowding_threshold,
         tavr_initial_stage=initial_stage,
+        enable_static_table_fallback=static_table_fallback,
     )
     progress = st.progress(0, text="Processing video")
 

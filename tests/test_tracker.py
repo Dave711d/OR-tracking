@@ -146,6 +146,50 @@ def test_tracker_suppresses_obvious_non_room_view() -> None:
     assert metrics.tavr.signals["stage_observable"] == 0.0
 
 
+def test_tracker_static_table_fallback_counts_low_motion_room_staff() -> None:
+    tracker = ORActivityTracker(
+        MotionTrackerConfig(
+            min_area=40000,
+            enable_static_table_fallback=True,
+            static_table_min_area=120,
+            tavr_initial_stage="access_sheathing",
+        )
+    )
+    frame = np.full((120, 180, 3), (95, 100, 105), dtype=np.uint8)
+    cv2.rectangle(frame, (102, 52), (124, 104), (210, 60, 45), -1)
+
+    metrics = tracker.process_frame(frame, 0, 0.0)
+
+    assert "non_room_view" not in metrics.alert_flags
+    assert "static_table_fallback" in metrics.alert_flags
+    assert metrics.people_count == 1
+    assert metrics.tavr is not None
+    assert metrics.tavr.table_count == 1
+    assert metrics.tavr.table_track_ids == [1]
+    assert metrics.tavr.role_track_ids["table_operator"] == [1]
+
+
+def test_tracker_static_table_fallback_stays_suppressed_for_non_room_view() -> None:
+    tracker = ORActivityTracker(
+        MotionTrackerConfig(
+            min_area=40000,
+            enable_static_table_fallback=True,
+            static_table_min_area=120,
+            tavr_initial_stage="valve_deployment",
+        )
+    )
+    frame = np.full((120, 180, 3), 90, dtype=np.uint8)
+    cv2.rectangle(frame, (75, 52), (97, 104), (220, 220, 220), -1)
+
+    metrics = tracker.process_frame(frame, 0, 0.0)
+
+    assert "non_room_view" in metrics.alert_flags
+    assert "static_table_fallback" not in metrics.alert_flags
+    assert metrics.people_count == 0
+    assert metrics.tavr is not None
+    assert metrics.tavr.table_count == 0
+
+
 def test_tracker_config_can_seed_tavr_initial_stage() -> None:
     tracker = ORActivityTracker(
         MotionTrackerConfig(

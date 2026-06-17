@@ -52,6 +52,13 @@ class MotionTrackerConfig:
     suppress_non_room_tracking: bool = True
     freeze_non_room_tavr_stage: bool = True
     non_room_colorfulness_threshold: float = 8.0
+    enable_static_table_fallback: bool = False
+    static_table_min_area: int = 240
+    static_table_max_zone_area_ratio: float = 0.38
+    static_table_min_aspect_ratio: float = 0.18
+    static_table_max_aspect_ratio: float = 2.25
+    static_table_min_saturation: int = 28
+    static_table_max_value: int = 238
     enable_tavr: bool = True
     tavr_initial_stage: str = "room_prep_drape"
     tavr_min_confidence_to_advance: float = 0.42
@@ -204,11 +211,23 @@ class ORActivityTracker:
         view_colorfulness = _colorfulness(frame)
         view_flags = self._view_quality_flags(view_colorfulness)
         candidates = self._detect_motion_candidates(frame)
+        static_table_used = False
         if view_flags and self.config.suppress_non_room_tracking:
             candidates = []
+        elif self.config.enable_static_table_fallback and not self._has_table_candidate(
+            candidates,
+            frame.shape[1],
+            frame.shape[0],
+        ):
+            static_candidates = self._detect_static_table_candidates(frame)
+            if static_candidates:
+                candidates = list(candidates) + static_candidates
+                static_table_used = True
         detections, movement_px = self._tracker.update(candidates, frame_index)
         zone_counts = self._zone_counts(detections, frame.shape[1], frame.shape[0])
         alert_flags = view_flags + self._alert_flags(detections, zone_counts)
+        if static_table_used:
+            alert_flags.append("static_table_fallback")
         tavr = None
         if self._tavr is not None:
             table_track_ids = self._track_ids_in_zones(
@@ -325,6 +344,79 @@ class ORActivityTracker:
         candidates.sort(key=lambda item: item[2], reverse=True)
         return candidates
 
+    def _detect_static_table_candidates(
+        self, frame: np.ndarray
+    ) -> List[Tuple[BBox, Point, float]]:
+        """Return conservative static table-zone silhouettes in room views."""
+
+        height, width = frame.shape[:2]
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        candidates: List[Tuple[BBox, Point, float]] = []
+        for zone_name in TABLE_ZONES:
+            zone = self.config.zones.get(zone_name)
+            if zone is None:
+                continue
+            x0, y0, x1, y1 = _zone_pixels(zone, width, height)
+            if x1 <= x0 or y1 <= y0:
+                continue
+            crop = hsv[y0:y1, x0:x1]
+            if crop.size == 0:
+                continue
+
+            saturation = crop[:, :, 1]
+            value = crop[:, :, 2]
+            mask = (
+                (saturation >= self.config.static_table_min_saturation)
+                & (value <= self.config.static_table_max_value)
+            ).astype("uint8") * 255
+            kernel = np.ones((3, 3), np.uint8)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+            contours, _ = cv2.findContours(
+                mask,
+                cv2.RETR_EXTERNAL,
+                cv2.CHAIN_APPROX_SIMPLE,
+            )
+            zone_area = max((x1 - x0) * (y1 - y0), 1)
+            max_area = zone_area * self.config.static_table_max_zone_area_ratio
+            for contour in contours:
+                area = float(cv2.contourArea(contour))
+                if area < self.config.static_table_min_area or area > max_area:
+                    continue
+                bx, by, bw, bh = cv2.boundingRect(contour)
+                if bw < 8 or bh < 16:
+                    continue
+                aspect_ratio = bw / max(float(bh), 1.0)
+                if not (
+                    self.config.static_table_min_aspect_ratio
+                    <= aspect_ratio
+                    <= self.config.static_table_max_aspect_ratio
+                ):
+                    continue
+                bbox = (x0 + bx, y0 + by, bw, bh)
+                centroid = (bbox[0] + bw // 2, bbox[1] + bh // 2)
+                candidates.append((bbox, centroid, area))
+
+        return _dedupe_candidates(candidates)
+
+    def _has_table_candidate(
+        self,
+        candidates: Sequence[Tuple[BBox, Point, float]],
+        width: int,
+        height: int,
+    ) -> bool:
+        for _, centroid, _ in candidates:
+            cx = centroid[0] / max(width, 1)
+            cy = centroid[1] / max(height, 1)
+            for zone_name in TABLE_ZONES:
+                zone = self.config.zones.get(zone_name)
+                if zone is None:
+                    continue
+                x0, y0, x1, y1 = zone
+                if x0 <= cx <= x1 and y0 <= cy <= y1:
+                    return True
+        return False
+
     def _zone_counts(
         self,
         detections: Sequence[Detection],
@@ -437,6 +529,52 @@ def _distance(a: Point, b: Point) -> float:
 def _odd_kernel(value: int) -> int:
     value = max(int(value), 1)
     return value if value % 2 == 1 else value + 1
+
+
+def _zone_pixels(
+    zone: Tuple[float, float, float, float],
+    width: int,
+    height: int,
+) -> Tuple[int, int, int, int]:
+    x0, y0, x1, y1 = zone
+    return (
+        max(0, min(width, int(round(x0 * width)))),
+        max(0, min(height, int(round(y0 * height)))),
+        max(0, min(width, int(round(x1 * width)))),
+        max(0, min(height, int(round(y1 * height)))),
+    )
+
+
+def _dedupe_candidates(
+    candidates: Sequence[Tuple[BBox, Point, float]],
+) -> List[Tuple[BBox, Point, float]]:
+    deduped: List[Tuple[BBox, Point, float]] = []
+    for candidate in sorted(candidates, key=lambda item: item[2], reverse=True):
+        bbox, centroid, _ = candidate
+        if any(
+            _distance(centroid, kept_centroid) < 32
+            or _bbox_iou(bbox, kept_bbox) > 0.18
+            for kept_bbox, kept_centroid, _ in deduped
+        ):
+            continue
+        deduped.append(candidate)
+    return deduped
+
+
+def _bbox_iou(a: BBox, b: BBox) -> float:
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    left = max(ax, bx)
+    top = max(ay, by)
+    right = min(ax + aw, bx + bw)
+    bottom = min(ay + ah, by + bh)
+    if right <= left or bottom <= top:
+        return 0.0
+    intersection = float((right - left) * (bottom - top))
+    union = float(aw * ah + bw * bh) - intersection
+    if union <= 0:
+        return 0.0
+    return intersection / union
 
 
 def _colorfulness(frame: np.ndarray) -> float:

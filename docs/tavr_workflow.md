@@ -299,7 +299,10 @@ The current local Sentara suite covers:
   motion evidence followed by fluoroscopy, proving the system flags likely
   undercount instead of inventing table staff, and event-timeline labels the
   room-to-non-room view transition. Stage-evidence labels keep the whole slice
-  weak because most frames are non-room and low-confidence.
+  weak because most frames are non-room and low-confidence. The app's opt-in
+  static table fallback can be used for manual low-motion review, but the
+  default suite keeps this case conservative unless static staff are visually
+  proven.
 - `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
   roster expectations once the room view returns, plus room-view denominator
   checks for the deployment-stage staffing summary and a deployment-stage
