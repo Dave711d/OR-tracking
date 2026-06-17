@@ -18,6 +18,37 @@ from .tavr import (
 
 
 TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
+    "procedure_status_summary": [
+        "clip_end_s",
+        "current_stage",
+        "current_stage_label",
+        "current_stage_status",
+        "next_stage",
+        "next_stage_label",
+        "evidence_level",
+        "observable_rate",
+        "mean_confidence",
+        "current_view",
+        "tracking_available",
+        "current_table_count",
+        "current_table_track_ids",
+        "current_table_roster",
+        "last_observed_table_s",
+        "last_observed_age_from_clip_end_s",
+        "last_observed_stage",
+        "last_observed_stage_label",
+        "last_observed_table_count",
+        "last_observed_table_track_ids",
+        "last_observed_table_roster",
+        "peak_table_s",
+        "peak_table_stage",
+        "peak_table_stage_label",
+        "peak_table_count",
+        "peak_table_track_ids",
+        "peak_table_roster",
+        "quality_flag_codes",
+        "operator_summary",
+    ],
     "view_segments": [
         "view",
         "is_room_view",
@@ -282,6 +313,7 @@ def summarize_tavr_metrics(
 
     tavr_metrics = [metric for metric in metrics if metric.tavr is not None]
     return {
+        "procedure_status_summary": procedure_status_summary(tavr_metrics),
         "stage_timeline": tavr_stage_timeline(tavr_metrics),
         "track_role_report": tavr_track_role_report(tavr_metrics),
         "current_table_roster": current_table_roster(tavr_metrics),
@@ -362,6 +394,10 @@ def score_tavr_metrics(
             tavr_metrics,
             labels.get("procedure_milestone_expectations", []),
         ),
+        "procedure_status_score": _procedure_status_score(
+            tavr_metrics,
+            labels.get("procedure_status_expectations", []),
+        ),
         "event_timeline_score": _event_timeline_score(
             tavr_metrics,
             labels.get("event_timeline_expectations", []),
@@ -375,6 +411,71 @@ def score_tavr_metrics(
             labels.get("quality_flag_expectations", []),
         ),
     }
+
+
+def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return a one-row operator status for the latest TAVR procedure state."""
+
+    if not metrics:
+        return []
+
+    latest_metric = metrics[-1]
+    latest_state = _tavr_state(latest_metric)
+    milestones = procedure_milestones(metrics)
+    current_milestone = _current_milestone(milestones, latest_state.stage)
+    next_milestone = _next_milestone(milestones, current_milestone)
+    current_roster = current_table_roster(metrics)
+    last_observed = last_observed_table_roster(metrics)
+    peak = peak_table_roster(metrics)
+    quality_flags = tavr_quality_flags(metrics)
+    current_track_ids = [item["track_id"] for item in current_roster]
+    last_observed_roster = last_observed.get("roster", [])
+    peak_roster = peak.get("roster", [])
+    evidence_level = current_milestone.get("evidence_level")
+    observable_rate = current_milestone.get("observable_rate")
+    mean_confidence = current_milestone.get("mean_confidence")
+    tracking_available = _view_label(latest_metric) == "room"
+
+    row = {
+        "clip_end_s": round(float(latest_metric.timestamp_s), 3),
+        "current_stage": current_milestone.get("stage") or latest_state.stage,
+        "current_stage_label": (
+            current_milestone.get("stage_label") or latest_state.stage_label
+        ),
+        "current_stage_status": current_milestone.get("milestone_status"),
+        "next_stage": next_milestone.get("stage") if next_milestone else None,
+        "next_stage_label": (
+            next_milestone.get("stage_label") if next_milestone else None
+        ),
+        "evidence_level": evidence_level,
+        "observable_rate": observable_rate,
+        "mean_confidence": mean_confidence,
+        "current_view": _view_label(latest_metric),
+        "tracking_available": tracking_available,
+        "current_table_count": latest_state.table_count,
+        "current_table_track_ids": current_track_ids,
+        "current_table_roster": current_roster,
+        "last_observed_table_s": last_observed.get("timestamp_s"),
+        "last_observed_age_from_clip_end_s": last_observed.get(
+            "age_from_clip_end_s"
+        ),
+        "last_observed_stage": last_observed.get("stage"),
+        "last_observed_stage_label": last_observed.get("stage_label"),
+        "last_observed_table_count": last_observed.get("table_count", 0),
+        "last_observed_table_track_ids": [
+            item["track_id"] for item in last_observed_roster
+        ],
+        "last_observed_table_roster": last_observed_roster,
+        "peak_table_s": peak.get("timestamp_s"),
+        "peak_table_stage": peak.get("stage"),
+        "peak_table_stage_label": peak.get("stage_label"),
+        "peak_table_count": peak.get("table_count", 0),
+        "peak_table_track_ids": [item["track_id"] for item in peak_roster],
+        "peak_table_roster": peak_roster,
+        "quality_flag_codes": [flag["code"] for flag in quality_flags],
+    }
+    row["operator_summary"] = _procedure_status_label(row)
+    return [row]
 
 
 def tavr_stage_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
@@ -1470,6 +1571,80 @@ def _procedure_milestone_item(
     }
 
 
+def _current_milestone(
+    milestones: Sequence[Dict[str, Any]],
+    fallback_stage: str,
+) -> Dict[str, Any]:
+    for item in milestones:
+        if item.get("is_current_observed_stage"):
+            return item
+    for item in milestones:
+        if item.get("stage") == fallback_stage:
+            return item
+    return {
+        "stage": fallback_stage,
+        "stage_label": TAVR_STAGE_LABELS.get(fallback_stage, fallback_stage),
+        "milestone_status": "not_observed_in_clip",
+        "evidence_level": None,
+        "observable_rate": None,
+        "mean_confidence": None,
+    }
+
+
+def _next_milestone(
+    milestones: Sequence[Dict[str, Any]],
+    current_milestone: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    current_index = current_milestone.get("milestone_index")
+    if current_index is None:
+        current_stage = current_milestone.get("stage")
+        current_index = (
+            TAVR_STAGE_ORDER.index(current_stage)
+            if current_stage in TAVR_STAGE_ORDER
+            else -1
+        )
+    for item in milestones:
+        if item.get("milestone_index", -1) > current_index:
+            return item
+    return None
+
+
+def _procedure_status_label(row: Dict[str, Any]) -> str:
+    current_roster = _roster_status_label(row.get("current_table_roster", []))
+    last_roster = _roster_status_label(row.get("last_observed_table_roster", []))
+    current_confidence = _maybe_float_label(row.get("mean_confidence"))
+    observable_rate = _maybe_percent_label(row.get("observable_rate"))
+    next_stage = row.get("next_stage_label") or "procedure end"
+    tracking_label = "available" if row.get("tracking_available") else "not available"
+    quality_flags = row.get("quality_flag_codes", [])
+    quality_label = ", ".join(quality_flags) if quality_flags else "none"
+    return (
+        f"Current observed stage: {row.get('current_stage_label') or 'n/a'} "
+        f"({row.get('evidence_level') or 'no evidence'}, "
+        f"confidence {current_confidence}, observable {observable_rate}); "
+        f"tracking {tracking_label}; at table now: {current_roster}; "
+        f"last observed table: {last_roster}; next: {next_stage}; "
+        f"quality flags: {quality_label}"
+    )
+
+
+def _roster_status_label(roster: Sequence[Dict[str, Any]]) -> str:
+    labels = [str(item.get("label")) for item in roster if item.get("label")]
+    return "; ".join(labels[:6]) if labels else "none"
+
+
+def _maybe_float_label(value: Any) -> str:
+    if value is None:
+        return "n/a"
+    return f"{float(value):.2f}"
+
+
+def _maybe_percent_label(value: Any) -> str:
+    if value is None:
+        return "n/a"
+    return f"{float(value):.0%}"
+
+
 def _weighted_average(
     rows: Sequence[Dict[str, Any]],
     value_key: str,
@@ -2278,6 +2453,42 @@ def _procedure_milestone_score(
     }
 
 
+def _procedure_status_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    status_rows = procedure_status_summary(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        scored_candidates = [
+            _score_procedure_status_candidate(row, expectation)
+            for row in status_rows
+        ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "current_stage": expectation.get("current_stage"),
+                "current_stage_status": expectation.get("current_stage_status"),
+                "tracking_available": expectation.get("tracking_available"),
+                "evidence_level": expectation.get("evidence_level"),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _event_timeline_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -2602,6 +2813,147 @@ def _score_procedure_milestone_candidate(
         "peak_table_count": row["peak_table_count"],
         "unique_table_track_count": row["unique_table_track_count"],
         "label": row["label"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _score_procedure_status_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    current_stage = expectation.get("current_stage")
+    current_stage_status = expectation.get("current_stage_status")
+    has_next_stage_expectation = "next_stage" in expectation
+    next_stage = expectation.get("next_stage")
+    current_view = expectation.get("current_view")
+    tracking_available = expectation.get("tracking_available")
+    evidence_level = expectation.get("evidence_level")
+    min_observable_rate = expectation.get("min_observable_rate")
+    max_observable_rate = expectation.get("max_observable_rate")
+    min_mean_confidence = expectation.get("min_mean_confidence")
+    max_mean_confidence = expectation.get("max_mean_confidence")
+    min_current_table_count = expectation.get("min_current_table_count")
+    max_current_table_count = expectation.get("max_current_table_count")
+    min_last_observed_table_count = expectation.get(
+        "min_last_observed_table_count"
+    )
+    max_last_observed_table_count = expectation.get(
+        "max_last_observed_table_count"
+    )
+    max_last_observed_age_from_clip_end_s = expectation.get(
+        "max_last_observed_age_from_clip_end_s"
+    )
+    min_peak_table_count = expectation.get("min_peak_table_count")
+    max_peak_table_count = expectation.get("max_peak_table_count")
+    required_quality_flags = set(expectation.get("required_quality_flags", []))
+    forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
+    actual_quality_flags = set(row.get("quality_flag_codes", []))
+    checks = {
+        "current_stage": (
+            current_stage is None or row["current_stage"] == current_stage
+        ),
+        "current_stage_status": (
+            current_stage_status is None
+            or row["current_stage_status"] == current_stage_status
+        ),
+        "next_stage": (
+            not has_next_stage_expectation or row["next_stage"] == next_stage
+        ),
+        "current_view": current_view is None or row["current_view"] == current_view,
+        "tracking_available": (
+            tracking_available is None
+            or bool(row["tracking_available"]) == bool(tracking_available)
+        ),
+        "evidence_level": (
+            evidence_level is None or row["evidence_level"] == evidence_level
+        ),
+        "min_observable_rate": (
+            min_observable_rate is None
+            or (
+                row["observable_rate"] is not None
+                and row["observable_rate"] >= float(min_observable_rate)
+            )
+        ),
+        "max_observable_rate": (
+            max_observable_rate is None
+            or (
+                row["observable_rate"] is not None
+                and row["observable_rate"] <= float(max_observable_rate)
+            )
+        ),
+        "min_mean_confidence": (
+            min_mean_confidence is None
+            or (
+                row["mean_confidence"] is not None
+                and row["mean_confidence"] >= float(min_mean_confidence)
+            )
+        ),
+        "max_mean_confidence": (
+            max_mean_confidence is None
+            or (
+                row["mean_confidence"] is not None
+                and row["mean_confidence"] <= float(max_mean_confidence)
+            )
+        ),
+        "min_current_table_count": (
+            min_current_table_count is None
+            or row["current_table_count"] >= int(min_current_table_count)
+        ),
+        "max_current_table_count": (
+            max_current_table_count is None
+            or row["current_table_count"] <= int(max_current_table_count)
+        ),
+        "min_last_observed_table_count": (
+            min_last_observed_table_count is None
+            or row["last_observed_table_count"]
+            >= int(min_last_observed_table_count)
+        ),
+        "max_last_observed_table_count": (
+            max_last_observed_table_count is None
+            or row["last_observed_table_count"]
+            <= int(max_last_observed_table_count)
+        ),
+        "max_last_observed_age_from_clip_end_s": (
+            max_last_observed_age_from_clip_end_s is None
+            or (
+                row["last_observed_age_from_clip_end_s"] is not None
+                and row["last_observed_age_from_clip_end_s"]
+                <= float(max_last_observed_age_from_clip_end_s)
+            )
+        ),
+        "min_peak_table_count": (
+            min_peak_table_count is None
+            or row["peak_table_count"] >= int(min_peak_table_count)
+        ),
+        "max_peak_table_count": (
+            max_peak_table_count is None
+            or row["peak_table_count"] <= int(max_peak_table_count)
+        ),
+        "required_quality_flags": required_quality_flags.issubset(
+            actual_quality_flags
+        ),
+        "forbidden_quality_flags": not (
+            forbidden_quality_flags & actual_quality_flags
+        ),
+    }
+    return {
+        "current_stage": row["current_stage"],
+        "current_stage_status": row["current_stage_status"],
+        "next_stage": row["next_stage"],
+        "current_view": row["current_view"],
+        "tracking_available": row["tracking_available"],
+        "evidence_level": row["evidence_level"],
+        "observable_rate": row["observable_rate"],
+        "mean_confidence": row["mean_confidence"],
+        "current_table_count": row["current_table_count"],
+        "last_observed_table_count": row["last_observed_table_count"],
+        "last_observed_age_from_clip_end_s": row[
+            "last_observed_age_from_clip_end_s"
+        ],
+        "peak_table_count": row["peak_table_count"],
+        "quality_flag_codes": row["quality_flag_codes"],
+        "operator_summary": row["operator_summary"],
         "checks": checks,
         "passed": all(checks.values()),
     }

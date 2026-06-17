@@ -108,6 +108,11 @@ Streamlit sidebar for uploaded clips.
 
 The JSON output includes:
 
+- `procedure_status_summary`: a one-row operator status that combines current
+  observed stage, next expected milestone, evidence level, observable rate,
+  mean confidence, latest room/non-room view state, tracking availability,
+  current table roster, last observed table roster, peak table roster, quality
+  flag codes, and a concise `operator_summary` sentence.
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
 - `view_segments`: contiguous room/non-room stretches with duration,
@@ -162,8 +167,8 @@ The JSON output includes:
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
   stage-staffing, stage-handoff, stage-evidence, procedure-milestone,
-  procedure-event-timeline, roster-snapshot, and quality-flag expectation pass
-  rates.
+  procedure-status, procedure-event-timeline, roster-snapshot, and quality-flag
+  expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -210,6 +215,11 @@ The label file can include:
   milestone to stay `not_observed_in_clip`, or constraining the evidence level,
   observable rate, mean confidence, peak table-side count, and unique
   table-side track count for the milestone.
+- `procedure_status_expectations`: expected one-row operator status, including
+  current stage, current milestone status, next stage, current view, tracking
+  availability, evidence level, observable rate, mean confidence, current table
+  count, last-observed table count/freshness, peak table count, and required or
+  forbidden quality flags.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can
@@ -238,11 +248,11 @@ declares a clip path, label path, ROI, starting stage, frame limit, and tracking
 configuration. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
-milestones, stage staffing, stage table coverage, stage handoff summaries, stage
-evidence summaries, procedure event timelines, table roster snapshots, table
-transition events, table presence intervals, quality flags, and low-confidence
-segments. The command exits non-zero if any scored label section falls below its
-configured threshold.
+status summaries, procedure milestones, stage staffing, stage table coverage,
+stage handoff summaries, stage evidence summaries, procedure event timelines,
+table roster snapshots, table transition events, table presence intervals,
+quality flags, and low-confidence segments. The command exits non-zero if any
+scored label section falls below its configured threshold.
 
 The current local Sentara suite covers:
 

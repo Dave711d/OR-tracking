@@ -9,6 +9,7 @@ from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
     procedure_event_timeline,
     procedure_milestones,
+    procedure_status_summary,
     score_tavr_metrics,
     stage_evidence_summary,
     stage_handoff_summary,
@@ -57,6 +58,7 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["stage_table_coverage"]
     assert summary["stage_handoff_summary"]
     assert summary["stage_evidence_summary"]
+    assert summary["procedure_status_summary"]
     assert summary["procedure_milestones"]
     assert summary["procedure_event_timeline"]
     assert summary["stage_staffing_summary"]
@@ -358,6 +360,37 @@ def test_procedure_milestones_report_current_observed_stage() -> None:
     assert closure["observed_in_clip"] is False
 
 
+def test_procedure_status_summary_reports_current_stage_and_table_roster() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+        _table_metric(
+            2,
+            0.2,
+            "closure_finish",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+    ]
+
+    status = procedure_status_summary(metrics)[0]
+
+    assert status["current_stage"] == "closure_finish"
+    assert status["current_stage_status"] == "current_observed"
+    assert status["next_stage"] is None
+    assert status["current_view"] == "non_room"
+    assert status["tracking_available"] is False
+    assert status["current_table_count"] == 0
+    assert status["current_table_track_ids"] == []
+    assert status["last_observed_stage"] == "valve_deployment"
+    assert status["last_observed_table_count"] == 2
+    assert status["last_observed_table_track_ids"] == [7, 8]
+    assert status["peak_table_count"] == 2
+    assert status["peak_table_track_ids"] == [7, 8]
+    assert "Current observed stage: Closure / finish" in status["operator_summary"]
+    assert "last observed table: ID 7" in status["operator_summary"]
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -471,6 +504,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_table_coverage",
         "stage_handoff_summary",
         "stage_evidence_summary",
+        "procedure_status_summary",
         "procedure_milestones",
         "procedure_event_timeline",
         "table_roster_snapshots",
@@ -481,6 +515,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     staffing_csv = Path(paths["stage_staffing_summary"]).read_text(encoding="utf-8")
     handoff_csv = Path(paths["stage_handoff_summary"]).read_text(encoding="utf-8")
     evidence_csv = Path(paths["stage_evidence_summary"]).read_text(encoding="utf-8")
+    status_csv = Path(paths["procedure_status_summary"]).read_text(encoding="utf-8")
     milestones_csv = Path(paths["procedure_milestones"]).read_text(encoding="utf-8")
     event_csv = Path(paths["procedure_event_timeline"]).read_text(encoding="utf-8")
     snapshots_csv = Path(paths["table_roster_snapshots"]).read_text(encoding="utf-8")
@@ -493,6 +528,8 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "roster_added" in handoff_csv
     assert "evidence_level" in evidence_csv
     assert "strong_visual_support" in evidence_csv
+    assert "operator_summary" in status_csv
+    assert "Current observed stage" in status_csv
     assert "milestone_status" in milestones_csv
     assert "current_observed" in milestones_csv
     assert "event_type" in event_csv
@@ -595,6 +632,21 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_peak_table_count": 1,
             },
         ],
+        "procedure_status_expectations": [
+            {
+                "current_stage": "closure_finish",
+                "current_stage_status": "current_observed",
+                "next_stage": None,
+                "current_view": "room",
+                "tracking_available": True,
+                "evidence_level": "strong_visual_support",
+                "min_current_table_count": 1,
+                "min_last_observed_table_count": 1,
+                "max_last_observed_age_from_clip_end_s": 0.0,
+                "min_peak_table_count": 2,
+                "required_quality_flags": ["non_room_view"],
+            }
+        ],
         "event_timeline_expectations": [
             {
                 "event_type": "table_handoff",
@@ -645,6 +697,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["stage_evidence_score"]["expectations"][1]["matched_count"] == 1
     assert score["procedure_milestone_score"]["pass_rate"] == 1.0
     assert score["procedure_milestone_score"]["expectations"][2]["matched_count"] == 1
+    assert score["procedure_status_score"]["pass_rate"] == 1.0
+    assert score["procedure_status_score"]["expectations"][0]["matched_count"] == 1
     assert score["event_timeline_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["expectations"][0]["matched_count"] == 1
     assert score["roster_snapshot_score"]["pass_rate"] == 1.0

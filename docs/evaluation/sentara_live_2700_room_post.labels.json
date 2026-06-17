@@ -154,6 +154,28 @@
       "max_peak_table_count": 0
     }
   ],
+  "procedure_status_expectations": [
+    {
+      "current_stage": "closure_finish",
+      "current_stage_status": "current_observed",
+      "next_stage": null,
+      "current_view": "non_room",
+      "tracking_available": false,
+      "evidence_level": "weak_visual_support",
+      "min_observable_rate": 0.45,
+      "max_observable_rate": 0.5,
+      "max_mean_confidence": 0.35,
+      "max_current_table_count": 0,
+      "min_last_observed_table_count": 1,
+      "max_last_observed_age_from_clip_end_s": 18.0,
+      "min_peak_table_count": 4,
+      "required_quality_flags": [
+        "rapid_stage_progression",
+        "early_terminal_stage",
+        "non_room_view"
+      ]
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

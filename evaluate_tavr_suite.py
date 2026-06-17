@@ -28,6 +28,7 @@ DEFAULT_THRESHOLDS = {
     "stage_handoff_pass_rate": 1.0,
     "stage_evidence_pass_rate": 1.0,
     "procedure_milestone_pass_rate": 1.0,
+    "procedure_status_pass_rate": 1.0,
     "event_timeline_pass_rate": 1.0,
     "roster_snapshot_pass_rate": 1.0,
     "quality_flag_pass_rate": 1.0,
@@ -231,6 +232,11 @@ def _score_summary(
             "procedure_milestone_pass_rate",
             label_score["procedure_milestone_score"]["pass_rate"],
             thresholds["procedure_milestone_pass_rate"],
+        ),
+        _threshold_check(
+            "procedure_status_pass_rate",
+            label_score["procedure_status_score"]["pass_rate"],
+            thresholds["procedure_status_pass_rate"],
         ),
         _threshold_check(
             "event_timeline_pass_rate",

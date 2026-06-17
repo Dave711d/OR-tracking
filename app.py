@@ -177,6 +177,16 @@ def _run_analysis(
     tavr_summary = summarize_tavr_metrics(result.metrics)
     run_stem = result.csv_path.name.replace("_metrics.csv", "")
     tavr_csv_paths = write_tavr_summary_csvs("outputs", run_stem, tavr_summary)
+    status_rows = tavr_summary.get("procedure_status_summary", [])
+    if status_rows:
+        st.subheader("Procedure status")
+        st.info(status_rows[0].get("operator_summary", ""))
+        st.dataframe(
+            pd.DataFrame(_procedure_status_rows(status_rows)),
+            width="stretch",
+            hide_index=True,
+        )
+
     view_rows = tavr_summary.get("view_segments", [])
     if view_rows:
         st.subheader("View segments")
@@ -502,6 +512,34 @@ def _procedure_event_rows(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "table_track_ids": _id_label(item.get("table_track_ids", [])),
                 "roster": _roster_label(item.get("roster", [])),
                 "label": item.get("label", ""),
+            }
+        )
+    return rows
+
+
+def _procedure_status_rows(status_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in status_rows:
+        rows.append(
+            {
+                "current_stage": item.get("current_stage_label") or "n/a",
+                "status": _status_label(item.get("current_stage_status")),
+                "next_stage": item.get("next_stage_label") or "procedure end",
+                "evidence": _status_label(item.get("evidence_level")),
+                "observable_rate": item.get("observable_rate"),
+                "mean_confidence": item.get("mean_confidence"),
+                "current_view": item.get("current_view") or "n/a",
+                "tracking_available": _yes_no(item.get("tracking_available")),
+                "at_table_now": _roster_label(item.get("current_table_roster", [])),
+                "last_observed_table_s": item.get("last_observed_table_s"),
+                "last_observed_stage": (
+                    item.get("last_observed_stage_label") or "n/a"
+                ),
+                "last_observed_roster": _roster_label(
+                    item.get("last_observed_table_roster", [])
+                ),
+                "peak_table_count": item.get("peak_table_count", 0),
+                "quality_flags": ", ".join(item.get("quality_flag_codes", [])),
             }
         )
     return rows
