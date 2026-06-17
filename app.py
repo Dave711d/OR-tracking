@@ -201,6 +201,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    operator_packets = tavr_summary.get("operator_stage_packet", [])
+    if operator_packets:
+        st.subheader("Operator stage packet")
+        st.dataframe(
+            pd.DataFrame(_operator_stage_packet_rows(operator_packets)),
+            width="stretch",
+            hide_index=True,
+        )
+
     team_rows = tavr_summary.get("table_team_summary", [])
     if team_rows:
         st.subheader("Table team summary")
@@ -559,6 +568,33 @@ def _stage_roster_rows(stage_rosters: list[dict[str, Any]]) -> list[dict[str, An
                 "new_ids": _id_label(item.get("new_track_ids", [])),
                 "dropped_ids": _id_label(item.get("dropped_track_ids", [])),
                 "roster": _roster_label(item.get("active_table_roster", [])),
+            }
+        )
+    return rows
+
+
+def _operator_stage_packet_rows(packets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in packets:
+        rows.append(
+            {
+                "stage_label": item["stage_label"],
+                "stage_status": _status_label(item.get("stage_status")),
+                "current": _yes_no(item.get("is_current_stage")),
+                "start_s": item["start_s"],
+                "end_s": item["end_s"],
+                "evidence": _status_label(item.get("evidence_level")),
+                "confidence": item.get("mean_confidence"),
+                "handoff": _status_label(item.get("handoff_type")),
+                "peak_table": item.get("peak_table_count", 0),
+                "active_ids": _id_label(item.get("active_table_track_ids", [])),
+                "new_ids": _id_label(item.get("new_track_ids", [])),
+                "dropped_ids": _id_label(item.get("dropped_track_ids", [])),
+                "effective_table": _status_label(item.get("effective_table_source")),
+                "effective_ids": _id_label(
+                    item.get("effective_table_track_ids", [])
+                ),
+                "packet": item.get("operator_packet", ""),
             }
         )
     return rows

@@ -123,6 +123,12 @@ The JSON output includes:
   `current_room_view`, `current_room_view_empty`, `last_observed_room_view`, or
   `no_room_table_evidence`, which keeps fluoroscopy frames from implying a
   false empty table when the room is not visible.
+- `operator_stage_packet`: one row per observed stage segment designed as a
+  compact handover packet. Each row combines current/prior stage status,
+  timing, evidence level, observable rate, mean confidence, handoff type, peak
+  table count, active/canonical table-person counts, lead role, active/new/
+  dropped table IDs, the effective current table source for the current stage,
+  quality flag codes, and a plain-English `operator_packet` sentence.
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
 - `view_segments`: contiguous room/non-room stretches with duration,
@@ -303,7 +309,8 @@ object for opt-in low-motion room-view review. The runner writes per-case JSON p
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
 status summaries, table-team summaries, procedure milestones, stage staffing,
-stage table coverage, stage handoff summaries, stage roster summaries, stage evidence summaries,
+operator stage packets, stage table coverage, stage handoff summaries, stage
+roster summaries, stage evidence summaries,
 procedure event timelines, table roster snapshots, table transition events,
 table presence intervals, quality flags, and low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured

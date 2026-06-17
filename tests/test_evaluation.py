@@ -8,6 +8,7 @@ import pytest
 from evaluate_tavr import parse_args, parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
+    operator_stage_packet,
     procedure_event_timeline,
     procedure_milestones,
     procedure_status_summary,
@@ -74,6 +75,7 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["stage_table_coverage"]
     assert summary["stage_handoff_summary"]
     assert summary["stage_roster_summary"]
+    assert summary["operator_stage_packet"]
     assert summary["stage_evidence_summary"]
     assert summary["procedure_status_summary"]
     assert summary["table_team_summary"]
@@ -334,6 +336,46 @@ def test_stage_roster_summary_reports_per_stage_table_team() -> None:
     assert rosters[2]["active_table_track_ids"] == []
     assert rosters[2]["dropped_track_ids"] == [7, 8]
     assert rosters[2]["roster_summary"] == "none"
+
+
+def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7, 8]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(
+            4,
+            0.4,
+            "closure_finish",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+    ]
+
+    packets = operator_stage_packet(metrics)
+
+    assert [item["stage"] for item in packets] == [
+        "access_sheathing",
+        "valve_deployment",
+        "closure_finish",
+    ]
+    assert packets[1]["stage_status"] == "observed_prior"
+    assert packets[1]["active_table_track_ids"] == [7, 8]
+    assert packets[1]["handoff_type"] == "roster_added"
+    assert "Valve deployment" in packets[1]["operator_packet"]
+    assert "active IDs 7, 8" in packets[1]["operator_packet"]
+
+    current = packets[-1]
+    assert current["is_current_stage"] is True
+    assert current["stage_status"] == "current_observed"
+    assert current["handoff_type"] == "table_cleared"
+    assert current["effective_table_source"] == "last_observed_room_view"
+    assert current["effective_table_track_ids"] == [7, 8]
+    assert "Current stage: Closure / finish" in current["operator_packet"]
+    assert "latest table status last observed room view 2 IDs 7, 8" in (
+        current["operator_packet"]
+    )
 
 
 def test_procedure_event_timeline_combines_stage_view_handoff_and_peak() -> None:
@@ -796,6 +838,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_table_coverage",
         "stage_handoff_summary",
         "stage_roster_summary",
+        "operator_stage_packet",
         "stage_evidence_summary",
         "procedure_status_summary",
         "table_team_summary",
@@ -810,6 +853,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     staffing_csv = Path(paths["stage_staffing_summary"]).read_text(encoding="utf-8")
     handoff_csv = Path(paths["stage_handoff_summary"]).read_text(encoding="utf-8")
     roster_csv = Path(paths["stage_roster_summary"]).read_text(encoding="utf-8")
+    packet_csv = Path(paths["operator_stage_packet"]).read_text(encoding="utf-8")
     evidence_csv = Path(paths["stage_evidence_summary"]).read_text(encoding="utf-8")
     status_csv = Path(paths["procedure_status_summary"]).read_text(encoding="utf-8")
     team_csv = Path(paths["table_team_summary"]).read_text(encoding="utf-8")
@@ -832,6 +876,9 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "active_table_track_ids" in roster_csv
     assert "canonical_table_identity_count" in roster_csv
     assert "Valve deployment: peak table 2" in roster_csv
+    assert "operator_packet" in packet_csv
+    assert "Current stage: Valve deployment" in packet_csv
+    assert "active IDs 7, 8" in packet_csv
     assert "evidence_level" in evidence_csv
     assert "strong_visual_support" in evidence_csv
     assert "operator_summary" in status_csv

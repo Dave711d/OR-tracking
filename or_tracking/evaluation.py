@@ -57,6 +57,39 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "quality_flag_codes",
         "operator_summary",
     ],
+    "operator_stage_packet": [
+        "packet_index",
+        "stage_segment_index",
+        "stage",
+        "stage_label",
+        "stage_status",
+        "is_current_stage",
+        "next_stage",
+        "next_stage_label",
+        "start_s",
+        "end_s",
+        "duration_s",
+        "evidence_level",
+        "observable_rate",
+        "mean_confidence",
+        "tracking_available_rate",
+        "handoff_type",
+        "peak_table_count",
+        "active_table_track_count",
+        "canonical_table_identity_count",
+        "lead_track_id",
+        "lead_table_team_role",
+        "active_table_track_ids",
+        "continued_track_ids",
+        "new_track_ids",
+        "dropped_track_ids",
+        "effective_table_source",
+        "effective_table_count",
+        "effective_table_track_ids",
+        "roster_summary",
+        "quality_flag_codes",
+        "operator_packet",
+    ],
     "table_team_summary": [
         "track_id",
         "canonical_table_id",
@@ -412,6 +445,7 @@ def summarize_tavr_metrics(
     tavr_metrics = [metric for metric in metrics if metric.tavr is not None]
     return {
         "procedure_status_summary": procedure_status_summary(tavr_metrics),
+        "operator_stage_packet": operator_stage_packet(tavr_metrics),
         "table_team_summary": table_team_summary(tavr_metrics),
         "table_identity_groups": table_identity_groups(tavr_metrics),
         "stage_timeline": tavr_stage_timeline(tavr_metrics),
@@ -601,6 +635,91 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     }
     row["operator_summary"] = _procedure_status_label(row)
     return [row]
+
+
+def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return concise per-stage rows for operator review and handover."""
+
+    if not metrics:
+        return []
+
+    status_rows = procedure_status_summary(metrics)
+    if not status_rows:
+        return []
+
+    status = status_rows[0]
+    milestones_by_stage = {
+        row["stage"]: row for row in procedure_milestones(metrics)
+    }
+    quality_flag_codes = [
+        flag["code"] for flag in tavr_quality_flags(metrics)
+    ]
+    roster_rows = stage_roster_summary(metrics)
+    current_segment_index = (
+        roster_rows[-1]["stage_segment_index"] if roster_rows else None
+    )
+
+    packets = []
+    for packet_index, roster in enumerate(roster_rows):
+        milestone = milestones_by_stage.get(roster["stage"], {})
+        is_current_stage = (
+            roster["stage"] == status.get("current_stage")
+            and roster["stage_segment_index"] == current_segment_index
+        )
+        stage_status = (
+            status.get("current_stage_status")
+            if is_current_stage
+            else milestone.get("milestone_status", "observed_prior")
+        )
+        row = {
+            "packet_index": packet_index,
+            "stage_segment_index": roster["stage_segment_index"],
+            "stage": roster["stage"],
+            "stage_label": roster["stage_label"],
+            "stage_status": stage_status,
+            "is_current_stage": is_current_stage,
+            "next_stage": status.get("next_stage") if is_current_stage else None,
+            "next_stage_label": (
+                status.get("next_stage_label") if is_current_stage else None
+            ),
+            "start_s": roster["start_s"],
+            "end_s": roster["end_s"],
+            "duration_s": roster["duration_s"],
+            "evidence_level": roster.get("evidence_level"),
+            "observable_rate": roster.get("observable_rate"),
+            "mean_confidence": roster.get("mean_confidence"),
+            "tracking_available_rate": roster.get("tracking_available_rate"),
+            "handoff_type": roster.get("handoff_type"),
+            "peak_table_count": roster.get("peak_table_count", 0),
+            "active_table_track_count": roster.get("active_table_track_count", 0),
+            "canonical_table_identity_count": roster.get(
+                "canonical_table_identity_count",
+                0,
+            ),
+            "lead_track_id": roster.get("lead_track_id"),
+            "lead_table_team_role": roster.get("lead_table_team_role"),
+            "active_table_track_ids": roster.get("active_table_track_ids", []),
+            "continued_track_ids": roster.get("continued_track_ids", []),
+            "new_track_ids": roster.get("new_track_ids", []),
+            "dropped_track_ids": roster.get("dropped_track_ids", []),
+            "effective_table_source": (
+                status.get("effective_table_source") if is_current_stage else None
+            ),
+            "effective_table_count": (
+                status.get("effective_table_count") if is_current_stage else None
+            ),
+            "effective_table_track_ids": (
+                status.get("effective_table_track_ids", [])
+                if is_current_stage
+                else []
+            ),
+            "roster_summary": roster.get("roster_summary", "none"),
+            "quality_flag_codes": quality_flag_codes,
+        }
+        row["operator_packet"] = _operator_stage_packet_label(row)
+        packets.append(row)
+
+    return packets
 
 
 def tavr_stage_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
@@ -2209,6 +2328,41 @@ def _procedure_status_label(row: Dict[str, Any]) -> str:
     )
 
 
+def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
+    status_label = (
+        "Current stage" if row.get("is_current_stage") else "Observed stage"
+    )
+    evidence = row.get("evidence_level") or "no evidence"
+    observable_rate = _maybe_percent_label(row.get("observable_rate"))
+    mean_confidence = _maybe_float_label(row.get("mean_confidence"))
+    handoff = _text_status_label(row.get("handoff_type"))
+    active_ids = _track_ids_text(row.get("active_table_track_ids", []))
+    new_ids = _track_ids_text(row.get("new_track_ids", []))
+    dropped_ids = _track_ids_text(row.get("dropped_track_ids", []))
+    quality_flags = row.get("quality_flag_codes", [])
+    quality_label = ", ".join(quality_flags) if quality_flags else "none"
+    packet = (
+        f"{status_label}: {row.get('stage_label') or 'n/a'} "
+        f"{row.get('start_s')}s-{row.get('end_s')}s; "
+        f"evidence {evidence}, confidence {mean_confidence}, "
+        f"observable {observable_rate}; handoff {handoff}; "
+        f"peak table {row.get('peak_table_count', 0)}; "
+        f"active IDs {active_ids}; new IDs {new_ids}; "
+        f"dropped IDs {dropped_ids}; roster {row.get('roster_summary') or 'none'}"
+    )
+    if row.get("is_current_stage"):
+        packet += (
+            f"; latest table status "
+            f"{_text_status_label(row.get('effective_table_source'))} "
+            f"{row.get('effective_table_count', 0)} IDs "
+            f"{_track_ids_text(row.get('effective_table_track_ids', []))}"
+        )
+        if row.get("next_stage_label"):
+            packet += f"; next {row['next_stage_label']}"
+    packet += f"; quality flags {quality_label}"
+    return packet
+
+
 def _table_team_status(
     track_id: int,
     current_ids: set[int],
@@ -2310,6 +2464,10 @@ def _role_label(
 def _roster_status_label(roster: Sequence[Dict[str, Any]]) -> str:
     labels = [str(item.get("label")) for item in roster if item.get("label")]
     return "; ".join(labels[:6]) if labels else "none"
+
+
+def _track_ids_text(track_ids: Sequence[Any]) -> str:
+    return ", ".join(str(track_id) for track_id in track_ids) or "none"
 
 
 def _text_status_label(value: Any) -> str:

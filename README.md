@@ -162,11 +162,15 @@ appeared, or dropped at each stage boundary, and whether each
 stage estimate is strong, weak, or held because the room view was unavailable. Mixed
 room/fluoroscopy runs also include room-view frame counts, tracking-available
 rates, and room-view table occupancy so staff/table coverage is not understated
-by frames where the room was not visible.
+by frames where the room was not visible. The `Operator stage packet` table is
+the compact handover surface: one row per observed stage segment with current
+stage status, evidence, handoff type, active/new/dropped table IDs, effective
+current table context, quality flags, and a plain-English packet sentence.
 It also writes:
 
 - `outputs/*_metrics.csv`
 - `outputs/*_procedure_status_summary.csv`,
+  `*_operator_stage_packet.csv`,
   `*_table_team_summary.csv`,
   `*_stage_table_coverage.csv`, `*_stage_handoff_summary.csv`,
   `*_stage_evidence_summary.csv`, `*_procedure_milestones.csv`,
@@ -175,8 +179,8 @@ It also writes:
 - `outputs/*_tracked.mp4` when annotated video is enabled
 
 The Streamlit app includes a `Download TAVR tables` ZIP containing the derived
-status, table-team, stage, view, milestone, roster snapshot, event, and quality
-CSVs for the current run.
+status, operator packet, table-team, stage, view, milestone, roster snapshot,
+event, and quality CSVs for the current run.
 
 For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
 `tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`,
