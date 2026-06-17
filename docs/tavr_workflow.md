@@ -75,12 +75,36 @@ access, deployment, and closure windows without losing source timestamps:
 python evaluate_tavr.py samples/live_tavr.mp4 --start-s 900 --max-frames 600
 ```
 
+For targeted windows, add `--initial-stage` when the starting phase is already
+known from the video title, transcript, narration, or manual review:
+
+```bash
+python evaluate_tavr.py samples/live_tavr.mp4 \
+  --start-s 900 \
+  --max-frames 600 \
+  --initial-stage valve_deployment \
+  --roi 0,0.46,0.31,0.89 \
+  --min-area 900
+```
+
+Valid seed stages are the stage keys in the taxonomy above. This keeps slice
+evaluation useful for table-roster and local-stage behavior instead of forcing
+every clip to replay the whole procedure sequence from room prep.
+
+Use `--roi x0,y0,x1,y1` for broadcast videos where the actual room camera is a
+small picture-in-picture inset and fluoroscopy or hemodynamic monitors dominate
+the full frame. The same initial-stage and ROI controls are available in the
+Streamlit sidebar for uploaded clips.
+
 The JSON output includes:
 
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
 - `track_role_report`: latest role dwell for every track ID seen in the clip.
 - `current_table_roster`: the most recent table-side roster.
+- `peak_table_roster`: roster from the frame with the highest table-side count.
+- `table_presence_roster`: tracks that spent meaningful time table-side anywhere
+  in the clip, useful when the final frames are still or empty.
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,

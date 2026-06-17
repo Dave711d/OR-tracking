@@ -19,6 +19,8 @@ def summarize_tavr_metrics(
         "stage_timeline": tavr_stage_timeline(tavr_metrics),
         "track_role_report": tavr_track_role_report(tavr_metrics),
         "current_table_roster": current_table_roster(tavr_metrics),
+        "peak_table_roster": peak_table_roster(tavr_metrics),
+        "table_presence_roster": table_presence_roster(tavr_metrics),
         "low_confidence_segments": low_confidence_segments(
             tavr_metrics,
             threshold=confidence_threshold,
@@ -87,6 +89,62 @@ def current_table_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]
         return []
 
     state = _tavr_state(metrics[-1])
+    return _roster_from_state(state)
+
+
+def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
+    """Return the roster from the frame with the largest table-side count."""
+
+    if not metrics:
+        return {
+            "frame_index": None,
+            "timestamp_s": None,
+            "table_count": 0,
+            "roster": [],
+        }
+
+    peak_metric = max(
+        metrics,
+        key=lambda metric: (_tavr_state(metric).table_count, metric.frame_index),
+    )
+    peak_state = _tavr_state(peak_metric)
+    return {
+        "frame_index": peak_metric.frame_index,
+        "timestamp_s": peak_metric.timestamp_s,
+        "table_count": peak_state.table_count,
+        "roster": _roster_from_state(peak_state),
+    }
+
+
+def table_presence_roster(
+    metrics: Sequence[FrameMetrics],
+    min_table_frames: int = 3,
+) -> List[Dict[str, Any]]:
+    """Return tracks that spent meaningful time at the table during the clip."""
+
+    roster = []
+    for summary in tavr_track_role_report(metrics):
+        if summary["table_frames"] < min_table_frames:
+            continue
+        roster.append(
+            {
+                "track_id": summary["track_id"],
+                "dominant_role": summary["dominant_role"],
+                "frames_seen": summary["frames_seen"],
+                "table_frames": summary["table_frames"],
+                "table_presence_ratio": summary["table_presence_ratio"],
+                "first_frame": summary["first_frame"],
+                "last_frame": summary["last_frame"],
+                "label": (
+                    f"ID {summary['track_id']} {summary['dominant_role']} "
+                    f"table={summary['table_presence_ratio']:.0%}"
+                ),
+            }
+        )
+    return roster
+
+
+def _roster_from_state(state: TAVRFrameState) -> List[Dict[str, Any]]:
     roster = []
     for track_id in state.table_track_ids:
         summary = state.track_role_summaries.get(track_id)

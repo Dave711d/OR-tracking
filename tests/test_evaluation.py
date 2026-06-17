@@ -1,5 +1,9 @@
+import argparse
 from pathlib import Path
 
+import pytest
+
+from evaluate_tavr import parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import summarize_tavr_metrics
 from or_tracking.models import FrameMetrics
@@ -28,6 +32,9 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["track_role_report"]
     assert summary["track_role_report"][0]["table_presence_ratio"] >= 0
     assert "current_table_roster" in summary
+    assert summary["peak_table_roster"]["table_count"] >= 1
+    assert summary["peak_table_roster"]["roster"]
+    assert summary["table_presence_roster"]
     assert "low_confidence_segments" in summary
     assert "quality_flags" in summary
 
@@ -45,6 +52,15 @@ def test_summarize_tavr_metrics_flags_early_terminal_stage() -> None:
     assert {
         flag["code"] for flag in summary["quality_flags"]
     } >= {"early_terminal_stage"}
+
+
+def test_parse_roi_accepts_normalized_crop() -> None:
+    assert parse_roi("0.1,0.2,0.8,0.9") == (0.1, 0.2, 0.8, 0.9)
+
+
+def test_parse_roi_rejects_invalid_crop() -> None:
+    with pytest.raises(argparse.ArgumentTypeError):
+        parse_roi("0.8,0.2,0.1,0.9")
 
 
 def _metric(frame_index: int, timestamp_s: float, stage: str) -> FrameMetrics:

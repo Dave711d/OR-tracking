@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import Optional, Tuple
 
 import pandas as pd
 import streamlit as st
 
-from or_tracking import MotionTrackerConfig, process_video_file
+from or_tracking import (
+    MotionTrackerConfig,
+    TAVR_STAGE_LABELS,
+    TAVR_STAGE_ORDER,
+    process_video_file,
+)
 from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 
 
@@ -25,8 +31,27 @@ def main() -> None:
     with st.sidebar:
         st.header("Run settings")
         max_frames = st.slider("Max frames", 60, 1800, 360, step=60)
-        min_area = st.slider("Minimum tracked area", 100, 5000, 200, step=100)
+        min_area = st.slider("Minimum tracked area", 100, 5000, 180, step=20)
         crowding_threshold = st.slider("Crowding threshold", 2, 8, 4)
+        initial_stage = st.selectbox(
+            "Initial TAVR stage",
+            TAVR_STAGE_ORDER,
+            format_func=lambda stage: TAVR_STAGE_LABELS[stage],
+        )
+        use_roi = st.toggle("Crop to ROI", value=False)
+        roi = None
+        if use_roi:
+            roi_cols = st.columns(2)
+            with roi_cols[0]:
+                x0 = st.number_input("ROI x0", 0.0, 0.99, 0.0, 0.01)
+                y0 = st.number_input("ROI y0", 0.0, 0.99, 0.46, 0.01)
+            with roi_cols[1]:
+                x1 = st.number_input("ROI x1", 0.01, 1.0, 0.31, 0.01)
+                y1 = st.number_input("ROI y1", 0.01, 1.0, 0.89, 0.01)
+            if x0 < x1 and y0 < y1:
+                roi = (x0, y0, x1, y1)
+            else:
+                st.warning("ROI must satisfy x0 < x1 and y0 < y1")
         write_video = st.toggle("Create annotated video", value=True)
 
     uploaded_file = st.file_uploader(
@@ -37,33 +62,57 @@ def main() -> None:
 
     sample_col, tavr_col, upload_col = st.columns([1, 1, 2])
     with sample_col:
-        use_sample = st.button("Use synthetic sample", use_container_width=True)
+        use_sample = st.button("Use synthetic sample", width="stretch")
     with tavr_col:
-        use_tavr_sample = st.button("Use TAVR sample", use_container_width=True)
+        use_tavr_sample = st.button("Use TAVR sample", width="stretch")
     with upload_col:
         run_uploaded = st.button(
             "Analyze uploaded video",
             type="primary",
-            use_container_width=True,
+            width="stretch",
             disabled=uploaded_file is None,
         )
 
     if use_sample:
         sample_path = Path("samples/synthetic_or_sample.mp4")
         generate_synthetic_or_video(sample_path)
-        _run_analysis(sample_path, max_frames, min_area, crowding_threshold, write_video)
+        _run_analysis(
+            sample_path,
+            max_frames,
+            min_area,
+            crowding_threshold,
+            initial_stage,
+            roi,
+            write_video,
+        )
 
     if use_tavr_sample:
         sample_path = Path("samples/synthetic_tavr_sample.mp4")
         generate_synthetic_tavr_video(sample_path)
-        _run_analysis(sample_path, max_frames, min_area, crowding_threshold, write_video)
+        _run_analysis(
+            sample_path,
+            max_frames,
+            min_area,
+            crowding_threshold,
+            initial_stage,
+            roi,
+            write_video,
+        )
 
     if run_uploaded and uploaded_file is not None:
         suffix = Path(uploaded_file.name).suffix or ".mp4"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as handle:
             handle.write(uploaded_file.getbuffer())
             input_path = Path(handle.name)
-        _run_analysis(input_path, max_frames, min_area, crowding_threshold, write_video)
+        _run_analysis(
+            input_path,
+            max_frames,
+            min_area,
+            crowding_threshold,
+            initial_stage,
+            roi,
+            write_video,
+        )
 
 
 def _run_analysis(
@@ -71,11 +120,14 @@ def _run_analysis(
     max_frames: int,
     min_area: int,
     crowding_threshold: int,
+    initial_stage: str,
+    roi: Optional[Tuple[float, float, float, float]],
     write_video: bool,
 ) -> None:
     config = MotionTrackerConfig(
         min_area=min_area,
         crowding_threshold=crowding_threshold,
+        tavr_initial_stage=initial_stage,
     )
     progress = st.progress(0, text="Processing video")
 
@@ -89,6 +141,7 @@ def _run_analysis(
             output_dir="outputs",
             config=config,
             max_frames=max_frames,
+            roi=roi,
             write_annotated_video=write_video,
             progress_callback=on_progress,
         )
@@ -143,7 +196,7 @@ def _run_analysis(
         ]
         st.dataframe(
             metrics_df[display_columns].tail(20) if display_columns else metrics_df.tail(20),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -154,7 +207,7 @@ def _run_analysis(
             result.csv_path.read_bytes(),
             file_name=result.csv_path.name,
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
         )
     with downloads[1]:
         if result.annotated_video_path and result.annotated_video_path.exists():
@@ -163,7 +216,7 @@ def _run_analysis(
                 result.annotated_video_path.read_bytes(),
                 file_name=result.annotated_video_path.name,
                 mime="video/mp4",
-                use_container_width=True,
+                width="stretch",
             )
 
     if result.annotated_video_path and result.annotated_video_path.exists():

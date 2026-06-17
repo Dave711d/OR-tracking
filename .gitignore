@@ -13,4 +13,8 @@ samples/*.mp4
 samples/*.mov
 samples/*.m4v
 samples/*.avi
+samples/**/*.mp4
+samples/**/*.mov
+samples/**/*.m4v
+samples/**/*.avi
 !samples/.gitkeep

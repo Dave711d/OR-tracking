@@ -63,6 +63,21 @@ For long cases, evaluate targeted slices while preserving source timestamps:
 python evaluate_tavr.py samples/live_tavr.mp4 --start-s 900 --max-frames 600
 ```
 
+If you know the slice begins around a specific procedure phase, seed the stage
+estimator so the clip does not restart from room prep:
+
+```bash
+python evaluate_tavr.py samples/live_tavr.mp4 \
+  --start-s 900 \
+  --max-frames 600 \
+  --initial-stage valve_deployment \
+  --roi 0,0.46,0.31,0.89 \
+  --min-area 900
+```
+
+`--roi` is useful for broadcast cases where the room camera is a picture-in-
+picture inset and fluoroscopy fills the main frame.
+
 ## Streamlit app
 
 Run the Python prototype locally:
@@ -72,7 +87,9 @@ streamlit run app.py --server.headless true
 ```
 
 Open the local URL Streamlit prints, upload a video, or click `Use synthetic
-sample` / `Use TAVR sample`. The app writes:
+sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
+targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
+The app writes:
 
 - `outputs/*_metrics.csv`
 - `outputs/*_tracked.mp4` when annotated video is enabled

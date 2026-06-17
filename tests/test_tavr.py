@@ -109,6 +109,33 @@ def test_tavr_workflow_remembers_track_role_history() -> None:
     assert "7:table_operator:frames=3" in row["track_role_summary"]
 
 
+def test_tavr_workflow_can_start_from_seeded_stage() -> None:
+    analyzer = TAVRWorkflowAnalyzer(
+        initial_stage="valve_deployment",
+        min_stage_frames=30,
+    )
+    state = analyzer.update(
+        [],
+        {"table": 1, "imaging": 1},
+        [],
+        {},
+        900,
+        0,
+    )
+
+    assert state.stage == "valve_deployment"
+    assert state.stage_label == "Valve deployment"
+
+
+def test_tavr_workflow_rejects_unknown_initial_stage() -> None:
+    try:
+        TAVRWorkflowAnalyzer(initial_stage="not_a_tavr_stage")
+    except ValueError as exc:
+        assert "Unknown TAVR stage" in str(exc)
+    else:
+        raise AssertionError("Expected invalid initial stage to raise ValueError")
+
+
 def test_tavr_stage_dwell_uses_first_observed_frame_for_offset_slices() -> None:
     analyzer = TAVRWorkflowAnalyzer(min_stage_frames=30)
     detections = [Detection(1, (10, 10, 20, 40), (20, 30), 700)]

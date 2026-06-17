@@ -50,6 +50,10 @@ class MotionTrackerConfig:
     crowding_threshold: int = 4
     zones: ZoneMap = field(default_factory=_default_zones)
     enable_tavr: bool = True
+    tavr_initial_stage: str = "room_prep_drape"
+    tavr_min_confidence_to_advance: float = 0.42
+    tavr_advance_margin: float = 0.06
+    tavr_min_stage_frames: int = 30
 
 
 @dataclass
@@ -173,7 +177,16 @@ class ORActivityTracker:
             max_distance=self.config.max_match_distance,
             max_disappeared=self.config.max_disappeared,
         )
-        self._tavr = TAVRWorkflowAnalyzer() if self.config.enable_tavr else None
+        self._tavr = (
+            TAVRWorkflowAnalyzer(
+                initial_stage=self.config.tavr_initial_stage,
+                min_confidence_to_advance=self.config.tavr_min_confidence_to_advance,
+                advance_margin=self.config.tavr_advance_margin,
+                min_stage_frames=self.config.tavr_min_stage_frames,
+            )
+            if self.config.enable_tavr
+            else None
+        )
 
     @property
     def total_tracks_seen(self) -> int:

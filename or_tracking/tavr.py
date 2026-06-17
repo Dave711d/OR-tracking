@@ -188,6 +188,7 @@ class TAVRFrameState:
 class TAVRWorkflowAnalyzer:
     """Small stateful heuristic stage estimator for TAVR-room footage."""
 
+    initial_stage: str = "room_prep_drape"
     min_confidence_to_advance: float = 0.42
     advance_margin: float = 0.06
     min_stage_frames: int = 30
@@ -195,6 +196,12 @@ class TAVRWorkflowAnalyzer:
     current_stage_start_frame: int = 0
     track_histories: Dict[int, _TrackRoleHistory] = field(default_factory=dict)
     initialized: bool = False
+
+    def __post_init__(self) -> None:
+        if self.initial_stage not in TAVR_STAGE_ORDER:
+            valid = ", ".join(TAVR_STAGE_ORDER)
+            raise ValueError(f"Unknown TAVR stage '{self.initial_stage}'. Valid: {valid}")
+        self.current_stage_index = TAVR_STAGE_ORDER.index(self.initial_stage)
 
     def update(
         self,
