@@ -418,6 +418,7 @@ def test_table_team_summary_reports_active_recent_and_historical_members() -> No
     non_room_by_id = {item["track_id"]: item for item in non_room_team}
 
     assert non_room_by_id[7]["team_status"] == "recent_last_observed"
+    assert non_room_by_id[7]["table_team_role"] == "table_operator"
     assert non_room_by_id[7]["is_current_table_member"] is False
     assert non_room_by_id[7]["is_effective_table_member"] is True
     assert non_room_by_id[7]["is_last_observed_table_member"] is True
@@ -433,6 +434,7 @@ def test_table_team_summary_reports_active_recent_and_historical_members() -> No
     room_by_id = {item["track_id"]: item for item in room_team}
 
     assert room_by_id[9]["team_status"] == "active_current"
+    assert room_by_id[9]["table_team_role"] == "table_operator"
     assert room_by_id[9]["is_current_table_member"] is True
     assert room_by_id[9]["is_effective_table_member"] is True
     assert room_by_id[9]["age_from_clip_end_s"] == 0.0
@@ -586,6 +588,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "effective_table_source" in status_csv
     assert "team_status" in team_csv
     assert "active_current" in team_csv
+    assert "table_team_role" in team_csv
     assert "milestone_status" in milestones_csv
     assert "current_observed" in milestones_csv
     assert "event_type" in event_csv
@@ -710,6 +713,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
             {
                 "status": "active_current",
                 "role": "table_operator",
+                "table_team_role": "table_operator",
                 "min_tracks": 1,
                 "require_in_current_table_roster": True,
                 "require_in_effective_table_roster": True,
@@ -720,6 +724,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
             {
                 "status": "historical_seen",
                 "role": "table_operator",
+                "table_team_role": "table_operator",
                 "min_tracks": 1,
                 "require_in_current_table_roster": False,
                 "require_in_peak_table_roster": True,

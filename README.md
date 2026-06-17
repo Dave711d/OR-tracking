@@ -67,7 +67,10 @@ can distinguish live room rosters from the last trustworthy room-view table
 observation or from no usable table evidence.
 The table-team rows classify each meaningful table-side track as
 `active_current`, `recent_last_observed`, or `historical_seen`, with explicit
-current/effective/last/peak roster membership flags.
+current/effective/last/peak roster membership flags. They keep both the raw
+`dominant_role` and an operator-facing `table_team_role`, so a table-side track
+with enough access/table evidence can read as a table operator even if its
+dominant zone history was imaging or another support area.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 

@@ -61,6 +61,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "track_id",
         "team_status",
         "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
         "is_current_table_member",
         "is_effective_table_member",
         "is_last_observed_table_member",
@@ -853,6 +855,11 @@ def table_team_summary(
             if row["role_counts"]
             else row.get("dominant_role") or "unassigned"
         )
+        table_team_role, table_team_role_confidence = _table_team_role(
+            row["role_counts"],
+            dominant_role,
+            table_frames,
+        )
         dominant_stage = _dominant_from_counts(row["stage_counts"])
         team_status = _table_team_status(
             track_id=track_id,
@@ -866,6 +873,8 @@ def table_team_summary(
             "track_id": track_id,
             "team_status": team_status,
             "dominant_role": dominant_role,
+            "table_team_role": table_team_role,
+            "table_team_role_confidence": table_team_role_confidence,
             "is_current_table_member": track_id in current_ids,
             "is_effective_table_member": track_id in effective_ids,
             "is_last_observed_table_member": track_id in last_ids,
@@ -1963,13 +1972,47 @@ def _table_team_status(
     return "historical_seen"
 
 
+def _table_team_role(
+    role_counts: Dict[str, int],
+    dominant_role: str,
+    table_frames: int,
+) -> tuple[str, Optional[float]]:
+    if table_frames <= 0:
+        return dominant_role, None
+
+    table_facing_roles = ("access_operator", "table_operator")
+    minimum_support = max(3, int(table_frames * 0.1))
+    candidates = [
+        (role, min(int(role_counts.get(role, 0) or 0), table_frames))
+        for role in table_facing_roles
+        if int(role_counts.get(role, 0) or 0) >= minimum_support
+    ]
+    if not candidates:
+        dominant_count = min(int(role_counts.get(dominant_role, 0) or 0), table_frames)
+        return dominant_role, _ratio(dominant_count, table_frames)
+
+    priority = {role: index for index, role in enumerate(table_facing_roles)}
+    role, count = max(
+        candidates,
+        key=lambda item: (item[1], -priority.get(item[0], len(priority))),
+    )
+    return role, _ratio(count, table_frames)
+
+
 def _table_team_label(row: Dict[str, Any]) -> str:
     stage_label = row.get("dominant_stage_label") or "stage n/a"
     age = row.get("age_from_clip_end_s")
     age_label = f"{float(age):.1f}s ago" if age is not None else "age n/a"
     ratio = _maybe_percent_label(row.get("table_presence_ratio"))
+    role_label = row.get("table_team_role") or row.get("dominant_role")
+    raw_role = row.get("dominant_role")
+    role_detail = (
+        f"{role_label} (dominant {raw_role})"
+        if raw_role and role_label != raw_role
+        else str(role_label)
+    )
     return (
-        f"ID {row['track_id']} {row['dominant_role']} "
+        f"ID {row['track_id']} {role_detail} "
         f"{_text_status_label(row['team_status'])}; "
         f"table={ratio}; last={age_label}; dominant={stage_label}"
     )
@@ -2904,6 +2947,7 @@ def _table_team_score(
                 or expectation.get("status"),
                 "role": expectation.get("role")
                 or expectation.get("dominant_role"),
+                "table_team_role": expectation.get("table_team_role"),
                 "dominant_stage": expectation.get("dominant_stage")
                 or expectation.get("stage"),
                 "min_tracks": min_tracks,
@@ -3430,6 +3474,7 @@ def _score_table_team_candidate(
     track_id = expectation.get("track_id")
     team_status = expectation.get("team_status") or expectation.get("status")
     dominant_role = expectation.get("dominant_role") or expectation.get("role")
+    table_team_role = expectation.get("table_team_role")
     dominant_stage = expectation.get("dominant_stage") or expectation.get("stage")
     min_frames_seen = expectation.get("min_frames_seen")
     min_observed_table_frames = expectation.get("min_observed_table_frames")
@@ -3449,6 +3494,9 @@ def _score_table_team_candidate(
         ),
         "dominant_role": (
             dominant_role is None or row["dominant_role"] == dominant_role
+        ),
+        "table_team_role": (
+            table_team_role is None or row["table_team_role"] == table_team_role
         ),
         "dominant_stage": (
             dominant_stage is None or row["dominant_stage"] == dominant_stage
@@ -3517,6 +3565,8 @@ def _score_table_team_candidate(
         "track_id": row["track_id"],
         "team_status": row["team_status"],
         "dominant_role": row["dominant_role"],
+        "table_team_role": row["table_team_role"],
+        "table_team_role_confidence": row["table_team_role_confidence"],
         "dominant_stage": row["dominant_stage"],
         "is_current_table_member": row["is_current_table_member"],
         "is_effective_table_member": row["is_effective_table_member"],

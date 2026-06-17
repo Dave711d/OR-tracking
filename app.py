@@ -594,7 +594,9 @@ def _table_team_rows(team_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             {
                 "track_id": item.get("track_id"),
                 "status": _status_label(item.get("team_status")),
-                "role": _status_label(item.get("dominant_role")),
+                "table_role": _status_label(item.get("table_team_role")),
+                "dominant_role": _status_label(item.get("dominant_role")),
+                "role_confidence": item.get("table_team_role_confidence"),
                 "current": _yes_no(item.get("is_current_table_member")),
                 "effective": _yes_no(item.get("is_effective_table_member")),
                 "last_observed": _yes_no(item.get("is_last_observed_table_member")),

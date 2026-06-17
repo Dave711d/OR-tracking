@@ -154,6 +154,7 @@
     {
       "status": "recent_last_observed",
       "role": "table_operator",
+      "table_team_role": "table_operator",
       "min_tracks": 1,
       "min_observed_table_frames": 10,
       "require_in_current_table_roster": false,
@@ -165,6 +166,7 @@
     {
       "status": "historical_seen",
       "role": "table_operator",
+      "table_team_role": "table_operator",
       "min_tracks": 2,
       "min_observed_table_frames": 10,
       "require_in_current_table_roster": false,

@@ -132,11 +132,12 @@ The JSON output includes:
   snapshots for CSV export.
 - `table_team_summary`: one row per meaningful table-side track across the clip.
   Rows include `team_status` (`active_current`, `recent_last_observed`, or
-  `historical_seen`), dominant role, current/effective/last/peak roster
-  membership flags, first/last table-side timestamps, age from clip end, table
-  frames, table-presence ratio, dominant stage, role/stage counts, and a compact
-  label. This is the operator-facing "who is/was at the table" table when the
-  latest frame is non-room or the current room view is empty.
+  `historical_seen`), raw `dominant_role`, operator-facing `table_team_role`,
+  table-role confidence, current/effective/last/peak roster membership flags,
+  first/last table-side timestamps, age from clip end, table frames,
+  table-presence ratio, dominant stage, role/stage counts, and a compact label.
+  This is the operator-facing "who is/was at the table" table when the latest
+  frame is non-room or the current room view is empty.
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
@@ -236,9 +237,10 @@ The label file can include:
   tracks in fluoroscopy-only clips, requiring a `recent_last_observed` row from
   the last room-view roster, requiring an `active_current` row in a live room
   view, or requiring historical peak-table operators. Expectations can constrain
-  status, role, dominant stage, minimum/maximum matching tracks, observed table
-  frames, table-presence ratio, last-seen age from clip end, interval count, and
-  current/effective/last/peak roster membership.
+  status, raw dominant role, operator-facing `table_team_role`, dominant stage,
+  minimum/maximum matching tracks, observed table frames, table-presence ratio,
+  last-seen age from clip end, interval count, and current/effective/last/peak
+  roster membership.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can
