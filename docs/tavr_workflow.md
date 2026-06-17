@@ -207,8 +207,8 @@ The JSON output includes:
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
   stage-staffing, stage-handoff, stage-roster, stage-evidence, procedure-milestone,
-  procedure-status, table-team, procedure-event-timeline, roster-snapshot, and
-  quality-flag expectation pass rates.
+  procedure-status, operator-packet, table-team, procedure-event-timeline,
+  roster-snapshot, and quality-flag expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -271,6 +271,12 @@ The label file can include:
   availability, effective table source/count/freshness, evidence level,
   observable rate, mean confidence, current table count, last-observed table
   count/freshness, peak table count, and required or forbidden quality flags.
+- `operator_packet_expectations`: expected operator handover packet rows,
+  including stage/current-vs-prior status, next stage, handoff type, evidence
+  level, lead role, active/canonical/effective table counts, continued/new/
+  dropped table identities, tracking and observable rates, mean confidence,
+  effective table source, required or forbidden quality flags, and required or
+  forbidden packet text fragments.
 - `table_team_expectations`: expected table-team rows, such as requiring no
   tracks in fluoroscopy-only clips, requiring a `recent_last_observed` row from
   the last room-view roster, requiring an `active_current` row in a live room
@@ -314,7 +320,8 @@ roster summaries, stage evidence summaries,
 procedure event timelines, table roster snapshots, table transition events,
 table presence intervals, quality flags, and low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured
-threshold.
+threshold, including `operator_packet_pass_rate` when packet expectations are
+labelled.
 
 The default suite keeps static fallback off as a conservative baseline. Run the
 opt-in fallback fixture separately when refining low-motion room-view tracking:

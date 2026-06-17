@@ -105,6 +105,36 @@
       ]
     }
   ],
+  "operator_packet_expectations": [
+    {
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "current": true,
+      "stage_status": "current_observed",
+      "next_stage": "angio_alignment_crossing",
+      "handoff_type": "initial_no_table_evidence",
+      "evidence_level": "weak_visual_support",
+      "max_peak_table_count": 0,
+      "max_active_tracks": 0,
+      "max_canonical_table_identity_count": 0,
+      "max_observable_rate": 0.2,
+      "max_mean_confidence": 0.25,
+      "max_effective_table_count": 0,
+      "required_quality_flags": [
+        "low_stage_confidence",
+        "non_room_view",
+        "low_motion_room_view"
+      ],
+      "required_packet_text": [
+        "Current stage: Access / sheathing",
+        "handoff initial no table evidence",
+        "active IDs none",
+        "latest table status no room table evidence 0 IDs none",
+        "next Angio alignment / crossing",
+        "quality flags low_stage_confidence, non_room_view, low_motion_room_view"
+      ]
+    }
+  ],
   "table_team_expectations": [
     {
       "max_tracks": 0

@@ -537,6 +537,10 @@ def score_tavr_metrics(
             tavr_metrics,
             labels.get("procedure_status_expectations", []),
         ),
+        "operator_packet_score": _operator_packet_score(
+            tavr_metrics,
+            labels.get("operator_packet_expectations", []),
+        ),
         "table_team_score": _table_team_score(
             tavr_metrics,
             labels.get("table_team_expectations", []),
@@ -3464,6 +3468,62 @@ def _procedure_status_score(
     }
 
 
+def _operator_packet_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    packets = operator_stage_packet(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        stage = expectation.get("stage")
+        stage_segment_index = expectation.get("stage_segment_index")
+        is_current_stage = _expected_current_stage(expectation)
+        candidates = [
+            packet
+            for packet in packets
+            if (stage is None or packet["stage"] == stage)
+            and (
+                stage_segment_index is None
+                or packet["stage_segment_index"] == int(stage_segment_index)
+            )
+            and (
+                is_current_stage is None
+                or bool(packet.get("is_current_stage")) == is_current_stage
+            )
+            and _stage_row_overlaps_expectation(packet, expectation)
+        ]
+        scored_candidates = [
+            _score_operator_packet_candidate(packet, expectation)
+            for packet in candidates
+        ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "stage": stage,
+                "stage_segment_index": stage_segment_index,
+                "is_current_stage": is_current_stage,
+                "stage_status": expectation.get("stage_status"),
+                "handoff_types": sorted(_expected_handoff_types(expectation)) or None,
+                "evidence_levels": sorted(_expected_evidence_levels(expectation))
+                or None,
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _table_team_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -3673,6 +3733,22 @@ def _expected_evidence_levels(expectation: Dict[str, Any]) -> set[str]:
     if isinstance(values, str):
         return {values}
     return {str(value) for value in values}
+
+
+def _expected_current_stage(expectation: Dict[str, Any]) -> Optional[bool]:
+    if "is_current_stage" in expectation:
+        return bool(expectation["is_current_stage"])
+    if "current" in expectation:
+        return bool(expectation["current"])
+    return None
+
+
+def _expected_text_fragments(values: Any) -> List[str]:
+    if values is None:
+        return []
+    if isinstance(values, str):
+        return [values]
+    return [str(value) for value in values]
 
 
 def _stage_evidence_matches_expectation(
@@ -4213,6 +4289,224 @@ def _score_procedure_status_candidate(
         "peak_table_count": row["peak_table_count"],
         "quality_flag_codes": row["quality_flag_codes"],
         "operator_summary": row["operator_summary"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _score_operator_packet_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    stage_status = expectation.get("stage_status")
+    next_stage_expected = "next_stage" in expectation
+    next_stage = expectation.get("next_stage")
+    expected_handoff_types = _expected_handoff_types(expectation)
+    expected_evidence_levels = _expected_evidence_levels(expectation)
+    effective_table_source = expectation.get("effective_table_source")
+    lead_role = expectation.get("lead_role") or expectation.get("lead_table_team_role")
+    min_peak_table_count = expectation.get("min_peak_table_count")
+    max_peak_table_count = expectation.get("max_peak_table_count")
+    min_active_tracks = expectation.get(
+        "min_active_tracks",
+        expectation.get("min_active_table_track_count"),
+    )
+    max_active_tracks = expectation.get(
+        "max_active_tracks",
+        expectation.get("max_active_table_track_count"),
+    )
+    min_canonical_table_identity_count = expectation.get(
+        "min_canonical_table_identity_count"
+    )
+    max_canonical_table_identity_count = expectation.get(
+        "max_canonical_table_identity_count"
+    )
+    min_continued_tracks = expectation.get("min_continued_tracks")
+    min_new_tracks = expectation.get("min_new_tracks")
+    min_dropped_tracks = expectation.get("min_dropped_tracks")
+    min_effective_table_count = expectation.get("min_effective_table_count")
+    max_effective_table_count = expectation.get("max_effective_table_count")
+    min_tracking_available_rate = expectation.get("min_tracking_available_rate")
+    min_observable_rate = expectation.get("min_observable_rate")
+    max_observable_rate = expectation.get("max_observable_rate")
+    min_mean_confidence = expectation.get("min_mean_confidence")
+    max_mean_confidence = expectation.get("max_mean_confidence")
+    required_active_track_ids = {
+        int(track_id) for track_id in expectation.get("required_active_track_ids", [])
+    }
+    required_effective_track_ids = {
+        int(track_id)
+        for track_id in expectation.get("required_effective_track_ids", [])
+    }
+    required_quality_flags = set(expectation.get("required_quality_flags", []))
+    forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
+    actual_quality_flags = set(row.get("quality_flag_codes", []))
+    required_packet_text = _expected_text_fragments(
+        expectation.get("required_packet_text")
+    )
+    forbidden_packet_text = _expected_text_fragments(
+        expectation.get("forbidden_packet_text")
+    )
+    packet_text = row.get("operator_packet", "")
+    active_track_ids = {
+        int(track_id) for track_id in row.get("active_table_track_ids", [])
+    }
+    effective_track_ids = {
+        int(track_id) for track_id in row.get("effective_table_track_ids", [])
+    }
+    checks = {
+        "stage_status": stage_status is None or row.get("stage_status") == stage_status,
+        "next_stage": (
+            not next_stage_expected or row.get("next_stage") == next_stage
+        ),
+        "handoff_type": (
+            not expected_handoff_types
+            or row.get("handoff_type") in expected_handoff_types
+        ),
+        "evidence_level": (
+            not expected_evidence_levels
+            or row.get("evidence_level") in expected_evidence_levels
+        ),
+        "lead_role": (
+            lead_role is None or row.get("lead_table_team_role") == lead_role
+        ),
+        "effective_table_source": (
+            effective_table_source is None
+            or row.get("effective_table_source") == effective_table_source
+        ),
+        "min_peak_table_count": (
+            min_peak_table_count is None
+            or row.get("peak_table_count", 0) >= int(min_peak_table_count)
+        ),
+        "max_peak_table_count": (
+            max_peak_table_count is None
+            or row.get("peak_table_count", 0) <= int(max_peak_table_count)
+        ),
+        "min_active_tracks": (
+            min_active_tracks is None
+            or row.get("active_table_track_count", 0) >= int(min_active_tracks)
+        ),
+        "max_active_tracks": (
+            max_active_tracks is None
+            or row.get("active_table_track_count", 0) <= int(max_active_tracks)
+        ),
+        "min_canonical_table_identity_count": (
+            min_canonical_table_identity_count is None
+            or row.get("canonical_table_identity_count", 0)
+            >= int(min_canonical_table_identity_count)
+        ),
+        "max_canonical_table_identity_count": (
+            max_canonical_table_identity_count is None
+            or row.get("canonical_table_identity_count", 0)
+            <= int(max_canonical_table_identity_count)
+        ),
+        "min_continued_tracks": (
+            min_continued_tracks is None
+            or len(row.get("continued_track_ids", [])) >= int(min_continued_tracks)
+        ),
+        "min_new_tracks": (
+            min_new_tracks is None
+            or len(row.get("new_track_ids", [])) >= int(min_new_tracks)
+        ),
+        "min_dropped_tracks": (
+            min_dropped_tracks is None
+            or len(row.get("dropped_track_ids", [])) >= int(min_dropped_tracks)
+        ),
+        "min_effective_table_count": (
+            min_effective_table_count is None
+            or (
+                row.get("effective_table_count") is not None
+                and row.get("effective_table_count", 0)
+                >= int(min_effective_table_count)
+            )
+        ),
+        "max_effective_table_count": (
+            max_effective_table_count is None
+            or (
+                row.get("effective_table_count") is not None
+                and row.get("effective_table_count", 0)
+                <= int(max_effective_table_count)
+            )
+        ),
+        "min_tracking_available_rate": (
+            min_tracking_available_rate is None
+            or (
+                row.get("tracking_available_rate") is not None
+                and row.get("tracking_available_rate")
+                >= float(min_tracking_available_rate)
+            )
+        ),
+        "min_observable_rate": (
+            min_observable_rate is None
+            or (
+                row.get("observable_rate") is not None
+                and row.get("observable_rate") >= float(min_observable_rate)
+            )
+        ),
+        "max_observable_rate": (
+            max_observable_rate is None
+            or (
+                row.get("observable_rate") is not None
+                and row.get("observable_rate") <= float(max_observable_rate)
+            )
+        ),
+        "min_mean_confidence": (
+            min_mean_confidence is None
+            or (
+                row.get("mean_confidence") is not None
+                and row.get("mean_confidence") >= float(min_mean_confidence)
+            )
+        ),
+        "max_mean_confidence": (
+            max_mean_confidence is None
+            or (
+                row.get("mean_confidence") is not None
+                and row.get("mean_confidence") <= float(max_mean_confidence)
+            )
+        ),
+        "required_active_track_ids": required_active_track_ids.issubset(
+            active_track_ids
+        ),
+        "required_effective_track_ids": required_effective_track_ids.issubset(
+            effective_track_ids
+        ),
+        "required_quality_flags": required_quality_flags.issubset(
+            actual_quality_flags
+        ),
+        "forbidden_quality_flags": not (
+            actual_quality_flags & forbidden_quality_flags
+        ),
+        "required_packet_text": all(
+            fragment in packet_text for fragment in required_packet_text
+        ),
+        "forbidden_packet_text": not any(
+            fragment in packet_text for fragment in forbidden_packet_text
+        ),
+    }
+    return {
+        "stage_segment_index": row["stage_segment_index"],
+        "stage": row["stage"],
+        "stage_label": row["stage_label"],
+        "stage_status": row.get("stage_status"),
+        "is_current_stage": row.get("is_current_stage"),
+        "start_s": row["start_s"],
+        "end_s": row["end_s"],
+        "evidence_level": row.get("evidence_level"),
+        "handoff_type": row.get("handoff_type"),
+        "peak_table_count": row.get("peak_table_count", 0),
+        "active_table_track_count": row.get("active_table_track_count", 0),
+        "canonical_table_identity_count": row.get(
+            "canonical_table_identity_count",
+            0,
+        ),
+        "effective_table_source": row.get("effective_table_source"),
+        "effective_table_count": row.get("effective_table_count"),
+        "active_table_track_ids": row.get("active_table_track_ids", []),
+        "effective_table_track_ids": row.get("effective_table_track_ids", []),
+        "new_track_ids": row.get("new_track_ids", []),
+        "dropped_track_ids": row.get("dropped_track_ids", []),
+        "quality_flag_codes": row.get("quality_flag_codes", []),
+        "operator_packet": row.get("operator_packet", ""),
         "checks": checks,
         "passed": all(checks.values()),
     }

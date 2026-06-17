@@ -193,6 +193,42 @@
       ]
     }
   ],
+  "operator_packet_expectations": [
+    {
+      "stage": "closure_finish",
+      "stage_segment_index": 1,
+      "current": true,
+      "stage_status": "current_observed",
+      "next_stage": null,
+      "handoff_type": "roster_added",
+      "evidence_level": "weak_visual_support",
+      "lead_role": "table_operator",
+      "min_peak_table_count": 4,
+      "min_active_tracks": 5,
+      "min_canonical_table_identity_count": 7,
+      "min_new_tracks": 4,
+      "min_continued_tracks": 1,
+      "min_effective_table_count": 1,
+      "effective_table_source": "last_observed_room_view",
+      "min_tracking_available_rate": 0.45,
+      "min_observable_rate": 0.45,
+      "max_observable_rate": 0.5,
+      "max_mean_confidence": 0.35,
+      "required_quality_flags": [
+        "rapid_stage_progression",
+        "early_terminal_stage",
+        "low_stage_confidence",
+        "non_room_view"
+      ],
+      "required_packet_text": [
+        "Current stage: Closure / finish",
+        "handoff roster added",
+        "active IDs",
+        "latest table status last observed room view 1 IDs",
+        "quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+      ]
+    }
+  ],
   "table_team_expectations": [
     {
       "status": "active_current",

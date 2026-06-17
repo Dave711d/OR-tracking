@@ -179,6 +179,45 @@
       ]
     }
   ],
+  "operator_packet_expectations": [
+    {
+      "stage": "bav_optional",
+      "stage_segment_index": 2,
+      "current": true,
+      "stage_status": "current_observed",
+      "next_stage": "valve_delivery_positioning",
+      "handoff_type": "roster_continued",
+      "evidence_level": "weak_visual_support",
+      "lead_role": "table_operator",
+      "min_peak_table_count": 3,
+      "max_peak_table_count": 3,
+      "min_active_tracks": 3,
+      "max_active_tracks": 3,
+      "min_canonical_table_identity_count": 3,
+      "max_canonical_table_identity_count": 3,
+      "min_continued_tracks": 3,
+      "min_effective_table_count": 3,
+      "max_effective_table_count": 3,
+      "effective_table_source": "last_observed_room_view",
+      "max_observable_rate": 0.02,
+      "max_mean_confidence": 0.25,
+      "required_quality_flags": [
+        "rapid_stage_progression",
+        "low_stage_confidence",
+        "non_room_view"
+      ],
+      "forbidden_quality_flags": [
+        "low_motion_room_view"
+      ],
+      "required_packet_text": [
+        "Current stage: Balloon valvuloplasty",
+        "handoff roster continued",
+        "active IDs 1, 2, 4",
+        "latest table status last observed room view 3 IDs 1, 2, 4",
+        "next Valve delivery / positioning"
+      ]
+    }
+  ],
   "table_team_expectations": [
     {
       "team_status": "recent_last_observed",

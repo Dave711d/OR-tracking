@@ -611,6 +611,21 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
                     "min_tracks": 1,
                 }
             ],
+            "operator_packet_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "current": True,
+                    "stage_status": "current_observed",
+                    "lead_role": "table_operator",
+                    "handoff_type": "initial_table_roster",
+                    "min_active_tracks": 1,
+                    "min_peak_table_count": 1,
+                    "required_packet_text": [
+                        "Current stage: Valve deployment",
+                        "active IDs 13",
+                    ],
+                }
+            ],
             "event_timeline_expectations": [
                 {
                     "event_type": "table_handoff",
@@ -644,6 +659,7 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
     assert score["stage_roster_score"]["pass_rate"] == 1.0
+    assert score["operator_packet_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["pass_rate"] == 1.0
 
 
@@ -1031,6 +1047,26 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "required_quality_flags": ["non_room_view"],
             }
         ],
+        "operator_packet_expectations": [
+            {
+                "stage": "valve_deployment",
+                "current": False,
+                "stage_status": "observed_prior",
+                "handoff_type": "roster_changed",
+                "evidence_level": "strong_visual_support",
+                "min_peak_table_count": 2,
+                "min_active_tracks": 2,
+                "min_canonical_table_identity_count": 2,
+                "max_canonical_table_identity_count": 2,
+                "min_new_tracks": 2,
+                "min_dropped_tracks": 1,
+                "required_quality_flags": ["non_room_view"],
+                "required_packet_text": [
+                    "Observed stage: Valve deployment",
+                    "active IDs 9, 10",
+                ],
+            }
+        ],
         "table_team_expectations": [
             {
                 "status": "active_current",
@@ -1113,6 +1149,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["procedure_milestone_score"]["expectations"][2]["matched_count"] == 1
     assert score["procedure_status_score"]["pass_rate"] == 1.0
     assert score["procedure_status_score"]["expectations"][0]["matched_count"] == 1
+    assert score["operator_packet_score"]["pass_rate"] == 1.0
+    assert score["operator_packet_score"]["expectations"][0]["matched_count"] == 1
     assert score["table_team_score"]["pass_rate"] == 1.0
     assert score["table_team_score"]["expectations"][0]["matched_count"] == 1
     assert score["table_team_score"]["expectations"][1]["matched_count"] == 1

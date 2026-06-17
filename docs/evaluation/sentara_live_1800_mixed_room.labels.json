@@ -175,6 +175,37 @@
       ]
     }
   ],
+  "operator_packet_expectations": [
+    {
+      "stage": "valve_deployment",
+      "stage_segment_index": 1,
+      "current": true,
+      "stage_status": "current_observed",
+      "next_stage": "post_deploy_assessment",
+      "handoff_type": "table_roster_started",
+      "evidence_level": "strong_visual_support",
+      "lead_role": "table_operator",
+      "min_peak_table_count": 3,
+      "min_active_tracks": 8,
+      "min_canonical_table_identity_count": 8,
+      "min_tracking_available_rate": 0.7,
+      "min_observable_rate": 1.0,
+      "min_mean_confidence": 0.5,
+      "max_effective_table_count": 0,
+      "required_quality_flags": [
+        "rapid_stage_progression",
+        "low_stage_confidence",
+        "non_room_view"
+      ],
+      "required_packet_text": [
+        "Current stage: Valve deployment",
+        "handoff table roster started",
+        "active IDs",
+        "latest table status current room view empty 0 IDs none",
+        "next Post-deploy assessment"
+      ]
+    }
+  ],
   "table_team_expectations": [
     {
       "status": "active_current",
