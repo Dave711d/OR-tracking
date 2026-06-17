@@ -13,6 +13,7 @@ const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
+const operatorPacket = document.querySelector("#operatorPacket");
 const tableTeamList = document.querySelector("#tableTeamList");
 const stageCoverageList = document.querySelector("#stageCoverageList");
 const stageRosterList = document.querySelector("#stageRosterList");
@@ -766,6 +767,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
   updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
+  renderOperatorPacket(stage, summary, elapsedSeconds);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
@@ -833,6 +835,7 @@ function summarizeBoxes(boxes) {
       summary.tableRoster.push({
         id: box.id || `M${index + 1}`,
         role: roleKey || "motion",
+        staticFallback: Boolean(box.staticFallback),
       });
     }
   });
@@ -1093,6 +1096,103 @@ function renderStageRosterSummary() {
   });
 }
 
+function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0) {
+  operatorPacket.replaceChildren();
+  if (!stage || !summary) {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    label.textContent = "No stage packet yet";
+    row.append(label);
+    operatorPacket.append(row);
+    return;
+  }
+
+  const segment = currentStageRosterSegment;
+  const activeIds = compactIdList(summary.tableRoster.map(({ id }) => id), 6);
+  const lead = summary.tableRoster[0];
+  const leadLabel = lead ? `${lead.id} ${ROLE_LABELS[lead.role] || lead.role}` : "none";
+  const nextStage = nextTavrStage(stage.key);
+  const flags = operatorQualityFlags(stage, summary);
+  const rows = [
+    {
+      label: "Current stage",
+      value: `${stage.label} @ ${elapsedSeconds.toFixed(1)}s`,
+      tone: "current",
+    },
+    {
+      label: "Evidence",
+      value: `${operatorEvidenceLevel(stage, summary)}; confidence ${operatorConfidence(stage)}`,
+    },
+    {
+      label: "Table handoff",
+      value: handoffLabel(segment?.handoffType || "initial_no_table_evidence"),
+      handoff: segment?.handoffType || "initial_no_table_evidence",
+    },
+    {
+      label: "Active table",
+      value: `${summary.tableSide} staff; IDs ${activeIds}`,
+    },
+    {
+      label: "Lead / next",
+      value: `${leadLabel}; next ${nextStage?.label || "complete"}`,
+    },
+    {
+      label: "Flags",
+      value: flags.length ? flags.join(", ") : "none",
+      tone: flags.length ? "warn" : "quiet",
+    },
+  ];
+
+  rows.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    if (item.tone) row.dataset.tone = item.tone;
+    if (item.handoff) row.dataset.handoff = item.handoff.replaceAll("_", "-");
+    label.textContent = item.label;
+    value.textContent = item.value;
+    row.append(label, value);
+    operatorPacket.append(row);
+  });
+}
+
+function operatorEvidenceLevel(stage, summary) {
+  const confidence = stage.confidence;
+  if (summary.tableSide === 0 && confidence !== undefined && confidence < 0.25) {
+    return "held/no table evidence";
+  }
+  if (confidence === undefined) {
+    return summary.tableSide > 0 ? "demo visual support" : "demo context only";
+  }
+  if (confidence >= 0.6 && summary.tableSide > 0) return "strong visual support";
+  if (confidence >= BROWSER_STAGE_MIN_CONFIDENCE) return "moderate visual support";
+  return summary.tableSide > 0 ? "weak visual support" : "weak/no table evidence";
+}
+
+function operatorConfidence(stage) {
+  return stage.confidence === undefined ? "demo" : stage.confidence.toFixed(2);
+}
+
+function operatorQualityFlags(stage, summary) {
+  const flags = [];
+  if (stage.confidence !== undefined && stage.confidence < BROWSER_STAGE_MIN_CONFIDENCE) {
+    flags.push("low_stage_confidence");
+  }
+  if (!summary.tableRoster.length) {
+    flags.push("no_table_roster_evidence");
+  }
+  if (summary.tableRoster.some(({ staticFallback }) => staticFallback)) {
+    flags.push("static_table_fallback");
+  }
+  return flags;
+}
+
+function nextTavrStage(stageKey) {
+  const stageMeta = TAVR_STAGE_LOOKUP.get(stageKey);
+  if (!stageMeta) return null;
+  return TAVR_STAGES[stageMeta.index + 1] || null;
+}
+
 function updateProcedureMilestones(stage, roster, tableSideCount, elapsedSeconds) {
   const stageMeta = TAVR_STAGE_LOOKUP.get(stage.key);
   if (!stageMeta) {
@@ -1214,6 +1314,7 @@ function resetMetrics(options = {}) {
   renderTableTeam();
   renderStageCoverage();
   renderStageRosterSummary();
+  renderOperatorPacket();
   renderProcedureMilestones();
   activityMetric.textContent = "0";
   elapsedMetric.textContent = "0.0s";

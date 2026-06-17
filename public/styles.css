@@ -197,6 +197,7 @@ select {
 .coverage-list div,
 .team-list div,
 .stage-roster-list div,
+.operator-packet div,
 .roster-card {
   display: flex;
   align-items: center;
@@ -279,6 +280,7 @@ select {
 .coverage-list,
 .team-list,
 .stage-roster-list,
+.operator-packet,
 .milestone-list {
   display: grid;
   gap: 8px;
@@ -287,6 +289,7 @@ select {
 .coverage-list div,
 .team-list div,
 .stage-roster-list div,
+.operator-packet div,
 .milestone-list div {
   align-items: flex-start;
   padding: 10px 12px;
@@ -295,6 +298,7 @@ select {
 .coverage-list span,
 .team-list span,
 .stage-roster-list span,
+.operator-packet span,
 .milestone-list span {
   color: var(--muted);
   font-size: 12px;
@@ -306,6 +310,7 @@ select {
 .coverage-list b,
 .team-list b,
 .stage-roster-list b,
+.operator-packet b,
 .milestone-list b {
   color: var(--warn);
   font-size: 18px;
@@ -314,12 +319,25 @@ select {
 .coverage-list b,
 .team-list b,
 .stage-roster-list b,
+.operator-packet b,
 .milestone-list b {
   color: var(--accent);
   font-size: 12px;
   line-height: 1.25;
   text-align: right;
   white-space: nowrap;
+}
+
+.operator-packet div[data-tone="current"] {
+  border-color: rgba(55, 214, 163, 0.72);
+}
+
+.operator-packet div[data-tone="warn"] b {
+  color: var(--warn);
+}
+
+.operator-packet div[data-tone="quiet"] b {
+  color: var(--muted);
 }
 
 .milestone-list div[data-status="current"] {
@@ -332,12 +350,17 @@ select {
 
 .stage-roster-list div[data-handoff="table-roster-started"],
 .stage-roster-list div[data-handoff="initial-table-roster"],
-.stage-roster-list div[data-handoff="roster-added"] {
+.stage-roster-list div[data-handoff="roster-added"],
+.operator-packet div[data-handoff="table-roster-started"],
+.operator-packet div[data-handoff="initial-table-roster"],
+.operator-packet div[data-handoff="roster-added"] {
   border-color: rgba(55, 214, 163, 0.72);
 }
 
 .stage-roster-list div[data-handoff="table-cleared"] b,
-.stage-roster-list div[data-handoff="initial-no-table-evidence"] b {
+.stage-roster-list div[data-handoff="initial-no-table-evidence"] b,
+.operator-packet div[data-handoff="table-cleared"] b,
+.operator-packet div[data-handoff="initial-no-table-evidence"] b {
   color: var(--muted);
 }
 
@@ -351,9 +374,14 @@ select {
 
 .team-list b,
 .stage-roster-list b,
+.operator-packet b,
 .milestone-list b {
   max-width: 118px;
   white-space: normal;
+}
+
+.operator-packet b {
+  max-width: 190px;
 }
 
 .team-list div[data-status="historical-seen"] b {

@@ -48,7 +48,9 @@ The static Vercel demo mirrors the operator-facing shape with a browser-only
 synthetic TAVR run that shows the current procedure milestone, observed prior
 milestones, first/last seen timing, peak table-side count, and unique
 table-side IDs. It also keeps a `Table team status` panel for active, recently
-observed, and historical table-side IDs in the current browser session.
+observed, and historical table-side IDs in the current browser session, plus an
+`Operator packet` panel for the current stage, evidence, handoff status, active
+table IDs, next stage, and quality flags.
 
 ## Visual Signals
 

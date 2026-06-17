@@ -207,7 +207,9 @@ progress in canonical order, including the current observed stage, prior
 observed stages, first/last seen times, peak table-side count, and unique
 table-side IDs for each milestone. A `Table team status` panel keeps current
 synthetic/browser-tracked IDs as active, recently observed, or historical so the
-public Vercel surface mirrors the richer Python output.
+public Vercel surface mirrors the richer Python output. The browser inspector
+also includes an `Operator packet` panel with the current stage, evidence,
+handoff status, active table IDs, next stage, and quality flags.
 
 ```bash
 npm install

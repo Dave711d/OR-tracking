@@ -101,3 +101,20 @@ def test_static_demo_surfaces_stage_roster_summary() -> None:
     assert "function classifyStageRosterHandoff" in app_js
     assert "stageRosterSegments = []" in app_js
     assert ".stage-roster-list" in styles
+
+
+def test_static_demo_surfaces_operator_stage_packet() -> None:
+    index_html = Path("public/index.html").read_text(encoding="utf-8")
+    app_js = Path("public/app.js").read_text(encoding="utf-8")
+    styles = Path("public/styles.css").read_text(encoding="utf-8")
+
+    assert 'id="operatorPacket"' in index_html
+    assert "Operator packet" in index_html
+    assert "renderOperatorPacket(stage, summary, elapsedSeconds)" in app_js
+    assert "function renderOperatorPacket" in app_js
+    assert "function operatorEvidenceLevel" in app_js
+    assert "function operatorQualityFlags" in app_js
+    assert "currentStageRosterSegment" in app_js
+    assert "nextTavrStage(stage.key)" in app_js
+    assert "static_table_fallback" in app_js
+    assert ".operator-packet" in styles
