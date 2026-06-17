@@ -591,6 +591,18 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
                     "min_observed_table_frames": 12,
                 }
             ],
+            "stage_table_coverage_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "dominant_role": "imaging",
+                    "min_tracks": 1,
+                    "min_observed_table_frames": 12,
+                    "min_coverage_ratio": 1.0,
+                    "min_room_coverage_ratio": 1.0,
+                    "required_label_text": "table_operator (dominant imaging)",
+                }
+            ],
             "stage_handoff_expectations": [
                 {
                     "stage": "valve_deployment",
@@ -657,10 +669,75 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
     assert handoff_event["roster"][0]["table_team_role"] == "table_operator"
 
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
+    assert score["stage_table_coverage_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
     assert score["stage_roster_score"]["pass_rate"] == 1.0
     assert score["operator_packet_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["pass_rate"] == 1.0
+
+
+def test_stage_table_coverage_expectation_requires_match_by_default() -> None:
+    metrics = [
+        _table_metric(
+            index,
+            index / 10,
+            "valve_deployment",
+            [7],
+            roles_by_track={7: "imaging"},
+        )
+        for index in range(3)
+    ]
+
+    empty_positive = score_tavr_metrics(
+        [],
+        {
+            "stage_table_coverage_expectations": [
+                {"stage": "valve_deployment", "role": "table_operator"}
+            ]
+        },
+    )
+    role_mismatch = score_tavr_metrics(
+        metrics,
+        {
+            "stage_table_coverage_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "min_observed_table_frames": 1,
+                }
+            ]
+        },
+    )
+    explicit_negative = score_tavr_metrics(
+        [],
+        {
+            "stage_table_coverage_expectations": [
+                {"stage": "valve_deployment", "max_tracks": 0}
+            ]
+        },
+    )
+
+    assert empty_positive["stage_table_coverage_score"]["pass_rate"] == 0.0
+    assert (
+        empty_positive["stage_table_coverage_score"]["expectations"][0][
+            "min_tracks"
+        ]
+        == 1
+    )
+    assert role_mismatch["stage_table_coverage_score"]["pass_rate"] == 0.0
+    mismatch_expectation = role_mismatch["stage_table_coverage_score"][
+        "expectations"
+    ][0]
+    assert mismatch_expectation["candidate_count"] == 1
+    assert mismatch_expectation["matched_count"] == 0
+    assert mismatch_expectation["passed_candidate_count"] == 0
+    assert explicit_negative["stage_table_coverage_score"]["pass_rate"] == 1.0
+    assert (
+        explicit_negative["stage_table_coverage_score"]["expectations"][0][
+            "min_tracks"
+        ]
+        == 0
+    )
 
 
 def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
@@ -962,6 +1039,17 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "max_canonical_table_identity_count": 2,
             }
         ],
+        "stage_table_coverage_expectations": [
+            {
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "min_tracks": 2,
+                "min_observed_table_frames": 2,
+                "min_coverage_ratio": 1.0,
+                "min_room_coverage_ratio": 1.0,
+                "spans_full_stage": True,
+            }
+        ],
         "stage_handoff_expectations": [
             {
                 "stage": "valve_deployment",
@@ -1133,6 +1221,13 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["table_presence_score"]["expectations"][0]["matched_count"] == 1
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
+    assert score["stage_table_coverage_score"]["pass_rate"] == 1.0
+    assert (
+        score["stage_table_coverage_score"]["expectations"][0][
+            "passed_candidate_count"
+        ]
+        == 2
+    )
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["expectations"][0]["matched_count"] == 1
     assert score["stage_roster_score"]["pass_rate"] == 1.0

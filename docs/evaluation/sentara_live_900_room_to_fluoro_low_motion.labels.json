@@ -18,6 +18,13 @@
       "min_within_range_rate": 0.95
     }
   ],
+  "stage_table_coverage_expectations": [
+    {
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "max_tracks": 0
+    }
+  ],
   "event_timeline_expectations": [
     {
       "event_type": "stage_started",

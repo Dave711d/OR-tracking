@@ -43,6 +43,27 @@
       "min_room_table_occupancy_rate": 0.3
     }
   ],
+  "stage_table_coverage_expectations": [
+    {
+      "stage": "post_deploy_assessment",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "min_tracks": 1,
+      "min_observed_table_frames": 20,
+      "min_room_coverage_ratio": 0.3,
+      "min_tracking_available_rate": 0.9,
+      "exited_during_stage": false
+    },
+    {
+      "stage": "closure_finish",
+      "stage_segment_index": 1,
+      "role": "table_operator",
+      "min_tracks": 5,
+      "min_observed_table_frames": 3,
+      "min_tracking_available_rate": 0.45,
+      "required_label_text": "Closure / finish"
+    }
+  ],
   "stage_handoff_expectations": [
     {
       "stage": "post_deploy_assessment",

@@ -87,6 +87,29 @@
       "evidence_level": "moderate_visual_support"
     }
   ],
+  "stage_table_coverage_expectations": [
+    {
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "min_tracks": 2,
+      "max_tracks": 2,
+      "min_observed_table_frames": 70,
+      "min_room_coverage_ratio": 0.75,
+      "spans_full_stage": true
+    },
+    {
+      "stage": "bav_optional",
+      "stage_segment_index": 2,
+      "role": "table_operator",
+      "min_tracks": 3,
+      "max_tracks": 3,
+      "min_observed_table_frames": 3,
+      "min_room_coverage_ratio": 0.6,
+      "max_coverage_ratio": 0.01,
+      "required_label_text": "Balloon valvuloplasty"
+    }
+  ],
   "stage_evidence_expectations": [
     {
       "stage": "access_sheathing",

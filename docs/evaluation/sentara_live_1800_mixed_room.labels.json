@@ -50,6 +50,17 @@
       "min_room_table_occupancy_rate": 0.15
     }
   ],
+  "stage_table_coverage_expectations": [
+    {
+      "stage": "valve_deployment",
+      "stage_segment_index": 1,
+      "role": "table_operator",
+      "min_tracks": 8,
+      "min_observed_table_frames": 3,
+      "min_tracking_available_rate": 0.7,
+      "required_label_text": "Valve deployment"
+    }
+  ],
   "stage_handoff_expectations": [
     {
       "stage": "valve_deployment",

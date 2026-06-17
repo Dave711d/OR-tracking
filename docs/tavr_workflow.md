@@ -208,9 +208,10 @@ The JSON output includes:
   detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
-  stage-staffing, stage-handoff, stage-roster, stage-evidence, procedure-milestone,
-  procedure-status, operator-packet, table-team, procedure-event-timeline,
-  roster-snapshot, and quality-flag expectation pass rates.
+  stage-staffing, stage-table-coverage, stage-handoff, stage-roster,
+  stage-evidence, procedure-milestone, procedure-status, operator-packet,
+  table-team, procedure-event-timeline, roster-snapshot, and quality-flag
+  expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -244,6 +245,12 @@ The label file can include:
   tracking-available rate. `role`
   matches the operator-facing table role; use `dominant_role` when you need to
   constrain the raw zone-history role.
+- `stage_table_coverage_expectations`: expected per-track coverage rows within a
+  stage, such as requiring a minimum number of table-operator coverage rows,
+  requiring zero coverage rows in fluoroscopy-only clips, or constraining
+  observed table frames, coverage ratio, room-view coverage ratio, tracking
+  availability, table-role confidence, merged raw track IDs, entry/exit flags,
+  and label text.
 - `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
   requiring a deployment-stage `table_roster_started` event, a closure-stage
   `roster_added` event, a lead role, minimum active/new/continued/dropped track
