@@ -205,6 +205,39 @@ def _run_analysis(
             hide_index=True,
         )
 
+    last_observed = tavr_summary.get("last_observed_table_roster", {})
+    if last_observed.get("roster"):
+        st.subheader("Last observed table roster")
+        roster_text = "; ".join(
+            item["label"] for item in last_observed.get("roster", [])
+        )
+        st.success(
+            f"{last_observed.get('stage_label', 'n/a')} at "
+            f"{last_observed.get('timestamp_s', 'n/a')}s "
+            f"({last_observed.get('age_from_clip_end_s', 'n/a')}s before clip end): "
+            f"{roster_text}"
+        )
+
+    snapshots = tavr_summary.get("table_roster_snapshots", [])
+    if snapshots:
+        st.subheader("Table roster snapshots")
+        snapshot_columns = [
+            "snapshot_type",
+            "timestamp_s",
+            "age_from_clip_end_s",
+            "stage_label",
+            "table_count",
+            "track_id",
+            "dominant_role",
+            "table_presence_ratio",
+            "label",
+        ]
+        st.dataframe(
+            pd.DataFrame(snapshots)[snapshot_columns].head(30),
+            width="stretch",
+            hide_index=True,
+        )
+
     coverage = tavr_summary.get("stage_table_coverage", [])
     if coverage:
         st.subheader("Stage table coverage")

@@ -42,8 +42,10 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["track_role_report"]
     assert summary["track_role_report"][0]["table_presence_ratio"] >= 0
     assert "current_table_roster" in summary
+    assert "last_observed_table_roster" in summary
     assert summary["peak_table_roster"]["table_count"] >= 1
     assert summary["peak_table_roster"]["roster"]
+    assert summary["table_roster_snapshots"]
     assert summary["table_presence_roster"]
     assert summary["table_presence_intervals"]
     assert summary["view_segments"]
@@ -268,6 +270,41 @@ def test_table_transition_events_report_stage_entries_and_exits() -> None:
     assert events[2]["tracking_available_rate"] == 1.0
 
 
+def test_last_observed_table_roster_survives_non_room_or_quiet_end() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+        _table_metric(2, 0.2, "valve_deployment", []),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+    ]
+
+    summary = summarize_tavr_metrics(metrics)
+
+    assert summary["current_table_roster"] == []
+    last_roster = summary["last_observed_table_roster"]
+    assert last_roster["frame_index"] == 1
+    assert last_roster["timestamp_s"] == 0.1
+    assert last_roster["age_from_clip_end_s"] == 0.2
+    assert last_roster["table_count"] == 2
+    assert [item["track_id"] for item in last_roster["roster"]] == [7, 8]
+    snapshot_keys = [
+        (item["snapshot_type"], item["track_id"])
+        for item in summary["table_roster_snapshots"]
+    ]
+    assert snapshot_keys == [
+        ("last_observed", 7),
+        ("last_observed", 8),
+        ("peak", 7),
+        ("peak", 8),
+    ]
+
+
 def test_stage_staffing_summary_reports_room_view_rates() -> None:
     metrics = [
         _table_metric(
@@ -318,16 +355,20 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert {
         "stage_timeline",
         "stage_table_coverage",
+        "table_roster_snapshots",
         "table_transition_events",
         "view_segments",
     }.issubset(paths)
     coverage_csv = Path(paths["stage_table_coverage"]).read_text(encoding="utf-8")
     staffing_csv = Path(paths["stage_staffing_summary"]).read_text(encoding="utf-8")
+    snapshots_csv = Path(paths["table_roster_snapshots"]).read_text(encoding="utf-8")
     assert "track_id" in coverage_csv
     assert "coverage_ratio" in coverage_csv
     assert "room_coverage_ratio" in coverage_csv
     assert "tracking_available_rate" in staffing_csv
     assert "room_table_occupancy_rate" in staffing_csv
+    assert "snapshot_type" in snapshots_csv
+    assert "last_observed" in snapshots_csv
     assert "ID 7" in coverage_csv
 
 
@@ -372,6 +413,15 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_room_table_occupancy_rate": 1.0,
             }
         ],
+        "roster_snapshot_expectations": [
+            {
+                "snapshot_type": "last_observed",
+                "role": "table_operator",
+                "min_tracks": 1,
+                "min_table_count": 1,
+                "max_age_from_clip_end_s": 0.1,
+            }
+        ],
         "quality_flag_expectations": [
             {"code": "non_room_view", "min_ratio": 0.5}
         ],
@@ -390,6 +440,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["table_presence_score"]["expectations"][0]["matched_count"] == 1
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
+    assert score["roster_snapshot_score"]["pass_rate"] == 1.0
+    assert score["roster_snapshot_score"]["expectations"][0]["matched_count"] == 1
     assert score["quality_flag_score"]["pass_rate"] == 1.0
 
 

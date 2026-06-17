@@ -128,6 +128,20 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_counts",
         "label",
     ],
+    "table_roster_snapshots": [
+        "snapshot_type",
+        "frame_index",
+        "timestamp_s",
+        "age_from_clip_end_s",
+        "stage",
+        "stage_label",
+        "table_count",
+        "track_id",
+        "dominant_role",
+        "frames_seen",
+        "table_presence_ratio",
+        "label",
+    ],
     "track_role_report": [
         "track_id",
         "dominant_role",
@@ -175,7 +189,9 @@ def summarize_tavr_metrics(
         "stage_timeline": tavr_stage_timeline(tavr_metrics),
         "track_role_report": tavr_track_role_report(tavr_metrics),
         "current_table_roster": current_table_roster(tavr_metrics),
+        "last_observed_table_roster": last_observed_table_roster(tavr_metrics),
         "peak_table_roster": peak_table_roster(tavr_metrics),
+        "table_roster_snapshots": table_roster_snapshots(tavr_metrics),
         "table_presence_roster": table_presence_roster(tavr_metrics),
         "table_presence_intervals": table_presence_intervals(
             tavr_metrics,
@@ -233,6 +249,10 @@ def score_tavr_metrics(
         "stage_staffing_score": _stage_staffing_score(
             tavr_metrics,
             labels.get("stage_staffing_expectations", []),
+        ),
+        "roster_snapshot_score": _roster_snapshot_score(
+            tavr_metrics,
+            labels.get("roster_snapshot_expectations", []),
         ),
         "quality_flag_score": _quality_flag_score(
             tavr_metrics,
@@ -304,6 +324,40 @@ def current_table_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]
     return _roster_from_state(state)
 
 
+def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
+    """Return the latest room-view frame with table-side presence."""
+
+    default = {
+        "frame_index": None,
+        "timestamp_s": None,
+        "age_from_clip_end_s": None,
+        "stage": None,
+        "stage_label": None,
+        "table_count": 0,
+        "roster": [],
+    }
+    if not metrics:
+        return default
+
+    clip_end_s = metrics[-1].timestamp_s
+    for metric in reversed(metrics):
+        if _view_label(metric) != "room":
+            continue
+        state = _tavr_state(metric)
+        if state.table_count <= 0:
+            continue
+        return {
+            "frame_index": metric.frame_index,
+            "timestamp_s": round(float(metric.timestamp_s), 3),
+            "age_from_clip_end_s": round(max(0.0, clip_end_s - metric.timestamp_s), 3),
+            "stage": state.stage,
+            "stage_label": state.stage_label,
+            "table_count": state.table_count,
+            "roster": _roster_from_state(state),
+        }
+    return default
+
+
 def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
     """Return the roster from the frame with the largest table-side count."""
 
@@ -311,10 +365,14 @@ def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
         return {
             "frame_index": None,
             "timestamp_s": None,
+            "age_from_clip_end_s": None,
+            "stage": None,
+            "stage_label": None,
             "table_count": 0,
             "roster": [],
         }
 
+    clip_end_s = metrics[-1].timestamp_s
     peak_metric = max(
         metrics,
         key=lambda metric: (_tavr_state(metric).table_count, metric.frame_index),
@@ -322,10 +380,31 @@ def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
     peak_state = _tavr_state(peak_metric)
     return {
         "frame_index": peak_metric.frame_index,
-        "timestamp_s": peak_metric.timestamp_s,
+        "timestamp_s": round(float(peak_metric.timestamp_s), 3),
+        "age_from_clip_end_s": round(max(0.0, clip_end_s - peak_metric.timestamp_s), 3),
+        "stage": peak_state.stage,
+        "stage_label": peak_state.stage_label,
         "table_count": peak_state.table_count,
         "roster": _roster_from_state(peak_state),
     }
+
+
+def table_roster_snapshots(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return row-oriented current/latest/peak table roster snapshots."""
+
+    if not metrics:
+        return []
+
+    clip_end_s = metrics[-1].timestamp_s
+    snapshot_items = [
+        ("current", _roster_snapshot_from_metric(metrics[-1], clip_end_s)),
+        ("last_observed", last_observed_table_roster(metrics)),
+        ("peak", peak_table_roster(metrics)),
+    ]
+    rows: List[Dict[str, Any]] = []
+    for snapshot_type, snapshot in snapshot_items:
+        rows.extend(_snapshot_rows(snapshot_type, snapshot))
+    return rows
 
 
 def table_presence_roster(
@@ -655,6 +734,47 @@ def _roster_from_state(state: TAVRFrameState) -> List[Dict[str, Any]]:
             }
         )
     return roster
+
+
+def _roster_snapshot_from_metric(
+    metric: FrameMetrics,
+    clip_end_s: float,
+) -> Dict[str, Any]:
+    state = _tavr_state(metric)
+    return {
+        "frame_index": metric.frame_index,
+        "timestamp_s": round(float(metric.timestamp_s), 3),
+        "age_from_clip_end_s": round(max(0.0, clip_end_s - metric.timestamp_s), 3),
+        "stage": state.stage,
+        "stage_label": state.stage_label,
+        "table_count": state.table_count,
+        "roster": _roster_from_state(state),
+    }
+
+
+def _snapshot_rows(
+    snapshot_type: str,
+    snapshot: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    rows = []
+    for roster_item in snapshot.get("roster", []):
+        rows.append(
+            {
+                "snapshot_type": snapshot_type,
+                "frame_index": snapshot.get("frame_index"),
+                "timestamp_s": snapshot.get("timestamp_s"),
+                "age_from_clip_end_s": snapshot.get("age_from_clip_end_s"),
+                "stage": snapshot.get("stage"),
+                "stage_label": snapshot.get("stage_label"),
+                "table_count": snapshot.get("table_count", 0),
+                "track_id": roster_item["track_id"],
+                "dominant_role": roster_item["dominant_role"],
+                "frames_seen": roster_item["frames_seen"],
+                "table_presence_ratio": roster_item["table_presence_ratio"],
+                "label": roster_item["label"],
+            }
+        )
+    return rows
 
 
 def low_confidence_segments(
@@ -1243,6 +1363,85 @@ def _stage_staffing_score(
                 "min_room_table_occupancy_rate": min_room_table_occupancy_rate,
                 "matched_tracks": matching_roster,
                 "matched_track_count": len(matching_roster),
+                "checks": checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
+def _roster_snapshot_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    snapshot_rows = table_roster_snapshots(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        snapshot_type = str(expectation.get("snapshot_type", "last_observed"))
+        role = expectation.get("role")
+        min_tracks = int(expectation.get("min_tracks", 1))
+        min_table_count = expectation.get("min_table_count")
+        max_age_from_clip_end_s = expectation.get("max_age_from_clip_end_s")
+        snapshot_matches = [
+            row
+            for row in snapshot_rows
+            if row["snapshot_type"] == snapshot_type
+        ]
+        role_matches = [
+            row
+            for row in snapshot_matches
+            if role is None or row["dominant_role"] == role
+        ]
+        table_count = max(
+            (int(row["table_count"]) for row in snapshot_matches),
+            default=0,
+        )
+        age_values = [
+            float(row["age_from_clip_end_s"])
+            for row in snapshot_matches
+            if row.get("age_from_clip_end_s") is not None
+        ]
+        age_from_clip_end_s = min(age_values) if age_values else None
+        checks = {
+            "snapshot_present": bool(snapshot_matches) or min_tracks == 0,
+            "min_tracks": len(role_matches) >= min_tracks,
+            "min_table_count": (
+                min_table_count is None or table_count >= int(min_table_count)
+            ),
+            "max_age_from_clip_end_s": (
+                max_age_from_clip_end_s is None
+                or (
+                    age_from_clip_end_s is not None
+                    and age_from_clip_end_s <= float(max_age_from_clip_end_s)
+                )
+            ),
+        }
+        expectation_pass = all(checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "snapshot_type": snapshot_type,
+                "role": role,
+                "min_tracks": min_tracks,
+                "min_table_count": min_table_count,
+                "max_age_from_clip_end_s": max_age_from_clip_end_s,
+                "matched_rows": role_matches,
+                "matched_count": len(role_matches),
+                "table_count": table_count,
+                "age_from_clip_end_s": (
+                    round(age_from_clip_end_s, 3)
+                    if age_from_clip_end_s is not None
+                    else None
+                ),
                 "checks": checks,
                 "passed": expectation_pass,
             }

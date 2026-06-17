@@ -110,7 +110,12 @@ The JSON output includes:
   colorfulness, dominant stage, and whether table tracking is available.
 - `track_role_report`: latest role dwell for every track ID seen in the clip.
 - `current_table_roster`: the most recent table-side roster.
+- `last_observed_table_roster`: the latest room-view frame with table-side
+  presence, useful when the clip ends in fluoroscopy or after the table-side
+  staff have stepped away.
 - `peak_table_roster`: roster from the frame with the highest table-side count.
+- `table_roster_snapshots`: row-oriented current, last-observed, and peak roster
+  snapshots for CSV export.
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
@@ -164,6 +169,9 @@ The label file can include:
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
   count, room-view table-occupancy rate, or tracking-available rate.
+- `roster_snapshot_expectations`: expected current, last-observed, or peak
+  roster snapshots, such as requiring at least one table-operator track in the
+  last-observed room-view table roster.
 - `quality_flag_expectations`: expected quality flags, such as requiring
   `non_room_view` and `low_stage_confidence` to cover a fluoroscopy-only ROI.
 
@@ -183,9 +191,9 @@ declares a clip path, label path, ROI, starting stage, frame limit, and tracking
 configuration. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, stage staffing,
-stage table coverage, table transition events, table presence intervals, quality
-flags, and low-confidence segments. The command exits non-zero if any scored
-label section falls below its configured threshold.
+stage table coverage, table roster snapshots, table transition events, table
+presence intervals, quality flags, and low-confidence segments. The command
+exits non-zero if any scored label section falls below its configured threshold.
 
 The current local Sentara suite covers:
 

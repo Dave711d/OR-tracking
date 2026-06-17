@@ -43,6 +43,15 @@
       "min_room_table_occupancy_rate": 0.3
     }
   ],
+  "roster_snapshot_expectations": [
+    {
+      "snapshot_type": "last_observed",
+      "role": "table_operator",
+      "min_tracks": 1,
+      "min_table_count": 1,
+      "max_age_from_clip_end_s": 18.0
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

@@ -116,14 +116,15 @@ streamlit run app.py --server.headless true
 Open the local URL Streamlit prints, upload a video, or click `Use synthetic
 sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
-The app shows the latest table roster plus `View segments`,
-`Stage staffing summary`, `Stage table coverage`, `Table transition events`,
-and `Table presence intervals` tables. Together these show when the room camera
-is actually visible, which track IDs were table-side in each TAVR phase, how
-long they were present, their dominant role, and whether they entered or exited
-during a stage. Mixed room/fluoroscopy runs also include room-view frame counts,
-tracking-available rates, and room-view table occupancy so staff/table coverage
-is not understated by frames where the room was not visible.
+The app shows the latest table roster, last observed table roster, and
+`View segments`, `Stage staffing summary`, `Stage table coverage`,
+`Table transition events`, and `Table presence intervals` tables. Together
+these show when the room camera is actually visible, which track IDs were
+table-side in each TAVR phase, how long they were present, their dominant role,
+and whether they entered or exited during a stage. Mixed room/fluoroscopy runs
+also include room-view frame counts, tracking-available rates, and room-view
+table occupancy so staff/table coverage is not understated by frames where the
+room was not visible.
 It also writes:
 
 - `outputs/*_metrics.csv`
@@ -132,7 +133,7 @@ It also writes:
 - `outputs/*_tracked.mp4` when annotated video is enabled
 
 The Streamlit app includes a `Download TAVR tables` ZIP containing the derived
-stage, view, roster, event, and quality CSVs for the current run.
+stage, view, roster snapshot, event, and quality CSVs for the current run.
 
 For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
 `tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`,
