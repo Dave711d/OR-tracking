@@ -15,3 +15,11 @@ def test_vercel_config_builds_public_assets() -> None:
 
     assert config["buildCommand"] == "npm run build"
     assert config["outputDirectory"] == "dist"
+
+
+def test_vercel_deploy_ignores_streamlit_entrypoint() -> None:
+    ignore_rules = Path(".vercelignore").read_text(encoding="utf-8").splitlines()
+
+    assert "app.py" in ignore_rules
+    assert "or_tracking/" in ignore_rules
+    assert "public/" not in ignore_rules
