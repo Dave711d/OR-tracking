@@ -467,6 +467,80 @@ def test_table_team_role_promotes_table_facing_role_over_raw_dominant() -> None:
     assert "table_operator (dominant imaging)" in row["label"]
 
 
+def test_stage_and_event_surfaces_use_table_facing_role() -> None:
+    metrics = [
+        _table_metric(
+            index,
+            index / 10,
+            "valve_deployment",
+            [13],
+            roles_by_track={
+                13: "table_operator" if index < 4 else "imaging",
+            },
+        )
+        for index in range(12)
+    ]
+
+    coverage = stage_table_coverage(metrics)
+    handoffs = stage_handoff_summary(metrics)
+    events = procedure_event_timeline(metrics)
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "stage_staffing_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "dominant_role": "imaging",
+                    "min_tracks": 1,
+                    "min_observed_table_frames": 12,
+                }
+            ],
+            "stage_handoff_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "lead_role": "table_operator",
+                    "lead_dominant_role": "imaging",
+                    "handoff_type": "initial_table_roster",
+                    "min_active_tracks": 1,
+                }
+            ],
+            "event_timeline_expectations": [
+                {
+                    "event_type": "table_handoff",
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "handoff_type": "initial_table_roster",
+                    "min_tracks": 1,
+                }
+            ],
+        },
+    )
+
+    assert coverage[0]["dominant_role"] == "imaging"
+    assert coverage[0]["table_team_role"] == "table_operator"
+    assert coverage[0]["table_team_role_confidence"] == pytest.approx(0.333)
+    assert "table_operator (dominant imaging)" in coverage[0]["label"]
+
+    assert handoffs[0]["lead_role"] == "table_operator"
+    assert handoffs[0]["lead_dominant_role"] == "imaging"
+    assert handoffs[0]["lead_table_team_role"] == "table_operator"
+    assert "lead ID 13 table_operator" in handoffs[0]["label"]
+
+    handoff_event = next(
+        event for event in events if event["event_type"] == "table_handoff"
+    )
+    assert handoff_event["dominant_role"] == "imaging"
+    assert handoff_event["table_team_role"] == "table_operator"
+    assert handoff_event["roster"][0]["dominant_role"] == "imaging"
+    assert handoff_event["roster"][0]["table_team_role"] == "table_operator"
+
+    assert score["stage_staffing_score"]["pass_rate"] == 1.0
+    assert score["stage_handoff_score"]["pass_rate"] == 1.0
+    assert score["event_timeline_score"]["pass_rate"] == 1.0
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -599,10 +673,13 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     snapshots_csv = Path(paths["table_roster_snapshots"]).read_text(encoding="utf-8")
     assert "track_id" in coverage_csv
     assert "coverage_ratio" in coverage_csv
+    assert "table_team_role" in coverage_csv
     assert "room_coverage_ratio" in coverage_csv
     assert "tracking_available_rate" in staffing_csv
+    assert "table_operator" in staffing_csv
     assert "room_table_occupancy_rate" in staffing_csv
     assert "handoff_type" in handoff_csv
+    assert "lead_table_team_role" in handoff_csv
     assert "roster_added" in handoff_csv
     assert "evidence_level" in evidence_csv
     assert "strong_visual_support" in evidence_csv
@@ -616,8 +693,10 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "current_observed" in milestones_csv
     assert "event_type" in event_csv
     assert "table_handoff" in event_csv
+    assert "table_team_role" in event_csv
     assert "snapshot_type" in snapshots_csv
     assert "last_observed" in snapshots_csv
+    assert "table_team_role" in snapshots_csv
     assert "ID 7" in coverage_csv
 
 

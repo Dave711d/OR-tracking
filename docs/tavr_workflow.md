@@ -141,18 +141,20 @@ The JSON output includes:
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
-  and end timestamps, observed table frames, dominant role, and dominant stage.
+  and end timestamps, observed table frames, raw dominant role, operator-facing
+  table role, and dominant stage.
 - `table_transition_events`: table entry, table exit, stage-start presence, and
   stage-end presence events derived from the stage coverage rows.
 - `stage_table_coverage`: one row per table-side track per contiguous stage
   segment, including stage start/end, first/last seen timestamps, coverage
-  ratio, room-view coverage ratio, dominant role, and whether the track entered
-  or exited during the stage.
+  ratio, room-view coverage ratio, raw dominant role, operator-facing table role,
+  and whether the track entered or exited during the stage.
 - `stage_handoff_summary`: one row per contiguous stage segment showing the
-  lead table-side track, active roster, table IDs that continued from the prior
-  stage, new IDs, dropped IDs, within-stage entry/exit IDs, and a handoff type
-  such as `table_roster_started`, `roster_added`, `roster_removed`,
-  `roster_changed`, `roster_continued`, or `table_cleared`.
+  lead table-side track, operator-facing lead role plus raw lead dominant role,
+  active roster, table IDs that continued from the prior stage, new IDs, dropped
+  IDs, within-stage entry/exit IDs, and a handoff type such as
+  `table_roster_started`, `roster_added`, `roster_removed`, `roster_changed`,
+  `roster_continued`, or `table_cleared`.
 - `stage_evidence_summary`: one row per contiguous stage segment showing
   room-view availability, observable rate, mean/min/max stage confidence,
   dominant visual signal, and an evidence level: `strong_visual_support`,
@@ -165,8 +167,9 @@ The JSON output includes:
   or later procedural progress that was not visible.
 - `procedure_event_timeline`: one chronological review table combining stage
   starts, room/non-room view starts, stage handoffs, and table-count peaks. Each
-  event keeps the relevant stage, view, table count, lead track, table track
-  IDs, roster labels, source table, and a human-readable label.
+  event keeps the relevant stage, view, table count, lead track, table-facing
+  role, raw dominant role, table track IDs, roster labels, source table, and a
+  human-readable label.
 - `stage_staffing_summary`: one compact row per observed stage with duration,
   room-view frame counts, tracking-available rate, mean/peak table count,
   total-stage and room-view table occupancy, role mix, and the meaningful
@@ -211,11 +214,15 @@ The label file can include:
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
-  count, room-view table-occupancy rate, or tracking-available rate.
+  count, room-view table-occupancy rate, or tracking-available rate. `role`
+  matches the operator-facing table role; use `dominant_role` when you need to
+  constrain the raw zone-history role.
 - `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
   requiring a deployment-stage `table_roster_started` event, a closure-stage
   `roster_added` event, a lead role, minimum active/new/continued/dropped track
-  counts, minimum lead table frames, or minimum tracking-available rate.
+  counts, minimum lead table frames, or minimum tracking-available rate. `role`
+  and `lead_role` match operator-facing table roles; `dominant_role` and
+  `lead_dominant_role` constrain the raw role when needed.
 - `stage_evidence_expectations`: expected evidence support for a stage segment,
   such as requiring fluoroscopy-only stages to be `held_non_room`, requiring a
   room-visible deployment stage to have strong support, or requiring a visually
@@ -245,8 +252,8 @@ The label file can include:
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can
   constrain event type, stage, view, handoff type, timestamp window,
-  tracking-available flag, minimum/maximum table count, role, and minimum
-  matching roster tracks.
+  tracking-available flag, minimum/maximum table count, operator-facing role,
+  raw dominant role, and minimum matching roster tracks.
 - `roster_snapshot_expectations`: expected current, last-observed, or peak
   roster snapshots, such as requiring at least one table-operator track in the
   last-observed room-view table roster.

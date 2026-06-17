@@ -151,6 +151,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "tracking_available_rate",
         "track_id",
         "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
         "observed_table_frames",
         "first_seen_frame",
         "last_seen_frame",
@@ -182,6 +184,9 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "active_table_track_count",
         "lead_track_id",
         "lead_role",
+        "lead_dominant_role",
+        "lead_table_team_role",
+        "lead_table_team_role_confidence",
         "lead_observed_table_frames",
         "continued_track_ids",
         "new_track_ids",
@@ -255,6 +260,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "table_count",
         "track_id",
         "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
         "handoff_type",
         "table_track_ids",
         "roster",
@@ -267,6 +274,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "frame_index",
         "track_id",
         "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
         "stage",
         "stage_label",
         "stage_segment_index",
@@ -279,6 +288,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
     "table_presence_intervals": [
         "track_id",
         "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
         "dominant_stage",
         "start_frame",
         "end_frame",
@@ -300,6 +311,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "table_count",
         "track_id",
         "dominant_role",
+        "table_team_role",
+        "table_team_role_confidence",
         "frames_seen",
         "table_presence_ratio",
         "label",
@@ -1337,13 +1350,25 @@ def _roster_from_state(state: TAVRFrameState) -> List[Dict[str, Any]]:
         summary = state.track_role_summaries.get(track_id)
         if summary is None:
             continue
+        table_team_role, table_team_role_confidence = _table_team_role(
+            dict(summary.role_counts),
+            summary.dominant_role,
+            summary.table_frames,
+        )
         roster.append(
             {
                 "track_id": track_id,
                 "dominant_role": summary.dominant_role,
+                "table_team_role": table_team_role,
+                "table_team_role_confidence": table_team_role_confidence,
                 "frames_seen": summary.frames_seen,
                 "table_presence_ratio": round(summary.table_presence_ratio, 3),
-                "label": summary.to_who_at_table(),
+                "label": _role_label(
+                    track_id=track_id,
+                    role=table_team_role,
+                    dominant_role=summary.dominant_role,
+                    suffix=f"table={summary.table_presence_ratio:.0%}",
+                ),
             }
         )
     return roster
@@ -1382,6 +1407,8 @@ def _snapshot_rows(
                 "table_count": snapshot.get("table_count", 0),
                 "track_id": roster_item["track_id"],
                 "dominant_role": roster_item["dominant_role"],
+                "table_team_role": roster_item["table_team_role"],
+                "table_team_role_confidence": roster_item["table_team_role_confidence"],
                 "frames_seen": roster_item["frames_seen"],
                 "table_presence_ratio": roster_item["table_presence_ratio"],
                 "label": roster_item["label"],
@@ -1677,7 +1704,12 @@ def _stage_handoff_item(
         "tracking_available_rate": _ratio(room_view_frames, stage_frames),
         "active_table_track_count": len(active_roster),
         "lead_track_id": lead["track_id"] if lead else None,
-        "lead_role": lead["dominant_role"] if lead else None,
+        "lead_role": lead["table_team_role"] if lead else None,
+        "lead_dominant_role": lead["dominant_role"] if lead else None,
+        "lead_table_team_role": lead["table_team_role"] if lead else None,
+        "lead_table_team_role_confidence": (
+            lead["table_team_role_confidence"] if lead else None
+        ),
         "lead_observed_table_frames": (
             lead["observed_table_frames"] if lead else 0
         ),
@@ -2004,18 +2036,29 @@ def _table_team_label(row: Dict[str, Any]) -> str:
     age = row.get("age_from_clip_end_s")
     age_label = f"{float(age):.1f}s ago" if age is not None else "age n/a"
     ratio = _maybe_percent_label(row.get("table_presence_ratio"))
-    role_label = row.get("table_team_role") or row.get("dominant_role")
-    raw_role = row.get("dominant_role")
-    role_detail = (
-        f"{role_label} (dominant {raw_role})"
-        if raw_role and role_label != raw_role
-        else str(role_label)
-    )
     return (
-        f"ID {row['track_id']} {role_detail} "
+        f"{_role_label(row['track_id'], row.get('table_team_role'), row.get('dominant_role'))} "
         f"{_text_status_label(row['team_status'])}; "
         f"table={ratio}; last={age_label}; dominant={stage_label}"
     )
+
+
+def _role_label(
+    track_id: int,
+    role: Optional[str],
+    dominant_role: Optional[str],
+    suffix: Optional[str] = None,
+) -> str:
+    role_label = role or dominant_role or "unassigned"
+    role_detail = (
+        f"{role_label} (dominant {dominant_role})"
+        if dominant_role and role_label != dominant_role
+        else str(role_label)
+    )
+    label = f"ID {track_id} {role_detail}"
+    if suffix:
+        label = f"{label} {suffix}"
+    return label
 
 
 def _roster_status_label(roster: Sequence[Dict[str, Any]]) -> str:
@@ -2150,6 +2193,8 @@ def _stage_started_event(
         "table_count": state.table_count,
         "track_id": None,
         "dominant_role": None,
+        "table_team_role": None,
+        "table_team_role_confidence": None,
         "handoff_type": None,
         "table_track_ids": list(state.table_track_ids),
         "roster": roster,
@@ -2185,6 +2230,8 @@ def _view_started_event(
         "table_count": view_segment["peak_table_count"],
         "track_id": None,
         "dominant_role": None,
+        "table_team_role": None,
+        "table_team_role_confidence": None,
         "handoff_type": None,
         "table_track_ids": [],
         "roster": [],
@@ -2198,7 +2245,6 @@ def _view_started_event(
 
 def _handoff_event(handoff: Dict[str, Any]) -> Dict[str, Any]:
     lead_track_id = handoff.get("lead_track_id")
-    lead_role = handoff.get("lead_role")
     return {
         "event_type": "table_handoff",
         "timestamp_s": handoff["start_s"],
@@ -2211,7 +2257,9 @@ def _handoff_event(handoff: Dict[str, Any]) -> Dict[str, Any]:
         "tracking_available": bool(handoff["tracking_available_rate"]),
         "table_count": handoff["active_table_track_count"],
         "track_id": lead_track_id,
-        "dominant_role": lead_role,
+        "dominant_role": handoff.get("lead_dominant_role"),
+        "table_team_role": handoff.get("lead_table_team_role"),
+        "table_team_role_confidence": handoff.get("lead_table_team_role_confidence"),
         "handoff_type": handoff["handoff_type"],
         "table_track_ids": [
             item["track_id"] for item in handoff["active_table_roster"]
@@ -2238,6 +2286,10 @@ def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
         "table_count": peak.get("table_count", 0),
         "track_id": lead.get("track_id") if lead else None,
         "dominant_role": lead.get("dominant_role") if lead else None,
+        "table_team_role": lead.get("table_team_role") if lead else None,
+        "table_team_role_confidence": (
+            lead.get("table_team_role_confidence") if lead else None
+        ),
         "handoff_type": None,
         "table_track_ids": [item["track_id"] for item in roster],
         "roster": roster,
@@ -2254,13 +2306,15 @@ def _handoff_roster_item(row: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "track_id": row["track_id"],
         "dominant_role": row["dominant_role"],
+        "table_team_role": row["table_team_role"],
+        "table_team_role_confidence": row["table_team_role_confidence"],
         "observed_table_frames": row["observed_table_frames"],
         "coverage_ratio": row["coverage_ratio"],
         "room_coverage_ratio": row["room_coverage_ratio"],
         "first_seen_s": row["first_seen_s"],
         "last_seen_s": row["last_seen_s"],
         "label": (
-            f"ID {row['track_id']} {row['dominant_role']} "
+            f"{_role_label(row['track_id'], row['table_team_role'], row['dominant_role'])} "
             f"{row['observed_table_frames']} frames "
             f"{row['first_seen_s']:.1f}-{row['last_seen_s']:.1f}s"
         ),
@@ -2305,7 +2359,7 @@ def _handoff_label(
         return f"{stage_label}: {handoff_type}; no table roster evidence"
     return (
         f"{stage_label}: {handoff_type}; lead ID {lead['track_id']} "
-        f"{lead['dominant_role']}; active table tracks={len(active_roster)}"
+        f"{lead['table_team_role']}; active table tracks={len(active_roster)}"
     )
 
 
@@ -2375,6 +2429,8 @@ def _table_transition_event(
         "frame_index": frame,
         "track_id": coverage["track_id"],
         "dominant_role": coverage["dominant_role"],
+        "table_team_role": coverage["table_team_role"],
+        "table_team_role_confidence": coverage["table_team_role_confidence"],
         "stage": coverage["stage"],
         "stage_label": coverage["stage_label"],
         "stage_segment_index": coverage["stage_segment_index"],
@@ -2384,7 +2440,7 @@ def _table_transition_event(
         "observed_table_frames": coverage["observed_table_frames"],
         "label": (
             f"{timestamp_s:.1f}s {event_type}: ID {coverage['track_id']} "
-            f"{coverage['dominant_role']} during {coverage['stage_label']}"
+            f"{coverage['table_team_role']} during {coverage['stage_label']}"
         ),
     }
 
@@ -2558,13 +2614,14 @@ def _table_presence_score(
     scored_expectations = []
     for expectation in expectations:
         role = expectation.get("role")
+        dominant_role = expectation.get("dominant_role")
         min_intervals = int(expectation.get("min_intervals", 1))
         min_observed_table_frames = int(expectation.get("min_observed_table_frames", 3))
         overlapping = [
             interval
             for interval in intervals
             if _interval_overlaps_expectation(interval, expectation)
-            and (role is None or interval["dominant_role"] == role)
+            and _role_expectation_matches(interval, role, dominant_role)
             and interval["observed_table_frames"] >= min_observed_table_frames
         ]
         expectation_pass = len(overlapping) >= min_intervals
@@ -2575,6 +2632,7 @@ def _table_presence_score(
                 "start_s": expectation.get("start_s"),
                 "end_s": expectation.get("end_s"),
                 "role": role,
+                "dominant_role": dominant_role,
                 "min_intervals": min_intervals,
                 "min_observed_table_frames": min_observed_table_frames,
                 "matched_intervals": overlapping,
@@ -2605,6 +2663,7 @@ def _stage_staffing_score(
     for expectation in expectations:
         stage = str(expectation["stage"])
         role = expectation.get("role")
+        dominant_role = expectation.get("dominant_role")
         min_tracks = int(expectation.get("min_tracks", 0))
         min_observed_table_frames = int(expectation.get("min_observed_table_frames", 1))
         min_peak_count = expectation.get("min_peak_count")
@@ -2621,7 +2680,7 @@ def _stage_staffing_score(
             matching_roster = [
                 track
                 for track in stage_summary["table_roster"]
-                if (role is None or track["dominant_role"] == role)
+                if _role_expectation_matches(track, role, dominant_role)
                 and track["observed_table_frames"] >= min_observed_table_frames
             ]
 
@@ -2686,6 +2745,7 @@ def _stage_staffing_score(
                 "stage": stage,
                 "stage_label": TAVR_STAGE_LABELS.get(stage, stage),
                 "role": role,
+                "dominant_role": dominant_role,
                 "min_tracks": min_tracks,
                 "min_observed_table_frames": min_observed_table_frames,
                 "min_peak_count": min_peak_count,
@@ -2721,7 +2781,9 @@ def _stage_handoff_score(
         stage = expectation.get("stage")
         stage_segment_index = expectation.get("stage_segment_index")
         role = expectation.get("role")
+        dominant_role = expectation.get("dominant_role")
         lead_role = expectation.get("lead_role")
+        lead_dominant_role = expectation.get("lead_dominant_role")
         min_active_tracks = int(expectation.get("min_active_tracks", 0))
         min_new_tracks = int(expectation.get("min_new_tracks", 0))
         min_continued_tracks = int(expectation.get("min_continued_tracks", 0))
@@ -2745,7 +2807,9 @@ def _stage_handoff_score(
             _score_handoff_candidate(
                 handoff=handoff,
                 role=role,
+                dominant_role=dominant_role,
                 lead_role=lead_role,
+                lead_dominant_role=lead_dominant_role,
                 expected_handoff_types=expected_handoff_types,
                 min_active_tracks=min_active_tracks,
                 min_new_tracks=min_new_tracks,
@@ -2764,7 +2828,9 @@ def _stage_handoff_score(
                 "stage": stage,
                 "stage_segment_index": stage_segment_index,
                 "role": role,
+                "dominant_role": dominant_role,
                 "lead_role": lead_role,
+                "lead_dominant_role": lead_dominant_role,
                 "handoff_types": sorted(expected_handoff_types)
                 if expected_handoff_types
                 else None,
@@ -3027,6 +3093,7 @@ def _roster_snapshot_score(
     for expectation in expectations:
         snapshot_type = str(expectation.get("snapshot_type", "last_observed"))
         role = expectation.get("role")
+        dominant_role = expectation.get("dominant_role")
         min_tracks = int(expectation.get("min_tracks", 1))
         min_table_count = expectation.get("min_table_count")
         max_age_from_clip_end_s = expectation.get("max_age_from_clip_end_s")
@@ -3038,7 +3105,7 @@ def _roster_snapshot_score(
         role_matches = [
             row
             for row in snapshot_matches
-            if role is None or row["dominant_role"] == role
+            if _role_expectation_matches(row, role, dominant_role)
         ]
         table_count = max(
             (int(row["table_count"]) for row in snapshot_matches),
@@ -3071,6 +3138,7 @@ def _roster_snapshot_score(
             {
                 "snapshot_type": snapshot_type,
                 "role": role,
+                "dominant_role": dominant_role,
                 "min_tracks": min_tracks,
                 "min_table_count": min_table_count,
                 "max_age_from_clip_end_s": max_age_from_clip_end_s,
@@ -3621,11 +3689,12 @@ def _score_event_candidate(
     expectation: Dict[str, Any],
 ) -> Dict[str, Any]:
     role = expectation.get("role")
+    dominant_role = expectation.get("dominant_role")
     min_tracks = int(expectation.get("min_tracks", 0))
     min_table_count = expectation.get("min_table_count")
     max_table_count = expectation.get("max_table_count")
     tracking_available = expectation.get("tracking_available")
-    roster_matches = _roster_role_matches(event.get("roster", []), role)
+    roster_matches = _roster_role_matches(event.get("roster", []), role, dominant_role)
     checks = {
         "min_tracks": len(roster_matches) >= min_tracks,
         "min_table_count": (
@@ -3652,6 +3721,8 @@ def _score_event_candidate(
         "table_count": event.get("table_count", 0),
         "track_id": event.get("track_id"),
         "dominant_role": event.get("dominant_role"),
+        "table_team_role": event.get("table_team_role"),
+        "table_team_role_confidence": event.get("table_team_role_confidence"),
         "label": event.get("label"),
         "roster_matches": roster_matches,
         "roster_match_count": len(roster_matches),
@@ -3663,7 +3734,9 @@ def _score_event_candidate(
 def _score_handoff_candidate(
     handoff: Dict[str, Any],
     role: Optional[str],
+    dominant_role: Optional[str],
     lead_role: Optional[str],
+    lead_dominant_role: Optional[str],
     expected_handoff_types: set[str],
     min_active_tracks: int,
     min_new_tracks: int,
@@ -3672,10 +3745,22 @@ def _score_handoff_candidate(
     min_lead_observed_table_frames: int,
     min_tracking_available_rate: Optional[float],
 ) -> Dict[str, Any]:
-    active_matches = _roster_role_matches(handoff["active_table_roster"], role)
-    new_matches = _roster_role_matches(handoff["new_table_roster"], role)
-    continued_matches = _roster_role_matches(handoff["continued_table_roster"], role)
-    dropped_matches = _roster_role_matches(handoff["dropped_table_roster"], role)
+    active_matches = _roster_role_matches(
+        handoff["active_table_roster"],
+        role,
+        dominant_role,
+    )
+    new_matches = _roster_role_matches(handoff["new_table_roster"], role, dominant_role)
+    continued_matches = _roster_role_matches(
+        handoff["continued_table_roster"],
+        role,
+        dominant_role,
+    )
+    dropped_matches = _roster_role_matches(
+        handoff["dropped_table_roster"],
+        role,
+        dominant_role,
+    )
     checks = {
         "handoff_type": (
             not expected_handoff_types
@@ -3686,6 +3771,10 @@ def _score_handoff_candidate(
         "min_continued_tracks": len(continued_matches) >= min_continued_tracks,
         "min_dropped_tracks": len(dropped_matches) >= min_dropped_tracks,
         "lead_role": lead_role is None or handoff["lead_role"] == lead_role,
+        "lead_dominant_role": (
+            lead_dominant_role is None
+            or handoff["lead_dominant_role"] == lead_dominant_role
+        ),
         "min_lead_observed_table_frames": (
             handoff["lead_observed_table_frames"] >= min_lead_observed_table_frames
         ),
@@ -3705,6 +3794,11 @@ def _score_handoff_candidate(
         "handoff_type": handoff["handoff_type"],
         "lead_track_id": handoff["lead_track_id"],
         "lead_role": handoff["lead_role"],
+        "lead_dominant_role": handoff["lead_dominant_role"],
+        "lead_table_team_role": handoff["lead_table_team_role"],
+        "lead_table_team_role_confidence": handoff[
+            "lead_table_team_role_confidence"
+        ],
         "lead_observed_table_frames": handoff["lead_observed_table_frames"],
         "active_matches": active_matches,
         "new_matches": new_matches,
@@ -3723,12 +3817,24 @@ def _score_handoff_candidate(
 def _roster_role_matches(
     roster: Sequence[Dict[str, Any]],
     role: Optional[str],
+    dominant_role: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     return [
         item
         for item in roster
-        if role is None or item["dominant_role"] == role
+        if _role_expectation_matches(item, role, dominant_role)
     ]
+
+
+def _role_expectation_matches(
+    row: Dict[str, Any],
+    role: Optional[str],
+    dominant_role: Optional[str] = None,
+) -> bool:
+    return (
+        (role is None or row.get("table_team_role", row.get("dominant_role")) == role)
+        and (dominant_role is None or row.get("dominant_role") == dominant_role)
+    )
 
 
 def _handoff_overlaps_expectation(
@@ -3825,11 +3931,18 @@ def _table_interval_item(
     role_counts = _counts(item["role"] for item in observations)
     stage_counts = _counts(item["stage"] for item in observations)
     dominant_role = _dominant_from_counts(role_counts)
+    table_team_role, table_team_role_confidence = _table_team_role(
+        role_counts,
+        dominant_role,
+        len(observations),
+    )
     dominant_stage = _dominant_from_counts(stage_counts)
     duration_s = max(0.0, end["timestamp_s"] - start["timestamp_s"] + sample_period_s)
     return {
         "track_id": track_id,
         "dominant_role": dominant_role,
+        "table_team_role": table_team_role,
+        "table_team_role_confidence": table_team_role_confidence,
         "dominant_stage": dominant_stage,
         "start_frame": start["frame_index"],
         "end_frame": end["frame_index"],
@@ -3840,7 +3953,7 @@ def _table_interval_item(
         "role_counts": role_counts,
         "stage_counts": stage_counts,
         "label": (
-            f"ID {track_id} {dominant_role} "
+            f"{_role_label(track_id, table_team_role, dominant_role)} "
             f"{start['timestamp_s']:.1f}-{end['timestamp_s']:.1f}s"
         ),
     }
@@ -3853,6 +3966,8 @@ def _interval_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
             {
                 "track_id": interval["track_id"],
                 "dominant_role": interval["dominant_role"],
+                "table_team_role": interval["table_team_role"],
+                "table_team_role_confidence": interval["table_team_role_confidence"],
                 "observed_table_frames": interval["observed_table_frames"],
                 "interval_duration_s": interval["interval_duration_s"],
                 "start_s": interval["start_s"],
@@ -3878,10 +3993,17 @@ def _stage_staffing_track_item(
     role_counts = dict(sorted(track["role_counts"].items()))
     dominant_role = _dominant_role_from_counts(role_counts)
     observed_frames = track["observed_table_frames"]
+    table_team_role, table_team_role_confidence = _table_team_role(
+        role_counts,
+        dominant_role,
+        observed_frames,
+    )
     estimated_duration_s = observed_frames * sample_period_s
     return {
         "track_id": track["track_id"],
         "dominant_role": dominant_role,
+        "table_team_role": table_team_role,
+        "table_team_role_confidence": table_team_role_confidence,
         "observed_table_frames": observed_frames,
         "stage_table_presence_ratio": _ratio(observed_frames, stage_frames),
         "estimated_table_duration_s": round(float(estimated_duration_s), 3),
@@ -3891,7 +4013,7 @@ def _stage_staffing_track_item(
         "last_s": round(float(track["last_s"]), 3),
         "role_counts": role_counts,
         "label": (
-            f"ID {track['track_id']} {dominant_role} "
+            f"{_role_label(track['track_id'], table_team_role, dominant_role)} "
             f"frames={observed_frames}"
         ),
     }
@@ -3949,6 +4071,11 @@ def _stage_table_coverage_rows(
             continue
         role_counts = dict(sorted(track["role_counts"].items()))
         dominant_role = _dominant_role_from_counts(role_counts)
+        table_team_role, table_team_role_confidence = _table_team_role(
+            role_counts,
+            dominant_role,
+            track["observed_table_frames"],
+        )
         coverage_ratio = _ratio(track["observed_table_frames"], stage_frames)
         room_coverage_ratio = _ratio(
             track["observed_table_frames"],
@@ -3969,6 +4096,8 @@ def _stage_table_coverage_rows(
             "tracking_available_rate": _ratio(stage_room_view_frames, stage_frames),
             "track_id": track["track_id"],
             "dominant_role": dominant_role,
+            "table_team_role": table_team_role,
+            "table_team_role_confidence": table_team_role_confidence,
             "observed_table_frames": track["observed_table_frames"],
             "first_seen_frame": track["first_frame"],
             "last_seen_frame": track["last_frame"],
@@ -3985,7 +4114,8 @@ def _stage_table_coverage_rows(
             not row["entered_during_stage"] and not row["exited_during_stage"]
         )
         row["label"] = (
-            f"{row['stage_label']}: ID {track['track_id']} {dominant_role} "
+            f"{row['stage_label']}: "
+            f"{_role_label(track['track_id'], table_team_role, dominant_role)} "
             f"{coverage_ratio:.0%}"
         )
         rows.append(row)

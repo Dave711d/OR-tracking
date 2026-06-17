@@ -70,7 +70,10 @@ The table-team rows classify each meaningful table-side track as
 current/effective/last/peak roster membership flags. They keep both the raw
 `dominant_role` and an operator-facing `table_team_role`, so a table-side track
 with enough access/table evidence can read as a table operator even if its
-dominant zone history was imaging or another support area.
+dominant zone history was imaging or another support area. Stage coverage,
+handoff, roster snapshot, and event timeline rows carry the same pair of roles,
+so the stage-by-stage review is consistent with the operator-facing table-team
+summary while preserving the raw audit trail.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 
@@ -141,10 +144,10 @@ recently seen, or historical table-side context, who was last observed
 table-side, when the room camera is actually visible, which canonical TAVR
 milestones have been observed, which
 milestone is the current observed stage, which track IDs were table-side in each
-TAVR phase, how long they were present, their dominant role, whether they
-entered or exited during a stage, which table-side IDs continued, appeared, or
-dropped at each stage boundary, and whether each stage estimate is strong, weak,
-or held because the room view was unavailable. Mixed
+TAVR phase, how long they were present, their operator-facing table role and raw
+dominant role, whether they entered or exited during a stage, which table-side
+IDs continued, appeared, or dropped at each stage boundary, and whether each
+stage estimate is strong, weak, or held because the room view was unavailable. Mixed
 room/fluoroscopy runs also include room-view frame counts, tracking-available
 rates, and room-view table occupancy so staff/table coverage is not understated
 by frames where the room was not visible.
