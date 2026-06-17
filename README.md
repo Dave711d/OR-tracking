@@ -60,6 +60,9 @@ table-presence intervals, table entry/exit events, stage-by-stage table
 coverage, stage handoff summaries, stage evidence summaries, procedure
 milestones, stage staffing summaries, a unified procedure event timeline, and
 low-confidence segments to inspect before changing heuristics.
+The status row includes an `effective_table_source` so fluoro/non-room frames
+can distinguish live room rosters from the last trustworthy room-view table
+observation or from no usable table evidence.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 
@@ -124,7 +127,8 @@ observed table roster, and `View segments`, `Procedure event timeline`,
 `Stage handoff summary`, `Stage table coverage`, `Table transition events`, and
 `Table presence intervals` tables. Together these show the current observed
 stage, next expected milestone, whether room tracking is available, who is at
-the table now, who was last observed table-side, when the room camera is
+the table now, the best available table roster source, who was last observed
+table-side, when the room camera is
 actually visible, which canonical TAVR milestones have been observed, which
 milestone is the current observed stage, which track IDs were table-side in each
 TAVR phase, how long they were present, their dominant role, whether they

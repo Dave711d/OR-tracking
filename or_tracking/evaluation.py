@@ -33,6 +33,14 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "current_table_count",
         "current_table_track_ids",
         "current_table_roster",
+        "effective_table_source",
+        "effective_table_s",
+        "effective_table_age_from_clip_end_s",
+        "effective_table_stage",
+        "effective_table_stage_label",
+        "effective_table_count",
+        "effective_table_track_ids",
+        "effective_table_roster",
         "last_observed_table_s",
         "last_observed_age_from_clip_end_s",
         "last_observed_stage",
@@ -435,6 +443,12 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     observable_rate = current_milestone.get("observable_rate")
     mean_confidence = current_milestone.get("mean_confidence")
     tracking_available = _view_label(latest_metric) == "room"
+    effective_table = _effective_table_status(
+        latest_metric=latest_metric,
+        latest_state=latest_state,
+        current_roster=current_roster,
+        last_observed=last_observed,
+    )
 
     row = {
         "clip_end_s": round(float(latest_metric.timestamp_s), 3),
@@ -455,6 +469,16 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "current_table_count": latest_state.table_count,
         "current_table_track_ids": current_track_ids,
         "current_table_roster": current_roster,
+        "effective_table_source": effective_table["source"],
+        "effective_table_s": effective_table["timestamp_s"],
+        "effective_table_age_from_clip_end_s": effective_table[
+            "age_from_clip_end_s"
+        ],
+        "effective_table_stage": effective_table["stage"],
+        "effective_table_stage_label": effective_table["stage_label"],
+        "effective_table_count": effective_table["table_count"],
+        "effective_table_track_ids": effective_table["track_ids"],
+        "effective_table_roster": effective_table["roster"],
         "last_observed_table_s": last_observed.get("timestamp_s"),
         "last_observed_age_from_clip_end_s": last_observed.get(
             "age_from_clip_end_s"
@@ -1609,8 +1633,57 @@ def _next_milestone(
     return None
 
 
+def _effective_table_status(
+    latest_metric: FrameMetrics,
+    latest_state: TAVRFrameState,
+    current_roster: Sequence[Dict[str, Any]],
+    last_observed: Dict[str, Any],
+) -> Dict[str, Any]:
+    if _view_label(latest_metric) == "room":
+        source = (
+            "current_room_view"
+            if current_roster
+            else "current_room_view_empty"
+        )
+        return {
+            "source": source,
+            "timestamp_s": round(float(latest_metric.timestamp_s), 3),
+            "age_from_clip_end_s": 0.0,
+            "stage": latest_state.stage,
+            "stage_label": latest_state.stage_label,
+            "table_count": latest_state.table_count,
+            "track_ids": [item["track_id"] for item in current_roster],
+            "roster": list(current_roster),
+        }
+
+    last_roster = last_observed.get("roster", [])
+    if last_roster:
+        return {
+            "source": "last_observed_room_view",
+            "timestamp_s": last_observed.get("timestamp_s"),
+            "age_from_clip_end_s": last_observed.get("age_from_clip_end_s"),
+            "stage": last_observed.get("stage"),
+            "stage_label": last_observed.get("stage_label"),
+            "table_count": last_observed.get("table_count", 0),
+            "track_ids": [item["track_id"] for item in last_roster],
+            "roster": list(last_roster),
+        }
+
+    return {
+        "source": "no_room_table_evidence",
+        "timestamp_s": None,
+        "age_from_clip_end_s": None,
+        "stage": None,
+        "stage_label": None,
+        "table_count": 0,
+        "track_ids": [],
+        "roster": [],
+    }
+
+
 def _procedure_status_label(row: Dict[str, Any]) -> str:
     current_roster = _roster_status_label(row.get("current_table_roster", []))
+    effective_roster = _roster_status_label(row.get("effective_table_roster", []))
     last_roster = _roster_status_label(row.get("last_observed_table_roster", []))
     current_confidence = _maybe_float_label(row.get("mean_confidence"))
     observable_rate = _maybe_percent_label(row.get("observable_rate"))
@@ -1623,6 +1696,8 @@ def _procedure_status_label(row: Dict[str, Any]) -> str:
         f"({row.get('evidence_level') or 'no evidence'}, "
         f"confidence {current_confidence}, observable {observable_rate}); "
         f"tracking {tracking_label}; at table now: {current_roster}; "
+        f"table status: {_text_status_label(row.get('effective_table_source'))} "
+        f"{effective_roster}; "
         f"last observed table: {last_roster}; next: {next_stage}; "
         f"quality flags: {quality_label}"
     )
@@ -1631,6 +1706,10 @@ def _procedure_status_label(row: Dict[str, Any]) -> str:
 def _roster_status_label(roster: Sequence[Dict[str, Any]]) -> str:
     labels = [str(item.get("label")) for item in roster if item.get("label")]
     return "; ".join(labels[:6]) if labels else "none"
+
+
+def _text_status_label(value: Any) -> str:
+    return str(value or "n/a").replace("_", " ")
 
 
 def _maybe_float_label(value: Any) -> str:
@@ -2476,6 +2555,7 @@ def _procedure_status_score(
                 "current_stage": expectation.get("current_stage"),
                 "current_stage_status": expectation.get("current_stage_status"),
                 "tracking_available": expectation.get("tracking_available"),
+                "effective_table_source": expectation.get("effective_table_source"),
                 "evidence_level": expectation.get("evidence_level"),
                 "matched_candidates": scored_candidates,
                 "matched_count": len(scored_candidates),
@@ -2828,6 +2908,7 @@ def _score_procedure_status_candidate(
     next_stage = expectation.get("next_stage")
     current_view = expectation.get("current_view")
     tracking_available = expectation.get("tracking_available")
+    effective_table_source = expectation.get("effective_table_source")
     evidence_level = expectation.get("evidence_level")
     min_observable_rate = expectation.get("min_observable_rate")
     max_observable_rate = expectation.get("max_observable_rate")
@@ -2843,6 +2924,11 @@ def _score_procedure_status_candidate(
     )
     max_last_observed_age_from_clip_end_s = expectation.get(
         "max_last_observed_age_from_clip_end_s"
+    )
+    min_effective_table_count = expectation.get("min_effective_table_count")
+    max_effective_table_count = expectation.get("max_effective_table_count")
+    max_effective_table_age_from_clip_end_s = expectation.get(
+        "max_effective_table_age_from_clip_end_s"
     )
     min_peak_table_count = expectation.get("min_peak_table_count")
     max_peak_table_count = expectation.get("max_peak_table_count")
@@ -2864,6 +2950,10 @@ def _score_procedure_status_candidate(
         "tracking_available": (
             tracking_available is None
             or bool(row["tracking_available"]) == bool(tracking_available)
+        ),
+        "effective_table_source": (
+            effective_table_source is None
+            or row["effective_table_source"] == effective_table_source
         ),
         "evidence_level": (
             evidence_level is None or row["evidence_level"] == evidence_level
@@ -2922,6 +3012,22 @@ def _score_procedure_status_candidate(
                 <= float(max_last_observed_age_from_clip_end_s)
             )
         ),
+        "min_effective_table_count": (
+            min_effective_table_count is None
+            or row["effective_table_count"] >= int(min_effective_table_count)
+        ),
+        "max_effective_table_count": (
+            max_effective_table_count is None
+            or row["effective_table_count"] <= int(max_effective_table_count)
+        ),
+        "max_effective_table_age_from_clip_end_s": (
+            max_effective_table_age_from_clip_end_s is None
+            or (
+                row["effective_table_age_from_clip_end_s"] is not None
+                and row["effective_table_age_from_clip_end_s"]
+                <= float(max_effective_table_age_from_clip_end_s)
+            )
+        ),
         "min_peak_table_count": (
             min_peak_table_count is None
             or row["peak_table_count"] >= int(min_peak_table_count)
@@ -2943,6 +3049,11 @@ def _score_procedure_status_candidate(
         "next_stage": row["next_stage"],
         "current_view": row["current_view"],
         "tracking_available": row["tracking_available"],
+        "effective_table_source": row["effective_table_source"],
+        "effective_table_count": row["effective_table_count"],
+        "effective_table_age_from_clip_end_s": row[
+            "effective_table_age_from_clip_end_s"
+        ],
         "evidence_level": row["evidence_level"],
         "observable_rate": row["observable_rate"],
         "mean_confidence": row["mean_confidence"],

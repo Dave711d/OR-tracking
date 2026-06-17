@@ -79,10 +79,12 @@
       "next_stage": "angio_alignment_crossing",
       "current_view": "non_room",
       "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
       "evidence_level": "weak_visual_support",
       "max_observable_rate": 0.2,
       "max_mean_confidence": 0.25,
       "max_current_table_count": 0,
+      "max_effective_table_count": 0,
       "max_last_observed_table_count": 0,
       "max_peak_table_count": 0,
       "required_quality_flags": [

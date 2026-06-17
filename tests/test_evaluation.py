@@ -382,12 +382,17 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     assert status["tracking_available"] is False
     assert status["current_table_count"] == 0
     assert status["current_table_track_ids"] == []
+    assert status["effective_table_source"] == "last_observed_room_view"
+    assert status["effective_table_count"] == 2
+    assert status["effective_table_track_ids"] == [7, 8]
+    assert status["effective_table_age_from_clip_end_s"] == 0.1
     assert status["last_observed_stage"] == "valve_deployment"
     assert status["last_observed_table_count"] == 2
     assert status["last_observed_table_track_ids"] == [7, 8]
     assert status["peak_table_count"] == 2
     assert status["peak_table_track_ids"] == [7, 8]
     assert "Current observed stage: Closure / finish" in status["operator_summary"]
+    assert "table status: last observed room view ID 7" in status["operator_summary"]
     assert "last observed table: ID 7" in status["operator_summary"]
 
 
@@ -530,6 +535,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "strong_visual_support" in evidence_csv
     assert "operator_summary" in status_csv
     assert "Current observed stage" in status_csv
+    assert "effective_table_source" in status_csv
     assert "milestone_status" in milestones_csv
     assert "current_observed" in milestones_csv
     assert "event_type" in event_csv
@@ -639,8 +645,11 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "next_stage": None,
                 "current_view": "room",
                 "tracking_available": True,
+                "effective_table_source": "current_room_view",
                 "evidence_level": "strong_visual_support",
                 "min_current_table_count": 1,
+                "min_effective_table_count": 1,
+                "max_effective_table_age_from_clip_end_s": 0.0,
                 "min_last_observed_table_count": 1,
                 "max_last_observed_age_from_clip_end_s": 0.0,
                 "min_peak_table_count": 2,

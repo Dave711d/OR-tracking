@@ -66,10 +66,12 @@
       "next_stage": "post_deploy_assessment",
       "current_view": "non_room",
       "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
       "evidence_level": "held_non_room",
       "max_observable_rate": 0.0,
       "max_mean_confidence": 0.2,
       "max_current_table_count": 0,
+      "max_effective_table_count": 0,
       "max_last_observed_table_count": 0,
       "max_peak_table_count": 0,
       "required_quality_flags": [

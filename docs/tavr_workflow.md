@@ -111,8 +111,12 @@ The JSON output includes:
 - `procedure_status_summary`: a one-row operator status that combines current
   observed stage, next expected milestone, evidence level, observable rate,
   mean confidence, latest room/non-room view state, tracking availability,
-  current table roster, last observed table roster, peak table roster, quality
-  flag codes, and a concise `operator_summary` sentence.
+  current table roster, effective table roster source, last observed table
+  roster, peak table roster, quality flag codes, and a concise
+  `operator_summary` sentence. `effective_table_source` is
+  `current_room_view`, `current_room_view_empty`, `last_observed_room_view`, or
+  `no_room_table_evidence`, which keeps fluoroscopy frames from implying a
+  false empty table when the room is not visible.
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
 - `view_segments`: contiguous room/non-room stretches with duration,
@@ -217,9 +221,9 @@ The label file can include:
   table-side track count for the milestone.
 - `procedure_status_expectations`: expected one-row operator status, including
   current stage, current milestone status, next stage, current view, tracking
-  availability, evidence level, observable rate, mean confidence, current table
-  count, last-observed table count/freshness, peak table count, and required or
-  forbidden quality flags.
+  availability, effective table source/count/freshness, evidence level,
+  observable rate, mean confidence, current table count, last-observed table
+  count/freshness, peak table count, and required or forbidden quality flags.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can

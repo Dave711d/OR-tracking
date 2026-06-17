@@ -531,6 +531,16 @@ def _procedure_status_rows(status_rows: list[dict[str, Any]]) -> list[dict[str, 
                 "current_view": item.get("current_view") or "n/a",
                 "tracking_available": _yes_no(item.get("tracking_available")),
                 "at_table_now": _roster_label(item.get("current_table_roster", [])),
+                "table_status_source": _status_label(
+                    item.get("effective_table_source")
+                ),
+                "table_status_count": item.get("effective_table_count", 0),
+                "table_status_age_s": item.get(
+                    "effective_table_age_from_clip_end_s"
+                ),
+                "table_status_roster": _roster_label(
+                    item.get("effective_table_roster", [])
+                ),
                 "last_observed_table_s": item.get("last_observed_table_s"),
                 "last_observed_stage": (
                     item.get("last_observed_stage_label") or "n/a"
