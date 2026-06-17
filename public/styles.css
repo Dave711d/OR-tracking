@@ -141,7 +141,7 @@ video {
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   gap: 12px;
   padding: 14px;
   border-top: 1px solid var(--line);
@@ -158,6 +158,19 @@ video {
 
 input[type="range"] {
   width: 100%;
+}
+
+.toggle-control {
+  align-content: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-content: start;
+}
+
+.toggle-control input {
+  inline-size: 18px;
+  block-size: 18px;
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .inspector {

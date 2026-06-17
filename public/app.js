@@ -5,6 +5,7 @@ const emptyState = document.querySelector("#emptyState");
 const playButton = document.querySelector("#playButton");
 const syntheticButton = document.querySelector("#syntheticButton");
 const resetButton = document.querySelector("#resetButton");
+const staticFallbackInput = document.querySelector("#staticFallback");
 const sensitivityInput = document.querySelector("#sensitivity");
 const cellSizeInput = document.querySelector("#cellSize");
 const stageMetric = document.querySelector("#stageMetric");
@@ -255,7 +256,10 @@ function analyzeFrame() {
   const cellSize = Number(cellSizeInput.value);
   const sensitivity = Number(sensitivityInput.value);
   const cells = collectMotionCells(image, previousFrame, cellSize, sensitivity);
-  const boxes = clusterCells(cells, cellSize, work.width, work.height);
+  let boxes = clusterCells(cells, cellSize, work.width, work.height);
+  if (staticFallbackInput.checked && !hasTableSideBox(boxes)) {
+    boxes = dedupeBoxes([...boxes, ...collectStaticTableBoxes(image)]).slice(0, 12);
+  }
   const activity = cells.length;
   previousFrame = image;
   activityHistory.push(activity);
@@ -425,6 +429,111 @@ function clusterCells(cells, cellSize, width, height) {
   }
 
   return boxes.slice(0, 12);
+}
+
+function collectStaticTableBoxes(image) {
+  return ZONES
+    .filter((zone) => TABLE_SIDE_ZONES.has(zone.key))
+    .map((zone) => staticBoxForZone(image, zone))
+    .filter(Boolean)
+    .map((box, index) => ({
+      ...box,
+      id: `ST${index + 1}`,
+      role: inferRoleFromZones(getZoneKeys(box)) || "table_operator",
+      label: "Static table",
+      tableSide: true,
+      staticFallback: true,
+    }));
+}
+
+function staticBoxForZone(image, zone) {
+  const x0 = Math.max(0, Math.floor(zone.x0 * image.width));
+  const y0 = Math.max(0, Math.floor(zone.y0 * image.height));
+  const x1 = Math.min(image.width, Math.ceil(zone.x1 * image.width));
+  const y1 = Math.min(image.height, Math.ceil(zone.y1 * image.height));
+  let minX = x1;
+  let minY = y1;
+  let maxX = x0;
+  let maxY = y0;
+  let hits = 0;
+  let samples = 0;
+
+  for (let y = y0; y < y1; y += 4) {
+    for (let x = x0; x < x1; x += 4) {
+      const index = (y * image.width + x) * 4;
+      const red = image.data[index];
+      const green = image.data[index + 1];
+      const blue = image.data[index + 2];
+      const maxChannel = Math.max(red, green, blue);
+      const minChannel = Math.min(red, green, blue);
+      const saturation = maxChannel - minChannel;
+      samples += 1;
+      if (saturation < 42 || maxChannel > 238 || maxChannel < 32) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+      hits += 1;
+    }
+  }
+
+  if (hits < 18 || samples <= 0 || hits / samples > 0.38) return null;
+  const pixelWidth = Math.max(1, maxX - minX + 4);
+  const pixelHeight = Math.max(1, maxY - minY + 4);
+  const zoneArea = Math.max(1, (x1 - x0) * (y1 - y0));
+  const boxArea = pixelWidth * pixelHeight;
+  const aspectRatio = pixelWidth / Math.max(pixelHeight, 1);
+  if (boxArea < 240 || boxArea > zoneArea * 0.38) return null;
+  if (aspectRatio < 0.18 || aspectRatio > 2.25) return null;
+
+  return {
+    x: minX / image.width,
+    y: minY / image.height,
+    w: pixelWidth / image.width,
+    h: pixelHeight / image.height,
+  };
+}
+
+function hasTableSideBox(boxes) {
+  return boxes.some((box) => (
+    getZoneKeys(box).some((zoneKey) => TABLE_SIDE_ZONES.has(zoneKey))
+  ));
+}
+
+function dedupeBoxes(boxes) {
+  const deduped = [];
+  boxes
+    .slice()
+    .sort((a, b) => (b.w * b.h) - (a.w * a.h))
+    .forEach((box) => {
+      const overlapsExisting = deduped.some((kept) => (
+        normalizedDistance(box, kept) < 0.09 || boxIou(box, kept) > 0.18
+      ));
+      if (overlapsExisting) {
+        return;
+      }
+      deduped.push(box);
+    });
+  return deduped;
+}
+
+function normalizedDistance(a, b) {
+  const ax = a.x + a.w / 2;
+  const ay = a.y + a.h / 2;
+  const bx = b.x + b.w / 2;
+  const by = b.y + b.h / 2;
+  return Math.hypot(ax - bx, ay - by);
+}
+
+function boxIou(a, b) {
+  const left = Math.max(a.x, b.x);
+  const top = Math.max(a.y, b.y);
+  const right = Math.min(a.x + a.w, b.x + b.w);
+  const bottom = Math.min(a.y + a.h, b.y + b.h);
+  if (right <= left || bottom <= top) return 0;
+  const intersection = (right - left) * (bottom - top);
+  const union = a.w * a.h + b.w * b.h - intersection;
+  return union > 0 ? intersection / union : 0;
 }
 
 function neighbors(cell) {

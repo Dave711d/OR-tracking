@@ -57,3 +57,13 @@ def test_static_demo_role_zone_priority_matches_backend() -> None:
         priority_block_match.group("body"),
     )
     assert role_zone_priority == list(ROLE_ZONE_PRIORITY)
+
+
+def test_static_demo_exposes_static_table_fallback_review_mode() -> None:
+    index_html = Path("public/index.html").read_text(encoding="utf-8")
+    app_js = Path("public/app.js").read_text(encoding="utf-8")
+
+    assert 'id="staticFallback"' in index_html
+    assert "Static table fallback" in index_html
+    assert "collectStaticTableBoxes" in app_js
+    assert "staticFallbackInput.checked" in app_js

@@ -18,7 +18,8 @@ added behind the same metrics surface later.
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
 - Single-clip evaluator in `evaluate_tavr.py`
 - Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
-- Browser-only Vercel demo in `public/`
+- Browser-only Vercel demo in `public/`, including an opt-in static table
+  fallback for low-motion room-view review
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
 
