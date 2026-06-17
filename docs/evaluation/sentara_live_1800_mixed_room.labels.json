@@ -48,6 +48,36 @@
       "min_tracking_available_rate": 0.7
     }
   ],
+  "event_timeline_expectations": [
+    {
+      "event_type": "view_started",
+      "stage": "valve_deployment",
+      "view": "room",
+      "start_s": 8.0,
+      "end_s": 8.2,
+      "tracking_available": true,
+      "min_table_count": 3
+    },
+    {
+      "event_type": "table_handoff",
+      "stage": "valve_deployment",
+      "handoff_type": "table_roster_started",
+      "role": "table_operator",
+      "start_s": 8.0,
+      "end_s": 8.2,
+      "min_tracks": 10,
+      "min_table_count": 10,
+      "tracking_available": true
+    },
+    {
+      "event_type": "table_peak",
+      "stage": "valve_deployment",
+      "start_s": 24.0,
+      "end_s": 25.0,
+      "min_table_count": 3,
+      "tracking_available": true
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

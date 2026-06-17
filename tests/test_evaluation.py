@@ -7,6 +7,7 @@ import pytest
 from evaluate_tavr import parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
+    procedure_event_timeline,
     score_tavr_metrics,
     stage_handoff_summary,
     stage_staffing_summary,
@@ -53,6 +54,7 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["table_transition_events"]
     assert summary["stage_table_coverage"]
     assert summary["stage_handoff_summary"]
+    assert summary["procedure_event_timeline"]
     assert summary["stage_staffing_summary"]
     assert any(
         item["table_presence_roster"]
@@ -274,6 +276,38 @@ def test_stage_handoff_summary_reports_boundary_roster_changes() -> None:
     assert handoffs[2]["dropped_table_roster"]
 
 
+def test_procedure_event_timeline_combines_stage_view_handoff_and_peak() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [], alert_flags=["non_room_view"]),
+        _table_metric(1, 0.1, "access_sheathing", []),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+    ]
+
+    events = procedure_event_timeline(metrics)
+
+    assert events[0]["event_type"] == "stage_started"
+    assert events[0]["stage"] == "access_sheathing"
+    assert any(
+        event["event_type"] == "view_started"
+        and event["view"] == "room"
+        and event["timestamp_s"] == 0.1
+        for event in events
+    )
+    assert any(
+        event["event_type"] == "table_handoff"
+        and event["handoff_type"] == "table_roster_started"
+        and event["table_count"] == 2
+        for event in events
+    )
+    assert any(
+        event["event_type"] == "table_peak"
+        and event["stage"] == "valve_deployment"
+        and event["table_count"] == 2
+        for event in events
+    )
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -386,6 +420,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_timeline",
         "stage_table_coverage",
         "stage_handoff_summary",
+        "procedure_event_timeline",
         "table_roster_snapshots",
         "table_transition_events",
         "view_segments",
@@ -393,6 +428,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     coverage_csv = Path(paths["stage_table_coverage"]).read_text(encoding="utf-8")
     staffing_csv = Path(paths["stage_staffing_summary"]).read_text(encoding="utf-8")
     handoff_csv = Path(paths["stage_handoff_summary"]).read_text(encoding="utf-8")
+    event_csv = Path(paths["procedure_event_timeline"]).read_text(encoding="utf-8")
     snapshots_csv = Path(paths["table_roster_snapshots"]).read_text(encoding="utf-8")
     assert "track_id" in coverage_csv
     assert "coverage_ratio" in coverage_csv
@@ -401,6 +437,8 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "room_table_occupancy_rate" in staffing_csv
     assert "handoff_type" in handoff_csv
     assert "roster_added" in handoff_csv
+    assert "event_type" in event_csv
+    assert "table_handoff" in event_csv
     assert "snapshot_type" in snapshots_csv
     assert "last_observed" in snapshots_csv
     assert "ID 7" in coverage_csv
@@ -459,6 +497,23 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_lead_observed_table_frames": 2,
             }
         ],
+        "event_timeline_expectations": [
+            {
+                "event_type": "table_handoff",
+                "stage": "valve_deployment",
+                "handoff_type": "roster_changed",
+                "role": "table_operator",
+                "min_tracks": 2,
+                "min_table_count": 2,
+            },
+            {
+                "event_type": "table_peak",
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "min_tracks": 2,
+                "min_table_count": 2,
+            },
+        ],
         "roster_snapshot_expectations": [
             {
                 "snapshot_type": "last_observed",
@@ -488,6 +543,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["expectations"][0]["matched_count"] == 1
+    assert score["event_timeline_score"]["pass_rate"] == 1.0
+    assert score["event_timeline_score"]["expectations"][0]["matched_count"] == 1
     assert score["roster_snapshot_score"]["pass_rate"] == 1.0
     assert score["roster_snapshot_score"]["expectations"][0]["matched_count"] == 1
     assert score["quality_flag_score"]["pass_rate"] == 1.0

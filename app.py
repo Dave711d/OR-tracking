@@ -196,6 +196,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    event_rows = tavr_summary.get("procedure_event_timeline", [])
+    if event_rows:
+        st.subheader("Procedure event timeline")
+        st.dataframe(
+            pd.DataFrame(_procedure_event_rows(event_rows)),
+            width="stretch",
+            hide_index=True,
+        )
+
     staffing = tavr_summary.get("stage_staffing_summary", [])
     if staffing:
         st.subheader("Stage staffing summary")
@@ -453,6 +462,28 @@ def _stage_handoff_rows(handoffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "active_table_roster": _roster_label(
                     item.get("active_table_roster", [])
                 ),
+            }
+        )
+    return rows
+
+
+def _procedure_event_rows(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in events:
+        rows.append(
+            {
+                "timestamp_s": item["timestamp_s"],
+                "event_type": item["event_type"],
+                "stage_label": item.get("stage_label") or "n/a",
+                "view": item.get("view") or "n/a",
+                "tracking_available": item.get("tracking_available"),
+                "table_count": item.get("table_count", 0),
+                "lead_track_id": item.get("track_id"),
+                "dominant_role": item.get("dominant_role") or "none",
+                "handoff_type": item.get("handoff_type") or "none",
+                "table_track_ids": _id_label(item.get("table_track_ids", [])),
+                "roster": _roster_label(item.get("roster", [])),
+                "label": item.get("label", ""),
             }
         )
     return rows

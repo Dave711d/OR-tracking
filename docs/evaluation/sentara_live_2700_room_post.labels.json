@@ -66,6 +66,45 @@
       "min_tracking_available_rate": 0.45
     }
   ],
+  "event_timeline_expectations": [
+    {
+      "event_type": "stage_started",
+      "stage": "closure_finish",
+      "view": "room",
+      "start_s": 2.5,
+      "end_s": 2.7,
+      "tracking_available": true,
+      "min_table_count": 2
+    },
+    {
+      "event_type": "table_handoff",
+      "stage": "closure_finish",
+      "handoff_type": "roster_added",
+      "role": "table_operator",
+      "start_s": 2.5,
+      "end_s": 2.7,
+      "min_tracks": 5,
+      "min_table_count": 9,
+      "tracking_available": true
+    },
+    {
+      "event_type": "table_peak",
+      "stage": "closure_finish",
+      "start_s": 3.8,
+      "end_s": 4.1,
+      "min_table_count": 4,
+      "tracking_available": true
+    },
+    {
+      "event_type": "view_started",
+      "stage": "closure_finish",
+      "view": "non_room",
+      "start_s": 15.2,
+      "end_s": 15.4,
+      "tracking_available": false,
+      "max_table_count": 0
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

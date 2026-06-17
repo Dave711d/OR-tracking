@@ -11,6 +11,26 @@
       "min_within_range_rate": 0.95
     }
   ],
+  "event_timeline_expectations": [
+    {
+      "event_type": "view_started",
+      "stage": "valve_deployment",
+      "view": "non_room",
+      "start_s": 0.0,
+      "end_s": 0.1,
+      "tracking_available": false,
+      "max_table_count": 0
+    },
+    {
+      "event_type": "table_handoff",
+      "stage": "valve_deployment",
+      "handoff_type": "initial_no_table_evidence",
+      "start_s": 0.0,
+      "end_s": 0.1,
+      "tracking_available": false,
+      "max_table_count": 0
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

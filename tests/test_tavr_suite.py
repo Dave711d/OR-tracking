@@ -12,6 +12,7 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
         "table_presence_score": {"pass_rate": None},
         "stage_staffing_score": {"pass_rate": 0.5},
         "stage_handoff_score": {"pass_rate": None},
+        "event_timeline_score": {"pass_rate": None},
         "roster_snapshot_score": {"pass_rate": None},
         "quality_flag_score": {"pass_rate": None},
     }
@@ -21,6 +22,7 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
         "table_presence_pass_rate": 1.0,
         "stage_staffing_pass_rate": 1.0,
         "stage_handoff_pass_rate": 1.0,
+        "event_timeline_pass_rate": 1.0,
         "roster_snapshot_pass_rate": 1.0,
         "quality_flag_pass_rate": 1.0,
     }
@@ -33,6 +35,7 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
         True,
         False,
         True,
+        False,
         False,
         False,
         False,

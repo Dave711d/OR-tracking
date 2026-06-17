@@ -129,6 +129,25 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "dropped_table_roster",
         "label",
     ],
+    "procedure_event_timeline": [
+        "event_type",
+        "timestamp_s",
+        "frame_index",
+        "end_s",
+        "duration_s",
+        "stage",
+        "stage_label",
+        "view",
+        "tracking_available",
+        "table_count",
+        "track_id",
+        "dominant_role",
+        "handoff_type",
+        "table_track_ids",
+        "roster",
+        "source",
+        "label",
+    ],
     "table_transition_events": [
         "event_type",
         "timestamp_s",
@@ -231,6 +250,7 @@ def summarize_tavr_metrics(
         "table_transition_events": table_transition_events(tavr_metrics),
         "stage_table_coverage": stage_table_coverage(tavr_metrics),
         "stage_handoff_summary": stage_handoff_summary(tavr_metrics),
+        "procedure_event_timeline": procedure_event_timeline(tavr_metrics),
         "stage_staffing_summary": stage_staffing_summary(tavr_metrics),
         "low_confidence_segments": low_confidence_segments(
             tavr_metrics,
@@ -284,6 +304,10 @@ def score_tavr_metrics(
         "stage_handoff_score": _stage_handoff_score(
             tavr_metrics,
             labels.get("stage_handoff_expectations", []),
+        ),
+        "event_timeline_score": _event_timeline_score(
+            tavr_metrics,
+            labels.get("event_timeline_expectations", []),
         ),
         "roster_snapshot_score": _roster_snapshot_score(
             tavr_metrics,
@@ -793,6 +817,46 @@ def stage_handoff_summary(
     return summaries
 
 
+def procedure_event_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return a single chronological event list for stage/view/table review."""
+
+    if not metrics:
+        return []
+
+    events: List[Dict[str, Any]] = []
+    for segment_index, segment_metrics in enumerate(_stage_metric_segments(metrics)):
+        events.append(_stage_started_event(segment_index, segment_metrics))
+
+    metrics_by_frame = {metric.frame_index: metric for metric in metrics}
+    for view_segment in view_segments(metrics):
+        start_metric = metrics_by_frame.get(view_segment["start_frame"])
+        events.append(_view_started_event(view_segment, start_metric))
+
+    for handoff in stage_handoff_summary(metrics):
+        events.append(_handoff_event(handoff))
+
+    for stage_segment in tavr_stage_timeline(metrics):
+        peak = stage_segment.get("peak_table_roster", {})
+        if peak.get("table_count", 0) > 0:
+            events.append(_table_peak_event(peak))
+
+    event_order = {
+        "stage_started": 0,
+        "view_started": 1,
+        "table_handoff": 2,
+        "table_peak": 3,
+    }
+    events.sort(
+        key=lambda item: (
+            item["timestamp_s"],
+            event_order.get(item["event_type"], 9),
+            item.get("frame_index") if item.get("frame_index") is not None else -1,
+            item["event_type"],
+        )
+    )
+    return events
+
+
 def _roster_from_state(state: TAVRFrameState) -> List[Dict[str, Any]]:
     roster = []
     for track_id in state.table_track_ids:
@@ -1160,6 +1224,132 @@ def _stage_handoff_item(
             previous_roster_by_id[track_id] for track_id in dropped_ids
         ],
         "label": _handoff_label(stage_state.stage_label, handoff_type, lead, active_roster),
+    }
+
+
+def _stage_started_event(
+    segment_index: int,
+    segment_metrics: Sequence[FrameMetrics],
+) -> Dict[str, Any]:
+    start_metric = segment_metrics[0]
+    end_metric = segment_metrics[-1]
+    state = _tavr_state(start_metric)
+    sample_period_s = _sample_period_s(segment_metrics)
+    duration_s = max(
+        0.0,
+        end_metric.timestamp_s - start_metric.timestamp_s + sample_period_s,
+    )
+    roster = _roster_from_state(state)
+    return {
+        "event_type": "stage_started",
+        "timestamp_s": round(float(start_metric.timestamp_s), 3),
+        "frame_index": start_metric.frame_index,
+        "end_s": round(float(end_metric.timestamp_s), 3),
+        "duration_s": round(float(duration_s), 3),
+        "stage": state.stage,
+        "stage_label": state.stage_label,
+        "view": _view_label(start_metric),
+        "tracking_available": _view_label(start_metric) == "room",
+        "table_count": state.table_count,
+        "track_id": None,
+        "dominant_role": None,
+        "handoff_type": None,
+        "table_track_ids": list(state.table_track_ids),
+        "roster": roster,
+        "source": "stage_timeline",
+        "label": (
+            f"{start_metric.timestamp_s:.1f}s stage started: "
+            f"{state.stage_label}"
+        ),
+    }
+
+
+def _view_started_event(
+    view_segment: Dict[str, Any],
+    start_metric: Optional[FrameMetrics],
+) -> Dict[str, Any]:
+    start_state = _tavr_state(start_metric) if start_metric is not None else None
+    stage = start_state.stage if start_state is not None else view_segment.get("dominant_stage")
+    stage_label = (
+        start_state.stage_label
+        if start_state is not None
+        else TAVR_STAGE_LABELS.get(stage, stage)
+    )
+    return {
+        "event_type": "view_started",
+        "timestamp_s": view_segment["start_s"],
+        "frame_index": view_segment["start_frame"],
+        "end_s": view_segment["end_s"],
+        "duration_s": view_segment["duration_s"],
+        "stage": stage,
+        "stage_label": stage_label,
+        "view": view_segment["view"],
+        "tracking_available": view_segment["tracking_available"],
+        "table_count": view_segment["peak_table_count"],
+        "track_id": None,
+        "dominant_role": None,
+        "handoff_type": None,
+        "table_track_ids": [],
+        "roster": [],
+        "source": "view_segments",
+        "label": (
+            f"{view_segment['start_s']:.1f}s "
+            f"{view_segment['view']} view started"
+        ),
+    }
+
+
+def _handoff_event(handoff: Dict[str, Any]) -> Dict[str, Any]:
+    lead_track_id = handoff.get("lead_track_id")
+    lead_role = handoff.get("lead_role")
+    return {
+        "event_type": "table_handoff",
+        "timestamp_s": handoff["start_s"],
+        "frame_index": handoff["start_frame"],
+        "end_s": handoff["end_s"],
+        "duration_s": handoff["duration_s"],
+        "stage": handoff["stage"],
+        "stage_label": handoff["stage_label"],
+        "view": "room" if handoff["tracking_available_rate"] else "non_room",
+        "tracking_available": bool(handoff["tracking_available_rate"]),
+        "table_count": handoff["active_table_track_count"],
+        "track_id": lead_track_id,
+        "dominant_role": lead_role,
+        "handoff_type": handoff["handoff_type"],
+        "table_track_ids": [
+            item["track_id"] for item in handoff["active_table_roster"]
+        ],
+        "roster": handoff["active_table_roster"],
+        "source": "stage_handoff_summary",
+        "label": handoff["label"],
+    }
+
+
+def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
+    roster = peak.get("roster", [])
+    lead = roster[0] if roster else None
+    return {
+        "event_type": "table_peak",
+        "timestamp_s": peak.get("timestamp_s"),
+        "frame_index": peak.get("frame_index"),
+        "end_s": peak.get("timestamp_s"),
+        "duration_s": 0.0,
+        "stage": peak.get("stage"),
+        "stage_label": peak.get("stage_label"),
+        "view": "room",
+        "tracking_available": True,
+        "table_count": peak.get("table_count", 0),
+        "track_id": lead.get("track_id") if lead else None,
+        "dominant_role": lead.get("dominant_role") if lead else None,
+        "handoff_type": None,
+        "table_track_ids": [item["track_id"] for item in roster],
+        "roster": roster,
+        "source": "peak_table_roster",
+        "label": (
+            f"{peak.get('timestamp_s')}s table peak: "
+            f"{peak.get('table_count', 0)} active during "
+            f"{peak.get('stage_label') or 'unknown stage'}"
+        ),
     }
 
 
@@ -1699,6 +1889,54 @@ def _stage_handoff_score(
     }
 
 
+def _event_timeline_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    events = procedure_event_timeline(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        candidates = [
+            event
+            for event in events
+            if _event_matches_expectation(event, expectation)
+        ]
+        scored_candidates = [
+            _score_event_candidate(event, expectation)
+            for event in candidates
+        ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "event_type": expectation.get("event_type"),
+                "stage": expectation.get("stage"),
+                "view": expectation.get("view"),
+                "handoff_type": expectation.get("handoff_type"),
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "role": expectation.get("role"),
+                "min_tracks": int(expectation.get("min_tracks", 0)),
+                "min_table_count": expectation.get("min_table_count"),
+                "max_table_count": expectation.get("max_table_count"),
+                "tracking_available": expectation.get("tracking_available"),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _roster_snapshot_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -1787,6 +2025,71 @@ def _expected_handoff_types(expectation: Dict[str, Any]) -> set[str]:
     if isinstance(values, str):
         return {values}
     return {str(value) for value in values}
+
+
+def _event_matches_expectation(
+    event: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> bool:
+    event_type = expectation.get("event_type")
+    stage = expectation.get("stage")
+    view = expectation.get("view")
+    handoff_type = expectation.get("handoff_type")
+    start_s = float(expectation.get("start_s", float("-inf")))
+    end_s = float(expectation.get("end_s", float("inf")))
+    timestamp_s = event.get("timestamp_s")
+    return (
+        (event_type is None or event["event_type"] == event_type)
+        and (stage is None or event.get("stage") == stage)
+        and (view is None or event.get("view") == view)
+        and (handoff_type is None or event.get("handoff_type") == handoff_type)
+        and timestamp_s is not None
+        and start_s <= float(timestamp_s) <= end_s
+    )
+
+
+def _score_event_candidate(
+    event: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    role = expectation.get("role")
+    min_tracks = int(expectation.get("min_tracks", 0))
+    min_table_count = expectation.get("min_table_count")
+    max_table_count = expectation.get("max_table_count")
+    tracking_available = expectation.get("tracking_available")
+    roster_matches = _roster_role_matches(event.get("roster", []), role)
+    checks = {
+        "min_tracks": len(roster_matches) >= min_tracks,
+        "min_table_count": (
+            min_table_count is None
+            or int(event.get("table_count", 0)) >= int(min_table_count)
+        ),
+        "max_table_count": (
+            max_table_count is None
+            or int(event.get("table_count", 0)) <= int(max_table_count)
+        ),
+        "tracking_available": (
+            tracking_available is None
+            or bool(event.get("tracking_available")) == bool(tracking_available)
+        ),
+    }
+    return {
+        "event_type": event["event_type"],
+        "timestamp_s": event["timestamp_s"],
+        "frame_index": event.get("frame_index"),
+        "stage": event.get("stage"),
+        "stage_label": event.get("stage_label"),
+        "view": event.get("view"),
+        "handoff_type": event.get("handoff_type"),
+        "table_count": event.get("table_count", 0),
+        "track_id": event.get("track_id"),
+        "dominant_role": event.get("dominant_role"),
+        "label": event.get("label"),
+        "roster_matches": roster_matches,
+        "roster_match_count": len(roster_matches),
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
 
 
 def _score_handoff_candidate(
