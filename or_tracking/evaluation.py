@@ -57,6 +57,31 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "quality_flag_codes",
         "operator_summary",
     ],
+    "table_team_summary": [
+        "track_id",
+        "team_status",
+        "dominant_role",
+        "is_current_table_member",
+        "is_effective_table_member",
+        "is_last_observed_table_member",
+        "is_peak_table_member",
+        "first_seen_frame",
+        "last_seen_frame",
+        "first_seen_s",
+        "last_seen_s",
+        "age_from_clip_end_s",
+        "frames_seen",
+        "observed_table_frames",
+        "table_frames",
+        "table_presence_ratio",
+        "table_observed_duration_s",
+        "interval_count",
+        "dominant_stage",
+        "dominant_stage_label",
+        "stage_counts",
+        "role_counts",
+        "label",
+    ],
     "view_segments": [
         "view",
         "is_room_view",
@@ -322,6 +347,7 @@ def summarize_tavr_metrics(
     tavr_metrics = [metric for metric in metrics if metric.tavr is not None]
     return {
         "procedure_status_summary": procedure_status_summary(tavr_metrics),
+        "table_team_summary": table_team_summary(tavr_metrics),
         "stage_timeline": tavr_stage_timeline(tavr_metrics),
         "track_role_report": tavr_track_role_report(tavr_metrics),
         "current_table_roster": current_table_roster(tavr_metrics),
@@ -405,6 +431,10 @@ def score_tavr_metrics(
         "procedure_status_score": _procedure_status_score(
             tavr_metrics,
             labels.get("procedure_status_expectations", []),
+        ),
+        "table_team_score": _table_team_score(
+            tavr_metrics,
+            labels.get("table_team_expectations", []),
         ),
         "event_timeline_score": _event_timeline_score(
             tavr_metrics,
@@ -674,6 +704,215 @@ def table_presence_roster(
             }
         )
     return roster
+
+
+def table_team_summary(
+    metrics: Sequence[FrameMetrics],
+    min_observed_table_frames: int = 3,
+    recent_age_s: float = 10.0,
+) -> List[Dict[str, Any]]:
+    """Return one row per meaningful table-side team track in the clip."""
+
+    if not metrics:
+        return []
+
+    clip_end_s = float(metrics[-1].timestamp_s)
+    status_row = procedure_status_summary(metrics)[0]
+    current_ids = set(status_row.get("current_table_track_ids", []))
+    effective_ids = set(status_row.get("effective_table_track_ids", []))
+    last_ids = set(status_row.get("last_observed_table_track_ids", []))
+    peak_ids = set(status_row.get("peak_table_track_ids", []))
+    frame_times = {
+        metric.frame_index: float(metric.timestamp_s)
+        for metric in metrics
+    }
+
+    team: Dict[int, Dict[str, Any]] = {}
+    for summary in tavr_track_role_report(metrics):
+        track_id = int(summary["track_id"])
+        team[track_id] = {
+            "track_id": track_id,
+            "dominant_role": summary.get("dominant_role") or "unassigned",
+            "frames_seen": int(summary.get("frames_seen", 0) or 0),
+            "first_seen_frame": summary.get("first_frame"),
+            "last_seen_frame": summary.get("last_frame"),
+            "first_seen_s": frame_times.get(summary.get("first_frame")),
+            "last_seen_s": frame_times.get(summary.get("last_frame")),
+            "observed_table_frames": 0,
+            "table_frames": int(summary.get("table_frames", 0) or 0),
+            "role_counts": {},
+            "stage_counts": {},
+            "table_observed_duration_s": 0.0,
+            "interval_count": 0,
+        }
+
+    for roster in [
+        status_row.get("current_table_roster", []),
+        status_row.get("effective_table_roster", []),
+        status_row.get("last_observed_table_roster", []),
+        status_row.get("peak_table_roster", []),
+    ]:
+        for item in roster:
+            track_id = int(item["track_id"])
+            row = team.setdefault(
+                track_id,
+                {
+                    "track_id": track_id,
+                    "dominant_role": item.get("dominant_role") or "unassigned",
+                    "frames_seen": int(item.get("frames_seen", 0) or 0),
+                    "first_seen_frame": None,
+                    "last_seen_frame": None,
+                    "first_seen_s": None,
+                    "last_seen_s": None,
+                    "observed_table_frames": 0,
+                    "table_frames": 0,
+                    "role_counts": {},
+                    "stage_counts": {},
+                    "table_observed_duration_s": 0.0,
+                    "interval_count": 0,
+                },
+            )
+            role = item.get("dominant_role") or "unassigned"
+            row["role_counts"][role] = row["role_counts"].get(role, 0) + 1
+            if row["dominant_role"] == "unassigned":
+                row["dominant_role"] = role
+
+    for interval in table_presence_intervals(
+        metrics,
+        min_observed_table_frames=1,
+    ):
+        track_id = int(interval["track_id"])
+        row = team.setdefault(
+            track_id,
+            {
+                "track_id": track_id,
+                "dominant_role": interval.get("dominant_role") or "unassigned",
+                "frames_seen": 0,
+                "first_seen_frame": None,
+                "last_seen_frame": None,
+                "first_seen_s": None,
+                "last_seen_s": None,
+                "observed_table_frames": 0,
+                "table_frames": 0,
+                "role_counts": {},
+                "stage_counts": {},
+                "table_observed_duration_s": 0.0,
+                "interval_count": 0,
+            },
+        )
+        row["first_seen_frame"] = _min_optional(
+            row.get("first_seen_frame"),
+            interval.get("start_frame"),
+        )
+        row["last_seen_frame"] = _max_optional(
+            row.get("last_seen_frame"),
+            interval.get("end_frame"),
+        )
+        row["first_seen_s"] = _min_optional(
+            row.get("first_seen_s"),
+            interval.get("start_s"),
+        )
+        row["last_seen_s"] = _max_optional(
+            row.get("last_seen_s"),
+            interval.get("end_s"),
+        )
+        row["observed_table_frames"] += int(
+            interval.get("observed_table_frames", 0) or 0
+        )
+        row["table_observed_duration_s"] += float(
+            interval.get("interval_duration_s", 0.0) or 0.0
+        )
+        row["interval_count"] += 1
+        _merge_counts(row["role_counts"], interval.get("role_counts", {}))
+        _merge_counts(row["stage_counts"], interval.get("stage_counts", {}))
+
+    rows: List[Dict[str, Any]] = []
+    for track_id, row in team.items():
+        table_frames = max(
+            int(row.get("table_frames", 0) or 0),
+            int(row.get("observed_table_frames", 0) or 0),
+        )
+        if (
+            table_frames < min_observed_table_frames
+            and track_id not in current_ids
+            and track_id not in effective_ids
+            and track_id not in last_ids
+            and track_id not in peak_ids
+        ):
+            continue
+
+        frames_seen = max(int(row.get("frames_seen", 0) or 0), table_frames)
+        last_seen_s = row.get("last_seen_s")
+        age_from_clip_end_s = (
+            round(max(0.0, clip_end_s - float(last_seen_s)), 3)
+            if last_seen_s is not None
+            else None
+        )
+        dominant_role = (
+            _dominant_role_from_counts(row["role_counts"])
+            if row["role_counts"]
+            else row.get("dominant_role") or "unassigned"
+        )
+        dominant_stage = _dominant_from_counts(row["stage_counts"])
+        team_status = _table_team_status(
+            track_id=track_id,
+            current_ids=current_ids,
+            effective_ids=effective_ids,
+            last_ids=last_ids,
+            age_from_clip_end_s=age_from_clip_end_s,
+            recent_age_s=recent_age_s,
+        )
+        item = {
+            "track_id": track_id,
+            "team_status": team_status,
+            "dominant_role": dominant_role,
+            "is_current_table_member": track_id in current_ids,
+            "is_effective_table_member": track_id in effective_ids,
+            "is_last_observed_table_member": track_id in last_ids,
+            "is_peak_table_member": track_id in peak_ids,
+            "first_seen_frame": row.get("first_seen_frame"),
+            "last_seen_frame": row.get("last_seen_frame"),
+            "first_seen_s": _round_optional(row.get("first_seen_s")),
+            "last_seen_s": _round_optional(last_seen_s),
+            "age_from_clip_end_s": age_from_clip_end_s,
+            "frames_seen": frames_seen,
+            "observed_table_frames": int(row.get("observed_table_frames", 0) or 0),
+            "table_frames": table_frames,
+            "table_presence_ratio": _ratio(table_frames, frames_seen) or 0.0,
+            "table_observed_duration_s": round(
+                float(row.get("table_observed_duration_s", 0.0) or 0.0),
+                3,
+            ),
+            "interval_count": int(row.get("interval_count", 0) or 0),
+            "dominant_stage": None if dominant_stage == "unassigned" else dominant_stage,
+            "dominant_stage_label": (
+                TAVR_STAGE_LABELS.get(dominant_stage)
+                if dominant_stage != "unassigned"
+                else None
+            ),
+            "stage_counts": dict(sorted(row["stage_counts"].items())),
+            "role_counts": dict(sorted(row["role_counts"].items())),
+        }
+        item["label"] = _table_team_label(item)
+        rows.append(item)
+
+    status_order = {
+        "active_current": 0,
+        "recent_last_observed": 1,
+        "historical_seen": 2,
+    }
+    rows.sort(
+        key=lambda item: (
+            status_order.get(item["team_status"], 9),
+            not item["is_effective_table_member"],
+            not item["is_last_observed_table_member"],
+            not item["is_peak_table_member"],
+            -(item["last_seen_s"] if item["last_seen_s"] is not None else -1),
+            -item["observed_table_frames"],
+            item["track_id"],
+        )
+    )
+    return rows
 
 
 def table_presence_intervals(
@@ -1703,6 +1942,39 @@ def _procedure_status_label(row: Dict[str, Any]) -> str:
     )
 
 
+def _table_team_status(
+    track_id: int,
+    current_ids: set[int],
+    effective_ids: set[int],
+    last_ids: set[int],
+    age_from_clip_end_s: Optional[float],
+    recent_age_s: float,
+) -> str:
+    if track_id in current_ids:
+        return "active_current"
+    if track_id in effective_ids:
+        return "recent_last_observed"
+    if (
+        track_id in last_ids
+        and age_from_clip_end_s is not None
+        and age_from_clip_end_s <= recent_age_s
+    ):
+        return "recent_last_observed"
+    return "historical_seen"
+
+
+def _table_team_label(row: Dict[str, Any]) -> str:
+    stage_label = row.get("dominant_stage_label") or "stage n/a"
+    age = row.get("age_from_clip_end_s")
+    age_label = f"{float(age):.1f}s ago" if age is not None else "age n/a"
+    ratio = _maybe_percent_label(row.get("table_presence_ratio"))
+    return (
+        f"ID {row['track_id']} {row['dominant_role']} "
+        f"{_text_status_label(row['team_status'])}; "
+        f"table={ratio}; last={age_label}; dominant={stage_label}"
+    )
+
+
 def _roster_status_label(roster: Sequence[Dict[str, Any]]) -> str:
     labels = [str(item.get("label")) for item in roster if item.get("label")]
     return "; ".join(labels[:6]) if labels else "none"
@@ -1722,6 +1994,28 @@ def _maybe_percent_label(value: Any) -> str:
     if value is None:
         return "n/a"
     return f"{float(value):.0%}"
+
+
+def _min_optional(first: Any, second: Any) -> Any:
+    if first is None:
+        return second
+    if second is None:
+        return first
+    return min(first, second)
+
+
+def _max_optional(first: Any, second: Any) -> Any:
+    if first is None:
+        return second
+    if second is None:
+        return first
+    return max(first, second)
+
+
+def _round_optional(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    return round(float(value), 3)
 
 
 def _weighted_average(
@@ -2569,6 +2863,65 @@ def _procedure_status_score(
     }
 
 
+def _table_team_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    team_rows = table_team_summary(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        min_tracks = int(
+            expectation.get(
+                "min_tracks",
+                0 if "max_tracks" in expectation else 1,
+            )
+        )
+        max_tracks = expectation.get("max_tracks")
+        scored_candidates = [
+            _score_table_team_candidate(row, expectation)
+            for row in team_rows
+        ]
+        matched_candidates = [
+            candidate for candidate in scored_candidates if candidate["passed"]
+        ]
+        matched_count = len(matched_candidates)
+        count_checks = {
+            "min_tracks": matched_count >= min_tracks,
+            "max_tracks": (
+                max_tracks is None or matched_count <= int(max_tracks)
+            ),
+        }
+        expectation_pass = all(count_checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "team_status": expectation.get("team_status")
+                or expectation.get("status"),
+                "role": expectation.get("role")
+                or expectation.get("dominant_role"),
+                "dominant_stage": expectation.get("dominant_stage")
+                or expectation.get("stage"),
+                "min_tracks": min_tracks,
+                "max_tracks": max_tracks,
+                "matched_candidates": matched_candidates,
+                "matched_count": matched_count,
+                "candidate_count": len(scored_candidates),
+                "checks": count_checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _event_timeline_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -3068,6 +3421,128 @@ def _score_procedure_status_candidate(
         "checks": checks,
         "passed": all(checks.values()),
     }
+
+
+def _score_table_team_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    track_id = expectation.get("track_id")
+    team_status = expectation.get("team_status") or expectation.get("status")
+    dominant_role = expectation.get("dominant_role") or expectation.get("role")
+    dominant_stage = expectation.get("dominant_stage") or expectation.get("stage")
+    min_frames_seen = expectation.get("min_frames_seen")
+    min_observed_table_frames = expectation.get("min_observed_table_frames")
+    min_table_frames = expectation.get("min_table_frames")
+    min_table_presence_ratio = expectation.get("min_table_presence_ratio")
+    max_table_presence_ratio = expectation.get("max_table_presence_ratio")
+    min_interval_count = expectation.get("min_interval_count")
+    max_interval_count = expectation.get("max_interval_count")
+    max_age = expectation.get(
+        "max_last_seen_age_from_clip_end_s",
+        expectation.get("max_age_from_clip_end_s"),
+    )
+    checks = {
+        "track_id": track_id is None or row["track_id"] == int(track_id),
+        "team_status": (
+            team_status is None or row["team_status"] == team_status
+        ),
+        "dominant_role": (
+            dominant_role is None or row["dominant_role"] == dominant_role
+        ),
+        "dominant_stage": (
+            dominant_stage is None or row["dominant_stage"] == dominant_stage
+        ),
+        "min_frames_seen": (
+            min_frames_seen is None
+            or row["frames_seen"] >= int(min_frames_seen)
+        ),
+        "min_observed_table_frames": (
+            min_observed_table_frames is None
+            or row["observed_table_frames"] >= int(min_observed_table_frames)
+        ),
+        "min_table_frames": (
+            min_table_frames is None
+            or row["table_frames"] >= int(min_table_frames)
+        ),
+        "min_table_presence_ratio": (
+            min_table_presence_ratio is None
+            or row["table_presence_ratio"] >= float(min_table_presence_ratio)
+        ),
+        "max_table_presence_ratio": (
+            max_table_presence_ratio is None
+            or row["table_presence_ratio"] <= float(max_table_presence_ratio)
+        ),
+        "min_interval_count": (
+            min_interval_count is None
+            or row["interval_count"] >= int(min_interval_count)
+        ),
+        "max_interval_count": (
+            max_interval_count is None
+            or row["interval_count"] <= int(max_interval_count)
+        ),
+        "max_last_seen_age_from_clip_end_s": (
+            max_age is None
+            or (
+                row["age_from_clip_end_s"] is not None
+                and row["age_from_clip_end_s"] <= float(max_age)
+            )
+        ),
+        "require_in_current_table_roster": _membership_expectation_matches(
+            row,
+            expectation,
+            "require_in_current_table_roster",
+            "is_current_table_member",
+        ),
+        "require_in_effective_table_roster": _membership_expectation_matches(
+            row,
+            expectation,
+            "require_in_effective_table_roster",
+            "is_effective_table_member",
+        ),
+        "require_in_last_table_roster": _membership_expectation_matches(
+            row,
+            expectation,
+            "require_in_last_table_roster",
+            "is_last_observed_table_member",
+        ),
+        "require_in_peak_table_roster": _membership_expectation_matches(
+            row,
+            expectation,
+            "require_in_peak_table_roster",
+            "is_peak_table_member",
+        ),
+    }
+    return {
+        "track_id": row["track_id"],
+        "team_status": row["team_status"],
+        "dominant_role": row["dominant_role"],
+        "dominant_stage": row["dominant_stage"],
+        "is_current_table_member": row["is_current_table_member"],
+        "is_effective_table_member": row["is_effective_table_member"],
+        "is_last_observed_table_member": row["is_last_observed_table_member"],
+        "is_peak_table_member": row["is_peak_table_member"],
+        "age_from_clip_end_s": row["age_from_clip_end_s"],
+        "frames_seen": row["frames_seen"],
+        "observed_table_frames": row["observed_table_frames"],
+        "table_frames": row["table_frames"],
+        "table_presence_ratio": row["table_presence_ratio"],
+        "interval_count": row["interval_count"],
+        "label": row["label"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _membership_expectation_matches(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+    expectation_key: str,
+    row_key: str,
+) -> bool:
+    if expectation_key not in expectation:
+        return True
+    return bool(row[row_key]) == bool(expectation[expectation_key])
 
 
 def _event_matches_expectation(

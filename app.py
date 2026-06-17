@@ -187,6 +187,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    team_rows = tavr_summary.get("table_team_summary", [])
+    if team_rows:
+        st.subheader("Table team summary")
+        st.dataframe(
+            pd.DataFrame(_table_team_rows(team_rows)),
+            width="stretch",
+            hide_index=True,
+        )
+
     view_rows = tavr_summary.get("view_segments", [])
     if view_rows:
         st.subheader("View segments")
@@ -573,6 +582,29 @@ def _procedure_milestone_rows(milestones: list[dict[str, Any]]) -> list[dict[str
                 "peak_table_count": item.get("peak_table_count", 0),
                 "unique_table_tracks": item.get("unique_table_track_count", 0),
                 "support": item.get("support_label") or item.get("label") or "",
+            }
+        )
+    return rows
+
+
+def _table_team_rows(team_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in team_rows:
+        rows.append(
+            {
+                "track_id": item.get("track_id"),
+                "status": _status_label(item.get("team_status")),
+                "role": _status_label(item.get("dominant_role")),
+                "current": _yes_no(item.get("is_current_table_member")),
+                "effective": _yes_no(item.get("is_effective_table_member")),
+                "last_observed": _yes_no(item.get("is_last_observed_table_member")),
+                "peak": _yes_no(item.get("is_peak_table_member")),
+                "last_seen_s": item.get("last_seen_s"),
+                "age_s": item.get("age_from_clip_end_s"),
+                "table_frames": item.get("table_frames", 0),
+                "table_presence_ratio": item.get("table_presence_ratio"),
+                "dominant_stage": item.get("dominant_stage_label") or "n/a",
+                "label": item.get("label", ""),
             }
         )
     return rows

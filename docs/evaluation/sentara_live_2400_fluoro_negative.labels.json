@@ -80,6 +80,11 @@
       ]
     }
   ],
+  "table_team_expectations": [
+    {
+      "max_tracks": 0
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

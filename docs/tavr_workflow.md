@@ -47,7 +47,8 @@ These values are written to the metrics CSV and shown in Streamlit.
 The static Vercel demo mirrors the operator-facing shape with a browser-only
 synthetic TAVR run that shows the current procedure milestone, observed prior
 milestones, first/last seen timing, peak table-side count, and unique
-table-side IDs.
+table-side IDs. It also keeps a `Table team status` panel for active, recently
+observed, and historical table-side IDs in the current browser session.
 
 ## Visual Signals
 
@@ -129,6 +130,13 @@ The JSON output includes:
 - `peak_table_roster`: roster from the frame with the highest table-side count.
 - `table_roster_snapshots`: row-oriented current, last-observed, and peak roster
   snapshots for CSV export.
+- `table_team_summary`: one row per meaningful table-side track across the clip.
+  Rows include `team_status` (`active_current`, `recent_last_observed`, or
+  `historical_seen`), dominant role, current/effective/last/peak roster
+  membership flags, first/last table-side timestamps, age from clip end, table
+  frames, table-presence ratio, dominant stage, role/stage counts, and a compact
+  label. This is the operator-facing "who is/was at the table" table when the
+  latest frame is non-room or the current room view is empty.
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
@@ -171,8 +179,8 @@ The JSON output includes:
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
   stage-staffing, stage-handoff, stage-evidence, procedure-milestone,
-  procedure-status, procedure-event-timeline, roster-snapshot, and quality-flag
-  expectation pass rates.
+  procedure-status, table-team, procedure-event-timeline, roster-snapshot, and
+  quality-flag expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -224,6 +232,13 @@ The label file can include:
   availability, effective table source/count/freshness, evidence level,
   observable rate, mean confidence, current table count, last-observed table
   count/freshness, peak table count, and required or forbidden quality flags.
+- `table_team_expectations`: expected table-team rows, such as requiring no
+  tracks in fluoroscopy-only clips, requiring a `recent_last_observed` row from
+  the last room-view roster, requiring an `active_current` row in a live room
+  view, or requiring historical peak-table operators. Expectations can constrain
+  status, role, dominant stage, minimum/maximum matching tracks, observed table
+  frames, table-presence ratio, last-seen age from clip end, interval count, and
+  current/effective/last/peak roster membership.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can
@@ -252,11 +267,12 @@ declares a clip path, label path, ROI, starting stage, frame limit, and tracking
 configuration. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
-status summaries, procedure milestones, stage staffing, stage table coverage,
-stage handoff summaries, stage evidence summaries, procedure event timelines,
-table roster snapshots, table transition events, table presence intervals,
-quality flags, and low-confidence segments. The command exits non-zero if any
-scored label section falls below its configured threshold.
+status summaries, table-team summaries, procedure milestones, stage staffing,
+stage table coverage, stage handoff summaries, stage evidence summaries,
+procedure event timelines, table roster snapshots, table transition events,
+table presence intervals, quality flags, and low-confidence segments. The
+command exits non-zero if any scored label section falls below its configured
+threshold.
 
 The current local Sentara suite covers:
 

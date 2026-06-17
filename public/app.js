@@ -11,6 +11,7 @@ const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
+const tableTeamList = document.querySelector("#tableTeamList");
 const stageCoverageList = document.querySelector("#stageCoverageList");
 const milestoneList = document.querySelector("#milestoneList");
 const activityMetric = document.querySelector("#activityMetric");
@@ -165,6 +166,7 @@ const TAVR_STAGE_LOOKUP = new Map(
 
 let previousFrame = null;
 let activityHistory = [];
+let tableTeam = new Map();
 let stageCoverage = new Map();
 let milestoneProgress = new Map();
 let currentMilestoneKey = null;
@@ -533,6 +535,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
   renderTableRoster(summary.tableRoster);
+  updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
@@ -649,6 +652,78 @@ function updateStageCoverage(stage, roster, elapsedSeconds) {
   renderStageCoverage();
 }
 
+function updateTableTeam(roster, elapsedSeconds, stage) {
+  const currentIds = new Set(roster.map(({ id }) => id));
+  roster.forEach(({ id, role }) => {
+    const item = tableTeam.get(id) || {
+      id,
+      role,
+      frames: 0,
+      firstSeen: elapsedSeconds,
+      lastSeen: elapsedSeconds,
+      stages: new Map(),
+      status: "active_current",
+    };
+    item.role = role;
+    item.frames += 1;
+    item.firstSeen = Math.min(item.firstSeen, elapsedSeconds);
+    item.lastSeen = Math.max(item.lastSeen, elapsedSeconds);
+    item.stages.set(stage.label, (item.stages.get(stage.label) || 0) + 1);
+    item.status = "active_current";
+    tableTeam.set(id, item);
+  });
+
+  tableTeam.forEach((item) => {
+    if (currentIds.has(item.id)) {
+      item.status = "active_current";
+    } else if (elapsedSeconds - item.lastSeen <= 5) {
+      item.status = "recent_last_observed";
+    } else {
+      item.status = "historical_seen";
+    }
+  });
+  renderTableTeam();
+}
+
+function renderTableTeam() {
+  tableTeamList.replaceChildren();
+  const statusOrder = {
+    active_current: 0,
+    recent_last_observed: 1,
+    historical_seen: 2,
+  };
+  const items = [...tableTeam.values()]
+    .sort((a, b) => (
+      statusOrder[a.status] - statusOrder[b.status] ||
+      b.lastSeen - a.lastSeen ||
+      b.frames - a.frames ||
+      a.id.localeCompare(b.id)
+    ))
+    .slice(0, 8);
+
+  if (!items.length) {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    label.textContent = "None yet";
+    row.append(label);
+    tableTeamList.append(row);
+    return;
+  }
+
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    const roleLabel = ROLE_LABELS[item.role] || item.role;
+    const stageLabel = dominantStageLabel(item.stages);
+    row.dataset.status = item.status.replaceAll("_", "-");
+    label.textContent = `${item.id} ${roleLabel}: ${statusLabel(item.status)}`;
+    value.textContent = `${item.frames}f last ${item.lastSeen.toFixed(1)}s; ${stageLabel}`;
+    row.append(label, value);
+    tableTeamList.append(row);
+  });
+}
+
 function renderStageCoverage() {
   stageCoverageList.replaceChildren();
   const items = [...stageCoverage.values()]
@@ -748,10 +823,29 @@ function renderTableRoster(roster) {
   });
 }
 
+function dominantStageLabel(stages) {
+  let bestLabel = "stage n/a";
+  let bestCount = -1;
+  stages.forEach((count, label) => {
+    if (count > bestCount) {
+      bestLabel = label;
+      bestCount = count;
+    }
+  });
+  return bestLabel;
+}
+
+function statusLabel(status) {
+  if (status === "active_current") return "active";
+  if (status === "recent_last_observed") return "recent";
+  return "historical";
+}
+
 function resetMetrics(options = {}) {
   if (!options.keepSyntheticMode) syntheticMode = false;
   previousFrame = null;
   activityHistory = [];
+  tableTeam = new Map();
   stageCoverage = new Map();
   milestoneProgress = new Map();
   currentMilestoneKey = null;
@@ -759,6 +853,7 @@ function resetMetrics(options = {}) {
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";
   renderTableRoster([]);
+  renderTableTeam();
   renderStageCoverage();
   renderProcedureMilestones();
   activityMetric.textContent = "0";

@@ -146,6 +146,33 @@
       ]
     }
   ],
+  "table_team_expectations": [
+    {
+      "status": "active_current",
+      "max_tracks": 0
+    },
+    {
+      "status": "recent_last_observed",
+      "role": "table_operator",
+      "min_tracks": 1,
+      "min_observed_table_frames": 10,
+      "require_in_current_table_roster": false,
+      "require_in_effective_table_roster": false,
+      "require_in_last_table_roster": true,
+      "max_last_seen_age_from_clip_end_s": 5.0,
+      "stage": "valve_deployment"
+    },
+    {
+      "status": "historical_seen",
+      "role": "table_operator",
+      "min_tracks": 2,
+      "min_observed_table_frames": 10,
+      "require_in_current_table_roster": false,
+      "require_in_peak_table_roster": true,
+      "max_last_seen_age_from_clip_end_s": 6.0,
+      "stage": "valve_deployment"
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

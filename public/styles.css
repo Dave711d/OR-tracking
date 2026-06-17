@@ -170,6 +170,7 @@ input[type="range"] {
 .metric,
 .count-list div,
 .coverage-list div,
+.team-list div,
 .roster-card {
   display: flex;
   align-items: center;
@@ -250,18 +251,21 @@ input[type="range"] {
 }
 
 .coverage-list,
+.team-list,
 .milestone-list {
   display: grid;
   gap: 8px;
 }
 
 .coverage-list div,
+.team-list div,
 .milestone-list div {
   align-items: flex-start;
   padding: 10px 12px;
 }
 
 .coverage-list span,
+.team-list span,
 .milestone-list span {
   color: var(--muted);
   font-size: 12px;
@@ -271,12 +275,14 @@ input[type="range"] {
 
 .count-list b,
 .coverage-list b,
+.team-list b,
 .milestone-list b {
   color: var(--warn);
   font-size: 18px;
 }
 
 .coverage-list b,
+.team-list b,
 .milestone-list b {
   color: var(--accent);
   font-size: 12px;
@@ -289,13 +295,26 @@ input[type="range"] {
   border-color: rgba(55, 214, 163, 0.72);
 }
 
+.team-list div[data-status="active-current"] {
+  border-color: rgba(55, 214, 163, 0.72);
+}
+
+.team-list div[data-status="recent-last-observed"] b {
+  color: var(--warn);
+}
+
 .milestone-list div[data-status="not-observed"] b {
   color: var(--muted);
 }
 
+.team-list b,
 .milestone-list b {
   max-width: 118px;
   white-space: normal;
+}
+
+.team-list div[data-status="historical-seen"] b {
+  color: var(--muted);
 }
 
 @media (max-width: 900px) {

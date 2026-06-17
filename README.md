@@ -13,7 +13,8 @@ added behind the same metrics surface later.
 - Streamlit uploader and tracking dashboard in `app.py`
 - Deterministic video tracker in `or_tracking/`
 - TAVR table-presence and procedure-stage inference
-- Per-track TAVR role dwell, current table roster, and evaluation summaries
+- Per-track TAVR role dwell, current/effective table team status, and
+  evaluation summaries
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
 - Single-clip evaluator in `evaluate_tavr.py`
 - Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
@@ -56,13 +57,17 @@ python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
 
 The evaluator prints JSON with a one-row procedure status summary, the stage
 timeline, view segments, current and peak table rosters, per-track role dwell,
-table-presence intervals, table entry/exit events, stage-by-stage table
-coverage, stage handoff summaries, stage evidence summaries, procedure
-milestones, stage staffing summaries, a unified procedure event timeline, and
-low-confidence segments to inspect before changing heuristics.
+table-team status rows, table-presence intervals, table entry/exit events,
+stage-by-stage table coverage, stage handoff summaries, stage evidence
+summaries, procedure milestones, stage staffing summaries, a unified procedure
+event timeline, and low-confidence segments to inspect before changing
+heuristics.
 The status row includes an `effective_table_source` so fluoro/non-room frames
 can distinguish live room rosters from the last trustworthy room-view table
 observation or from no usable table evidence.
+The table-team rows classify each meaningful table-side track as
+`active_current`, `recent_last_observed`, or `historical_seen`, with explicit
+current/effective/last/peak roster membership flags.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 
@@ -121,15 +126,17 @@ streamlit run app.py --server.headless true
 Open the local URL Streamlit prints, upload a video, or click `Use synthetic
 sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
-The app shows a `Procedure status` summary, the latest table roster, last
-observed table roster, and `View segments`, `Procedure event timeline`,
+The app shows a `Procedure status` summary, `Table team summary`, the latest
+table roster, last observed table roster, and `View segments`,
+`Procedure event timeline`,
 `Procedure milestones`, `Stage evidence summary`, `Stage staffing summary`,
 `Stage handoff summary`, `Stage table coverage`, `Table transition events`, and
 `Table presence intervals` tables. Together these show the current observed
 stage, next expected milestone, whether room tracking is available, who is at
-the table now, the best available table roster source, who was last observed
-table-side, when the room camera is
-actually visible, which canonical TAVR milestones have been observed, which
+the table now, the best available table roster source, who is active now,
+recently seen, or historical table-side context, who was last observed
+table-side, when the room camera is actually visible, which canonical TAVR
+milestones have been observed, which
 milestone is the current observed stage, which track IDs were table-side in each
 TAVR phase, how long they were present, their dominant role, whether they
 entered or exited during a stage, which table-side IDs continued, appeared, or
@@ -142,6 +149,7 @@ It also writes:
 
 - `outputs/*_metrics.csv`
 - `outputs/*_procedure_status_summary.csv`,
+  `*_table_team_summary.csv`,
   `*_stage_table_coverage.csv`, `*_stage_handoff_summary.csv`,
   `*_stage_evidence_summary.csv`, `*_procedure_milestones.csv`,
   `*_procedure_event_timeline.csv`, `*_table_transition_events.csv`, and
@@ -149,8 +157,8 @@ It also writes:
 - `outputs/*_tracked.mp4` when annotated video is enabled
 
 The Streamlit app includes a `Download TAVR tables` ZIP containing the derived
-status, stage, view, milestone, roster snapshot, event, and quality CSVs for
-the current run.
+status, table-team, stage, view, milestone, roster snapshot, event, and quality
+CSVs for the current run.
 
 For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
 `tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`,
@@ -174,7 +182,9 @@ performs client-side frame differencing, motion clustering, zone counts, and an
 activity sparkline. The synthetic TAVR demo also shows procedure milestone
 progress in canonical order, including the current observed stage, prior
 observed stages, first/last seen times, peak table-side count, and unique
-table-side IDs for each milestone.
+table-side IDs for each milestone. A `Table team status` panel keeps current
+synthetic/browser-tracked IDs as active, recently observed, or historical so the
+public Vercel surface mirrors the richer Python output.
 
 ```bash
 npm install

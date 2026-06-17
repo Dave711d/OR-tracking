@@ -17,6 +17,7 @@ from or_tracking.evaluation import (
     stage_table_coverage,
     summarize_tavr_metrics,
     table_presence_intervals,
+    table_team_summary,
     table_transition_events,
     view_segments,
     write_tavr_summary_csvs,
@@ -59,6 +60,7 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["stage_handoff_summary"]
     assert summary["stage_evidence_summary"]
     assert summary["procedure_status_summary"]
+    assert summary["table_team_summary"]
     assert summary["procedure_milestones"]
     assert summary["procedure_event_timeline"]
     assert summary["stage_staffing_summary"]
@@ -396,6 +398,50 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     assert "last observed table: ID 7" in status["operator_summary"]
 
 
+def test_table_team_summary_reports_active_recent_and_historical_members() -> None:
+    non_room_metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+        _table_metric(
+            2,
+            0.2,
+            "closure_finish",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+    ]
+
+    non_room_team = table_team_summary(
+        non_room_metrics,
+        min_observed_table_frames=1,
+    )
+    non_room_by_id = {item["track_id"]: item for item in non_room_team}
+
+    assert non_room_by_id[7]["team_status"] == "recent_last_observed"
+    assert non_room_by_id[7]["is_current_table_member"] is False
+    assert non_room_by_id[7]["is_effective_table_member"] is True
+    assert non_room_by_id[7]["is_last_observed_table_member"] is True
+    assert non_room_by_id[7]["age_from_clip_end_s"] == 0.1
+
+    room_metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+        _table_metric(2, 0.2, "closure_finish", [9]),
+    ]
+
+    room_team = table_team_summary(room_metrics, min_observed_table_frames=1)
+    room_by_id = {item["track_id"]: item for item in room_team}
+
+    assert room_by_id[9]["team_status"] == "active_current"
+    assert room_by_id[9]["is_current_table_member"] is True
+    assert room_by_id[9]["is_effective_table_member"] is True
+    assert room_by_id[9]["age_from_clip_end_s"] == 0.0
+    assert room_by_id[8]["team_status"] == "historical_seen"
+    assert room_by_id[8]["is_peak_table_member"] is True
+    assert room_by_id[8]["dominant_stage"] == "access_sheathing"
+    assert "historical seen" in room_by_id[8]["label"]
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -510,6 +556,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_handoff_summary",
         "stage_evidence_summary",
         "procedure_status_summary",
+        "table_team_summary",
         "procedure_milestones",
         "procedure_event_timeline",
         "table_roster_snapshots",
@@ -521,6 +568,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     handoff_csv = Path(paths["stage_handoff_summary"]).read_text(encoding="utf-8")
     evidence_csv = Path(paths["stage_evidence_summary"]).read_text(encoding="utf-8")
     status_csv = Path(paths["procedure_status_summary"]).read_text(encoding="utf-8")
+    team_csv = Path(paths["table_team_summary"]).read_text(encoding="utf-8")
     milestones_csv = Path(paths["procedure_milestones"]).read_text(encoding="utf-8")
     event_csv = Path(paths["procedure_event_timeline"]).read_text(encoding="utf-8")
     snapshots_csv = Path(paths["table_roster_snapshots"]).read_text(encoding="utf-8")
@@ -536,6 +584,8 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "operator_summary" in status_csv
     assert "Current observed stage" in status_csv
     assert "effective_table_source" in status_csv
+    assert "team_status" in team_csv
+    assert "active_current" in team_csv
     assert "milestone_status" in milestones_csv
     assert "current_observed" in milestones_csv
     assert "event_type" in event_csv
@@ -656,6 +706,26 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "required_quality_flags": ["non_room_view"],
             }
         ],
+        "table_team_expectations": [
+            {
+                "status": "active_current",
+                "role": "table_operator",
+                "min_tracks": 1,
+                "require_in_current_table_roster": True,
+                "require_in_effective_table_roster": True,
+                "require_in_last_table_roster": True,
+                "min_observed_table_frames": 1,
+                "max_last_seen_age_from_clip_end_s": 0.0,
+            },
+            {
+                "status": "historical_seen",
+                "role": "table_operator",
+                "min_tracks": 1,
+                "require_in_current_table_roster": False,
+                "require_in_peak_table_roster": True,
+                "min_observed_table_frames": 2,
+            },
+        ],
         "event_timeline_expectations": [
             {
                 "event_type": "table_handoff",
@@ -708,6 +778,9 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["procedure_milestone_score"]["expectations"][2]["matched_count"] == 1
     assert score["procedure_status_score"]["pass_rate"] == 1.0
     assert score["procedure_status_score"]["expectations"][0]["matched_count"] == 1
+    assert score["table_team_score"]["pass_rate"] == 1.0
+    assert score["table_team_score"]["expectations"][0]["matched_count"] == 1
+    assert score["table_team_score"]["expectations"][1]["matched_count"] == 1
     assert score["event_timeline_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["expectations"][0]["matched_count"] == 1
     assert score["roster_snapshot_score"]["pass_rate"] == 1.0
