@@ -167,6 +167,10 @@ The JSON output includes:
   IDs, within-stage entry/exit IDs, and a handoff type such as
   `table_roster_started`, `roster_added`, `roster_removed`, `roster_changed`,
   `roster_continued`, or `table_cleared`.
+- `stage_roster_summary`: one concise operator-facing row per contiguous stage
+  segment combining evidence, peak table count, active/canonical table-person
+  count, lead table-side role, continued/new/dropped IDs, within-stage
+  entry/exit IDs, handoff type, and readable roster labels.
 - `stage_evidence_summary`: one row per contiguous stage segment showing
   room-view availability, observable rate, mean/min/max stage confidence,
   dominant visual signal, and an evidence level: `strong_visual_support`,
@@ -293,7 +297,7 @@ object for opt-in low-motion room-view review. The runner writes per-case JSON p
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
 status summaries, table-team summaries, procedure milestones, stage staffing,
-stage table coverage, stage handoff summaries, stage evidence summaries,
+stage table coverage, stage handoff summaries, stage roster summaries, stage evidence summaries,
 procedure event timelines, table roster snapshots, table transition events,
 table presence intervals, quality flags, and low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured

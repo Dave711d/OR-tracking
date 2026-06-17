@@ -59,8 +59,8 @@ python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
 The evaluator prints JSON with a one-row procedure status summary, the stage
 timeline, view segments, current and peak table rosters, per-track role dwell,
 table-team status rows, table-presence intervals, table entry/exit events,
-stage-by-stage table coverage, stage handoff summaries, stage evidence
-summaries, procedure milestones, stage staffing summaries, a unified procedure
+stage-by-stage table coverage, stage handoff summaries, stage roster summaries,
+stage evidence summaries, procedure milestones, stage staffing summaries, a unified procedure
 event timeline, and low-confidence segments to inspect before changing
 heuristics.
 The status row includes an `effective_table_source` so fluoro/non-room frames
@@ -146,7 +146,7 @@ The app shows a `Procedure status` summary, `Table team summary`, the latest
 table roster, last observed table roster, `Table identity groups`, and `View segments`,
 `Procedure event timeline`,
 `Procedure milestones`, `Stage evidence summary`, `Stage staffing summary`,
-`Stage handoff summary`, `Stage table coverage`, `Table transition events`, and
+`Stage handoff summary`, `Stage roster summary`, `Stage table coverage`, `Table transition events`, and
 `Table presence intervals` tables. Together these show the current observed
 stage, next expected milestone, whether room tracking is available, who is at
 the table now, the best available table roster source, who is active now,

@@ -220,6 +220,33 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "dropped_table_roster",
         "label",
     ],
+    "stage_roster_summary": [
+        "stage_segment_index",
+        "stage",
+        "stage_label",
+        "start_s",
+        "end_s",
+        "duration_s",
+        "tracking_available_rate",
+        "evidence_level",
+        "observable_rate",
+        "mean_confidence",
+        "peak_table_count",
+        "active_table_track_count",
+        "canonical_table_identity_count",
+        "lead_track_id",
+        "lead_table_team_role",
+        "active_table_track_ids",
+        "continued_track_ids",
+        "new_track_ids",
+        "dropped_track_ids",
+        "within_stage_entry_track_ids",
+        "within_stage_exit_track_ids",
+        "handoff_type",
+        "active_table_roster",
+        "roster_summary",
+        "label",
+    ],
     "stage_evidence_summary": [
         "stage_segment_index",
         "stage",
@@ -402,6 +429,7 @@ def summarize_tavr_metrics(
         "table_transition_events": table_transition_events(tavr_metrics),
         "stage_table_coverage": stage_table_coverage(tavr_metrics),
         "stage_handoff_summary": stage_handoff_summary(tavr_metrics),
+        "stage_roster_summary": stage_roster_summary(tavr_metrics),
         "stage_evidence_summary": stage_evidence_summary(tavr_metrics),
         "procedure_milestones": procedure_milestones(tavr_metrics),
         "procedure_event_timeline": procedure_event_timeline(tavr_metrics),
@@ -1359,6 +1387,39 @@ def stage_handoff_summary(
     return summaries
 
 
+def stage_roster_summary(
+    metrics: Sequence[FrameMetrics],
+    min_observed_table_frames: int = 1,
+) -> List[Dict[str, Any]]:
+    """Return one operator-facing table roster row per contiguous TAVR stage."""
+
+    if not metrics:
+        return []
+
+    evidence_by_segment = {
+        row["stage_segment_index"]: row for row in stage_evidence_summary(metrics)
+    }
+    segment_metrics_by_index = {
+        index: segment_metrics
+        for index, segment_metrics in enumerate(_stage_metric_segments(metrics))
+    }
+    rows = []
+    for handoff in stage_handoff_summary(
+        metrics,
+        min_observed_table_frames=min_observed_table_frames,
+    ):
+        segment_index = int(handoff["stage_segment_index"])
+        rows.append(
+            _stage_roster_summary_item(
+                handoff=handoff,
+                evidence=evidence_by_segment.get(segment_index, {}),
+                segment_metrics=segment_metrics_by_index.get(segment_index, []),
+            )
+        )
+
+    return rows
+
+
 def stage_evidence_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
     """Summarize visual support for each contiguous stage segment."""
 
@@ -1829,6 +1890,62 @@ def _stage_handoff_item(
             previous_roster_by_id[track_id] for track_id in dropped_ids
         ],
         "label": _handoff_label(stage_state.stage_label, handoff_type, lead, active_roster),
+    }
+
+
+def _stage_roster_summary_item(
+    handoff: Dict[str, Any],
+    evidence: Dict[str, Any],
+    segment_metrics: Sequence[FrameMetrics],
+) -> Dict[str, Any]:
+    active_roster = list(handoff.get("active_table_roster", []))
+    active_track_ids = [int(item["track_id"]) for item in active_roster]
+    canonical_ids = sorted(
+        {
+            int(item.get("canonical_table_id", item["track_id"]))
+            for item in active_roster
+        }
+    )
+    lead = active_roster[0] if active_roster else None
+    peak_table_count = max(
+        (_tavr_state(metric).table_count for metric in segment_metrics),
+        default=0,
+    )
+    roster_summary = _roster_status_label(active_roster)
+    return {
+        "stage_segment_index": handoff["stage_segment_index"],
+        "stage": handoff["stage"],
+        "stage_label": handoff["stage_label"],
+        "start_s": handoff["start_s"],
+        "end_s": handoff["end_s"],
+        "duration_s": handoff["duration_s"],
+        "tracking_available_rate": handoff["tracking_available_rate"],
+        "evidence_level": evidence.get("evidence_level"),
+        "observable_rate": evidence.get("observable_rate"),
+        "mean_confidence": evidence.get("mean_confidence"),
+        "peak_table_count": peak_table_count,
+        "active_table_track_count": len(active_roster),
+        "canonical_table_identity_count": len(canonical_ids),
+        "lead_track_id": lead["track_id"] if lead else None,
+        "lead_table_team_role": lead["table_team_role"] if lead else None,
+        "active_table_track_ids": active_track_ids,
+        "continued_track_ids": handoff.get("continued_track_ids", []),
+        "new_track_ids": handoff.get("new_track_ids", []),
+        "dropped_track_ids": handoff.get("dropped_track_ids", []),
+        "within_stage_entry_track_ids": handoff.get(
+            "within_stage_entry_track_ids", []
+        ),
+        "within_stage_exit_track_ids": handoff.get(
+            "within_stage_exit_track_ids", []
+        ),
+        "handoff_type": handoff["handoff_type"],
+        "active_table_roster": active_roster,
+        "roster_summary": roster_summary,
+        "label": (
+            f"{handoff['stage_label']}: peak table {peak_table_count}; "
+            f"{len(active_roster)} table IDs; {handoff['handoff_type']}; "
+            f"{roster_summary}"
+        ),
     }
 
 

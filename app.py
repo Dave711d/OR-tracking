@@ -283,6 +283,15 @@ def _run_analysis(
             hide_index=True,
         )
 
+    stage_rosters = tavr_summary.get("stage_roster_summary", [])
+    if stage_rosters:
+        st.subheader("Stage roster summary")
+        st.dataframe(
+            pd.DataFrame(_stage_roster_rows(stage_rosters)),
+            width="stretch",
+            hide_index=True,
+        )
+
     last_observed = tavr_summary.get("last_observed_table_roster", {})
     if last_observed.get("roster"):
         st.subheader("Last observed table roster")
@@ -526,6 +535,30 @@ def _stage_handoff_rows(handoffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "active_table_roster": _roster_label(
                     item.get("active_table_roster", [])
                 ),
+            }
+        )
+    return rows
+
+
+def _stage_roster_rows(stage_rosters: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in stage_rosters:
+        rows.append(
+            {
+                "stage_label": item["stage_label"],
+                "start_s": item["start_s"],
+                "end_s": item["end_s"],
+                "evidence": _status_label(item.get("evidence_level")),
+                "tracking_available_rate": item["tracking_available_rate"],
+                "peak_table_count": item["peak_table_count"],
+                "table_people": item["canonical_table_identity_count"],
+                "lead_track_id": item.get("lead_track_id"),
+                "lead_role": _status_label(item.get("lead_table_team_role")),
+                "handoff_type": _status_label(item.get("handoff_type")),
+                "active_ids": _id_label(item.get("active_table_track_ids", [])),
+                "new_ids": _id_label(item.get("new_track_ids", [])),
+                "dropped_ids": _id_label(item.get("dropped_track_ids", [])),
+                "roster": _roster_label(item.get("active_table_roster", [])),
             }
         )
     return rows

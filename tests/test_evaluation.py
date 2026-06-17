@@ -14,6 +14,7 @@ from or_tracking.evaluation import (
     score_tavr_metrics,
     stage_evidence_summary,
     stage_handoff_summary,
+    stage_roster_summary,
     stage_staffing_summary,
     stage_table_coverage,
     summarize_tavr_metrics,
@@ -72,6 +73,7 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["table_transition_events"]
     assert summary["stage_table_coverage"]
     assert summary["stage_handoff_summary"]
+    assert summary["stage_roster_summary"]
     assert summary["stage_evidence_summary"]
     assert summary["procedure_status_summary"]
     assert summary["table_team_summary"]
@@ -296,6 +298,42 @@ def test_stage_handoff_summary_reports_boundary_roster_changes() -> None:
     assert handoffs[2]["dropped_track_ids"] == [7, 8]
     assert handoffs[2]["active_table_roster"] == []
     assert handoffs[2]["dropped_table_roster"]
+
+
+def test_stage_roster_summary_reports_per_stage_table_team() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(4, 0.4, "valve_deployment", [8]),
+        _table_metric(5, 0.5, "closure_finish", []),
+    ]
+
+    rosters = stage_roster_summary(metrics)
+
+    assert [item["stage"] for item in rosters] == [
+        "access_sheathing",
+        "valve_deployment",
+        "closure_finish",
+    ]
+    assert rosters[0]["active_table_track_ids"] == [7]
+    assert rosters[0]["lead_track_id"] == 7
+    assert rosters[0]["peak_table_count"] == 1
+    assert rosters[0]["handoff_type"] == "initial_table_roster"
+    assert rosters[1]["active_table_track_ids"] == [7, 8]
+    assert rosters[1]["continued_track_ids"] == [7]
+    assert rosters[1]["new_track_ids"] == [8]
+    assert rosters[1]["within_stage_entry_track_ids"] == [8]
+    assert rosters[1]["within_stage_exit_track_ids"] == [7]
+    assert rosters[1]["peak_table_count"] == 2
+    assert rosters[1]["active_table_track_count"] == 2
+    assert rosters[1]["canonical_table_identity_count"] == 2
+    assert "ID 7 table_operator" in rosters[1]["roster_summary"]
+    assert "peak table 2" in rosters[1]["label"]
+    assert rosters[2]["active_table_track_ids"] == []
+    assert rosters[2]["dropped_track_ids"] == [7, 8]
+    assert rosters[2]["roster_summary"] == "none"
 
 
 def test_procedure_event_timeline_combines_stage_view_handoff_and_peak() -> None:
@@ -746,6 +784,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_timeline",
         "stage_table_coverage",
         "stage_handoff_summary",
+        "stage_roster_summary",
         "stage_evidence_summary",
         "procedure_status_summary",
         "table_team_summary",
@@ -759,6 +798,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     coverage_csv = Path(paths["stage_table_coverage"]).read_text(encoding="utf-8")
     staffing_csv = Path(paths["stage_staffing_summary"]).read_text(encoding="utf-8")
     handoff_csv = Path(paths["stage_handoff_summary"]).read_text(encoding="utf-8")
+    roster_csv = Path(paths["stage_roster_summary"]).read_text(encoding="utf-8")
     evidence_csv = Path(paths["stage_evidence_summary"]).read_text(encoding="utf-8")
     status_csv = Path(paths["procedure_status_summary"]).read_text(encoding="utf-8")
     team_csv = Path(paths["table_team_summary"]).read_text(encoding="utf-8")
@@ -777,6 +817,10 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "handoff_type" in handoff_csv
     assert "lead_table_team_role" in handoff_csv
     assert "roster_added" in handoff_csv
+    assert "roster_summary" in roster_csv
+    assert "active_table_track_ids" in roster_csv
+    assert "canonical_table_identity_count" in roster_csv
+    assert "Valve deployment: peak table 2" in roster_csv
     assert "evidence_level" in evidence_csv
     assert "strong_visual_support" in evidence_csv
     assert "operator_summary" in status_csv
