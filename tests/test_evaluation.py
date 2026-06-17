@@ -1,10 +1,11 @@
 import argparse
+import sys
 from pathlib import Path
 from typing import List, Optional
 
 import pytest
 
-from evaluate_tavr import parse_roi
+from evaluate_tavr import parse_args, parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
     procedure_event_timeline,
@@ -30,6 +31,19 @@ from or_tracking.tavr import (
     TAVR_STAGE_ORDER,
     TAVRFrameState,
 )
+
+
+def test_evaluate_tavr_cli_accepts_static_table_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["evaluate_tavr.py", "clip.mp4", "--static-table-fallback"],
+    )
+
+    args = parse_args()
+
+    assert args.video == Path("clip.mp4")
+    assert args.static_table_fallback is True
 
 
 def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> None:

@@ -107,6 +107,11 @@ small picture-in-picture inset and fluoroscopy or hemodynamic monitors dominate
 the full frame. The same initial-stage and ROI controls are available in the
 Streamlit sidebar for uploaded clips.
 
+Add `--static-table-fallback` when reviewing low-motion room-view footage where
+table-side staff are visually present but too still for motion-only tracking.
+The fallback is opt-in so the default evaluator and regression suite keep
+static equipment from being counted as people.
+
 The JSON output includes:
 
 - `procedure_status_summary`: a one-row operator status that combines current
@@ -283,7 +288,8 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outpu
 
 The default suite is manifest-driven rather than shell-string-driven. Each case
 declares a clip path, label path, ROI, starting stage, frame limit, and tracking
-configuration. The runner writes per-case JSON plus
+configuration. Cases can set `"static_table_fallback": true` in their `config`
+object for opt-in low-motion room-view review. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
 status summaries, table-team summaries, procedure milestones, stage staffing,
@@ -292,6 +298,13 @@ procedure event timelines, table roster snapshots, table transition events,
 table presence intervals, quality flags, and low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured
 threshold.
+
+The default suite keeps static fallback off as a conservative baseline. Run the
+opt-in fallback fixture separately when refining low-motion room-view tracking:
+
+```bash
+python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.json --output-dir outputs/tavr_static_table_fallback_suite
+```
 
 The current local Sentara suite covers:
 

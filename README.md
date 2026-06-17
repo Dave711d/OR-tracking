@@ -79,6 +79,10 @@ summary while preserving the raw audit trail. The evaluator also derives
 canonical table-person groups and expose `merged_track_ids` for review.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
+For low-motion room-view review, pass `--static-table-fallback` to opt into the
+same conservative table-zone silhouette fallback exposed in the apps. This stays
+off by default so default footage regressions do not silently count static
+equipment as staff.
 
 To compare output against expected stage/table labels:
 

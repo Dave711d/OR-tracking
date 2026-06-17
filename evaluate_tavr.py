@@ -35,6 +35,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-area", type=int, default=200)
     parser.add_argument("--crowding-threshold", type=int, default=4)
     parser.add_argument(
+        "--static-table-fallback",
+        action="store_true",
+        help=(
+            "Opt into conservative static table-zone silhouette detection for "
+            "low-motion room-view review. Defaults off to avoid overcounting equipment."
+        ),
+    )
+    parser.add_argument(
         "--initial-stage",
         choices=TAVR_STAGE_ORDER,
         default="room_prep_drape",
@@ -85,6 +93,7 @@ def main() -> None:
         config=MotionTrackerConfig(
             min_area=args.min_area,
             crowding_threshold=args.crowding_threshold,
+            enable_static_table_fallback=args.static_table_fallback,
             tavr_initial_stage=args.initial_stage,
             tavr_min_confidence_to_advance=args.min_stage_confidence,
             tavr_advance_margin=args.stage_advance_margin,
@@ -121,6 +130,7 @@ def main() -> None:
             "roi": args.roi,
             "min_area": args.min_area,
             "crowding_threshold": args.crowding_threshold,
+            "static_table_fallback": args.static_table_fallback,
             "initial_stage": args.initial_stage,
             "stage_dwell_frames": args.stage_dwell_frames,
             "stage_advance_margin": args.stage_advance_margin,

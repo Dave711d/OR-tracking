@@ -131,6 +131,9 @@ def _run_case(
             config=MotionTrackerConfig(
                 min_area=int(config.get("min_area", 200)),
                 crowding_threshold=int(config.get("crowding_threshold", 4)),
+                enable_static_table_fallback=bool(
+                    config.get("static_table_fallback", False)
+                ),
                 tavr_initial_stage=str(config.get("initial_stage", "room_prep_drape")),
                 tavr_min_confidence_to_advance=float(
                     config.get("min_stage_confidence", 0.42)

@@ -80,6 +80,7 @@ def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
                         "config": {
                             "max_frames": 180,
                             "min_area": 180,
+                            "static_table_fallback": True,
                             "initial_stage": "room_prep_drape",
                         },
                     }
@@ -94,7 +95,28 @@ def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
     assert summary["passed"] is True
     assert summary["case_count"] == 1
     assert summary["passed_count"] == 1
-    assert Path(summary["cases"][0]["result_path"]).exists()
+    result_path = Path(summary["cases"][0]["result_path"])
+    assert result_path.exists()
+    result_payload = json.loads(result_path.read_text(encoding="utf-8"))
+    assert result_payload["evaluation_config"]["static_table_fallback"] is True
     assert summary["cases"][0]["tavr_csv_paths"]["stage_timeline"]
     assert Path(summary["cases"][0]["tavr_csv_paths"]["stage_timeline"]).exists()
     assert Path(summary["summary_path"]).exists()
+
+
+def test_static_table_fallback_suite_manifest_is_explicitly_opt_in() -> None:
+    manifest = json.loads(
+        Path("docs/evaluation/tavr_static_table_fallback_suite.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert manifest["cases"]
+    case = manifest["cases"][0]
+    assert case["config"]["static_table_fallback"] is True
+
+    labels = json.loads(Path(case["labels_path"]).read_text(encoding="utf-8"))
+    assert "--static-table-fallback" in labels["command_hint"]
+    assert labels["procedure_status_expectations"][0]["effective_table_source"] == (
+        "last_observed_room_view"
+    )

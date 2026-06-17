@@ -1,0 +1,219 @@
+{
+  "name": "Sentara live TAVR 900s room-to-fluoro static table fallback ROI",
+  "source_url": "https://bcmmedia.s3.amazonaws.com/bcp/video/transcodes/live-tavr-transcatheter-aortic-valve-replacement/1710771171/live-tavr-transcatheter-aortic-valve-replacement-720p.mp4",
+  "clip_hint": "Extract a 30s clip from 900s. The configured ROI begins as low-motion room-camera footage, then switches to fluoroscopy around 4.2s.",
+  "command_hint": "python evaluate_tavr.py samples/live_tavr_slices/live_tavr_900_30s.mp4 --roi 0,0.46,0.31,0.89 --initial-stage access_sheathing --min-area 300 --max-frames 900 --static-table-fallback --no-annotated-video --labels docs/evaluation/sentara_live_900_static_table_fallback.labels.json",
+  "stage_segments": [
+    {
+      "start_s": 0.0,
+      "end_s": 2.9,
+      "stage": "access_sheathing"
+    },
+    {
+      "start_s": 3.1,
+      "end_s": 3.9,
+      "stage": "angio_alignment_crossing"
+    },
+    {
+      "start_s": 4.2,
+      "end_s": 29.9,
+      "stage": "bav_optional"
+    }
+  ],
+  "table_count_segments": [
+    {
+      "start_s": 0.0,
+      "end_s": 4.3,
+      "min_peak_count": 3
+    },
+    {
+      "start_s": 4.5,
+      "end_s": 29.9,
+      "max_count": 0,
+      "min_within_range_rate": 1.0
+    }
+  ],
+  "event_timeline_expectations": [
+    {
+      "event_type": "view_started",
+      "view": "room",
+      "start_s": 0.0,
+      "end_s": 0.1,
+      "tracking_available": true,
+      "min_table_count": 3
+    },
+    {
+      "event_type": "table_handoff",
+      "stage": "access_sheathing",
+      "handoff_type": "initial_table_roster",
+      "start_s": 0.0,
+      "end_s": 0.1,
+      "role": "table_operator",
+      "min_tracks": 2,
+      "min_table_count": 2,
+      "tracking_available": true
+    },
+    {
+      "event_type": "table_peak",
+      "stage": "angio_alignment_crossing",
+      "start_s": 3.7,
+      "end_s": 3.9,
+      "role": "table_operator",
+      "min_tracks": 3,
+      "min_table_count": 3,
+      "max_table_count": 3,
+      "tracking_available": true
+    },
+    {
+      "event_type": "view_started",
+      "stage": "bav_optional",
+      "view": "non_room",
+      "start_s": 4.1,
+      "end_s": 4.3,
+      "tracking_available": false,
+      "max_table_count": 0
+    }
+  ],
+  "stage_evidence_expectations": [
+    {
+      "stage": "access_sheathing",
+      "evidence_level": "moderate_visual_support",
+      "min_observable_rate": 0.9,
+      "min_mean_confidence": 0.35,
+      "min_room_view_frames": 80
+    },
+    {
+      "stage": "bav_optional",
+      "evidence_level": "weak_visual_support",
+      "max_observable_rate": 0.02,
+      "max_mean_confidence": 0.25,
+      "min_non_room_view_frames": 700
+    }
+  ],
+  "procedure_milestone_expectations": [
+    {
+      "stage": "access_sheathing",
+      "observed_in_clip": true,
+      "is_current_observed_stage": false,
+      "milestone_status": "observed_prior",
+      "evidence_level": "moderate_visual_support",
+      "min_observable_rate": 0.9,
+      "min_mean_confidence": 0.35,
+      "min_peak_table_count": 2,
+      "min_unique_table_track_count": 2
+    },
+    {
+      "stage": "angio_alignment_crossing",
+      "observed_in_clip": true,
+      "is_current_observed_stage": false,
+      "milestone_status": "observed_prior",
+      "evidence_level": "moderate_visual_support",
+      "min_observable_rate": 0.9,
+      "min_peak_table_count": 3,
+      "min_unique_table_track_count": 3
+    },
+    {
+      "stage": "bav_optional",
+      "observed_in_clip": true,
+      "is_current_observed_stage": true,
+      "milestone_status": "current_observed",
+      "evidence_level": "weak_visual_support",
+      "max_observable_rate": 0.02,
+      "max_mean_confidence": 0.25,
+      "min_peak_table_count": 3,
+      "min_unique_table_track_count": 3
+    },
+    {
+      "stage": "valve_deployment",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    },
+    {
+      "stage": "closure_finish",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    }
+  ],
+  "procedure_status_expectations": [
+    {
+      "current_stage": "bav_optional",
+      "current_stage_status": "current_observed",
+      "next_stage": "valve_delivery_positioning",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "last_observed_room_view",
+      "evidence_level": "weak_visual_support",
+      "max_observable_rate": 0.02,
+      "max_mean_confidence": 0.25,
+      "max_current_table_count": 0,
+      "min_effective_table_count": 3,
+      "max_effective_table_count": 3,
+      "max_effective_table_age_from_clip_end_s": 30.0,
+      "min_last_observed_table_count": 3,
+      "max_last_observed_table_count": 3,
+      "max_last_observed_age_from_clip_end_s": 30.0,
+      "min_peak_table_count": 3,
+      "max_peak_table_count": 3,
+      "required_quality_flags": [
+        "rapid_stage_progression",
+        "low_stage_confidence",
+        "non_room_view"
+      ],
+      "forbidden_quality_flags": [
+        "low_motion_room_view"
+      ]
+    }
+  ],
+  "table_team_expectations": [
+    {
+      "team_status": "recent_last_observed",
+      "table_team_role": "table_operator",
+      "dominant_stage": "access_sheathing",
+      "min_tracks": 2,
+      "max_tracks": 2,
+      "min_table_presence_ratio": 0.9,
+      "require_in_current_table_roster": false,
+      "require_in_effective_table_roster": true,
+      "require_in_last_table_roster": true,
+      "require_in_peak_table_roster": true
+    },
+    {
+      "team_status": "recent_last_observed",
+      "table_team_role": "table_operator",
+      "min_tracks": 3,
+      "min_table_presence_ratio": 0.5,
+      "require_in_current_table_roster": false,
+      "require_in_effective_table_roster": true,
+      "require_in_last_table_roster": true,
+      "require_in_peak_table_roster": true
+    }
+  ],
+  "roster_snapshot_expectations": [
+    {
+      "snapshot_type": "last_observed",
+      "role": "table_operator",
+      "min_tracks": 3,
+      "min_table_count": 3,
+      "max_age_from_clip_end_s": 30.0
+    },
+    {
+      "snapshot_type": "peak",
+      "role": "table_operator",
+      "min_tracks": 3,
+      "min_table_count": 3,
+      "max_age_from_clip_end_s": 30.0
+    }
+  ],
+  "quality_flag_expectations": [
+    {
+      "code": "non_room_view",
+      "min_ratio": 0.8
+    },
+    {
+      "code": "low_stage_confidence",
+      "min_ratio": 0.95
+    }
+  ]
+}

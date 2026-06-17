@@ -1,0 +1,29 @@
+{
+  "name": "Sentara public TAVR static table fallback regression suite",
+  "description": "Opt-in regression suite for low-motion public Sentara TAVR room-view slices where static table-side staff are visually present before the view switches to fluoroscopy.",
+  "thresholds": {
+    "stage_accuracy": 1.0,
+    "table_count_pass_rate": 1.0,
+    "stage_evidence_pass_rate": 1.0,
+    "procedure_milestone_pass_rate": 1.0,
+    "procedure_status_pass_rate": 1.0,
+    "table_team_pass_rate": 1.0,
+    "event_timeline_pass_rate": 1.0,
+    "roster_snapshot_pass_rate": 1.0,
+    "quality_flag_pass_rate": 1.0
+  },
+  "cases": [
+    {
+      "name": "sentara_900_static_table_fallback",
+      "video_path": "samples/live_tavr_slices/live_tavr_900_30s.mp4",
+      "labels_path": "docs/evaluation/sentara_live_900_static_table_fallback.labels.json",
+      "config": {
+        "roi": [0.0, 0.46, 0.31, 0.89],
+        "initial_stage": "access_sheathing",
+        "min_area": 300,
+        "max_frames": 900,
+        "static_table_fallback": true
+      }
+    }
+  ]
+}
