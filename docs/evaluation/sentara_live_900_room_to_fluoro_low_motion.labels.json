@@ -25,6 +25,13 @@
       "max_tracks": 0
     }
   ],
+  "table_transition_expectations": [
+    {
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "max_events": 0
+    }
+  ],
   "event_timeline_expectations": [
     {
       "event_type": "stage_started",

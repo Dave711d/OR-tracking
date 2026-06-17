@@ -64,6 +64,44 @@
       "required_label_text": "Closure / finish"
     }
   ],
+  "table_transition_expectations": [
+    {
+      "event_type": "table_entry",
+      "stage": "post_deploy_assessment",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "min_events": 1,
+      "min_observed_table_frames": 20,
+      "min_tracking_available_rate": 0.9
+    },
+    {
+      "event_type": "table_present_at_stage_end",
+      "stage": "post_deploy_assessment",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "min_events": 1,
+      "min_observed_table_frames": 20,
+      "required_label_text": "Post-deploy assessment"
+    },
+    {
+      "event_type": "table_entry",
+      "stage": "closure_finish",
+      "stage_segment_index": 1,
+      "role": "table_operator",
+      "min_events": 4,
+      "min_observed_table_frames": 3,
+      "min_tracking_available_rate": 0.45
+    },
+    {
+      "event_type": "table_exit",
+      "stage": "closure_finish",
+      "stage_segment_index": 1,
+      "role": "table_operator",
+      "min_events": 5,
+      "min_observed_table_frames": 3,
+      "min_tracking_available_rate": 0.45
+    }
+  ],
   "stage_handoff_expectations": [
     {
       "stage": "post_deploy_assessment",

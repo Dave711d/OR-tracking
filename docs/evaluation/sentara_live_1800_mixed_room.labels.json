@@ -61,6 +61,28 @@
       "required_label_text": "Valve deployment"
     }
   ],
+  "table_transition_expectations": [
+    {
+      "event_type": "table_entry",
+      "stage": "valve_deployment",
+      "stage_segment_index": 1,
+      "role": "table_operator",
+      "min_events": 7,
+      "min_observed_table_frames": 3,
+      "min_tracking_available_rate": 0.7,
+      "required_label_text": "table_entry"
+    },
+    {
+      "event_type": "table_exit",
+      "stage": "valve_deployment",
+      "stage_segment_index": 1,
+      "role": "table_operator",
+      "min_events": 8,
+      "min_observed_table_frames": 3,
+      "min_tracking_available_rate": 0.7,
+      "required_label_text": "table_exit"
+    }
+  ],
   "stage_handoff_expectations": [
     {
       "stage": "valve_deployment",

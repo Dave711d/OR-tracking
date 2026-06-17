@@ -208,10 +208,10 @@ The JSON output includes:
   detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
-  stage-staffing, stage-table-coverage, stage-handoff, stage-roster,
-  stage-evidence, procedure-milestone, procedure-status, operator-packet,
-  table-team, procedure-event-timeline, roster-snapshot, and quality-flag
-  expectation pass rates.
+  stage-staffing, stage-table-coverage, table-transition, stage-handoff,
+  stage-roster, stage-evidence, procedure-milestone, procedure-status,
+  operator-packet, table-team, procedure-event-timeline, roster-snapshot, and
+  quality-flag expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -251,6 +251,12 @@ The label file can include:
   observed table frames, coverage ratio, room-view coverage ratio, tracking
   availability, table-role confidence, merged raw track IDs, entry/exit flags,
   and label text.
+- `table_transition_expectations`: expected table entry, exit, stage-start
+  presence, or stage-end presence events. Labels can require minimum/maximum
+  matching events, zero events in non-room clips, stage/segment/time windows,
+  operator-facing role, raw dominant role, track/canonical IDs, merged raw track
+  IDs, observed table frames, coverage ratios, tracking availability, table-role
+  confidence, and label text.
 - `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
   requiring a deployment-stage `table_roster_started` event, a closure-stage
   `roster_added` event, a lead role, minimum active/new/continued/dropped track
@@ -329,8 +335,8 @@ roster summaries, stage evidence summaries,
 procedure event timelines, table roster snapshots, table transition events,
 table presence intervals, quality flags, and low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured
-threshold, including `operator_packet_pass_rate` when packet expectations are
-labelled.
+threshold, including `operator_packet_pass_rate` and
+`table_transition_pass_rate` when those expectations are labelled.
 
 The default suite keeps static fallback off as a conservative baseline. Run the
 opt-in fallback fixture separately when refining low-motion room-view tracking:
@@ -355,21 +361,25 @@ The current local Sentara suite covers:
   `table_roster_started` handoff expectation, and a stage-roster expectation
   that proves the deployment stage has a table-operator lead, strong visual
   support, peak table count of 3, and at least eight canonical table identities.
-  Event-timeline labels also verify the room-view return, table roster start,
-  and deployment table peak. Stage evidence labels distinguish held non-room
-  delivery-positioning context from strong room-visible deployment evidence.
+  Table-transition labels verify repeated table-operator entries and exits
+  during deployment. Event-timeline labels also verify the room-view return,
+  table roster start, and deployment table peak. Stage evidence labels
+  distinguish held non-room delivery-positioning context from strong
+  room-visible deployment evidence.
 - `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
   table staff, should be flagged `non_room_view`, and should emit non-room
-  timeline events with zero table count. Stage evidence and stage-roster labels
-  should remain `held_non_room` / no-table-evidence.
+  timeline events with zero table count and zero table-transition events. Stage
+  evidence and stage-roster labels should remain `held_non_room` /
+  no-table-evidence.
 - `sentara_2700_room_post`: post-deployment / closure room-view segment with
   stage, table count, presence, staffing, room-view occupancy, quality, and
   post-deploy-to-closure handoff expectations. Event-timeline labels verify the
   closure stage start, closure roster addition, table peak, and later non-room
-  transition. Stage-roster labels verify the closure roster addition with
-  continued and new table-side tracks. Stage-evidence labels keep both
-  post-deploy and closure stages weak because the visual confidence is low and
-  closure is partly non-room.
+  transition. Table-transition labels verify post-deploy presence-at-end plus
+  closure table entries and exits. Stage-roster labels verify the closure roster
+  addition with continued and new table-side tracks. Stage-evidence labels keep
+  both post-deploy and closure stages weak because the visual confidence is low
+  and closure is partly non-room.
 
 ## Caveats
 

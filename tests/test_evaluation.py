@@ -844,6 +844,108 @@ def test_table_transition_events_report_stage_entries_and_exits() -> None:
     assert events[2]["tracking_available_rate"] == 1.0
 
 
+def test_score_tavr_metrics_compares_table_transition_events() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(4, 0.4, "valve_deployment", [8]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_transition_expectations": [
+                {
+                    "event_type": "table_entry",
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "min_events": 1,
+                    "min_observed_table_frames": 2,
+                    "min_coverage_ratio": 0.6,
+                    "min_room_coverage_ratio": 0.6,
+                    "required_label_text": "table_entry",
+                },
+                {
+                    "event_type": "table_exit",
+                    "stage": "valve_deployment",
+                    "track_id": 7,
+                    "min_events": 1,
+                    "min_table_team_role_confidence": 1.0,
+                },
+                {
+                    "event_type": "table_entry",
+                    "stage": "closure_finish",
+                    "max_events": 0,
+                },
+            ]
+        },
+    )
+
+    transition_score = score["table_transition_score"]
+    assert transition_score["pass_rate"] == 1.0
+    assert transition_score["expectations"][0]["candidate_count"] == 1
+    assert transition_score["expectations"][0]["matched_count"] == 1
+    assert transition_score["expectations"][2]["min_events"] == 0
+
+
+def test_table_transition_expectation_requires_event_by_default() -> None:
+    score = score_tavr_metrics(
+        [],
+        {
+            "table_transition_expectations": [
+                {"event_type": "table_entry", "stage": "valve_deployment"}
+            ]
+        },
+    )
+
+    assert score["table_transition_score"]["pass_rate"] == 0.0
+    assert score["table_transition_score"]["expectations"][0]["min_events"] == 1
+
+
+def test_table_transition_score_enforces_zero_events_and_time_windows() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+        _table_metric(2, 0.2, "valve_deployment", [8]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_transition_expectations": [
+                {
+                    "event_type": "table_entry",
+                    "stage": "valve_deployment",
+                    "start_s": 0.05,
+                    "end_s": 0.15,
+                    "min_events": 1,
+                },
+                {
+                    "event_type": "table_entry",
+                    "stage": "valve_deployment",
+                    "start_s": 0.15,
+                    "end_s": 0.25,
+                    "max_events": 0,
+                },
+                {
+                    "event_type": "table_entry",
+                    "stage": "valve_deployment",
+                    "max_events": 0,
+                },
+            ]
+        },
+    )
+
+    transition_score = score["table_transition_score"]
+    assert transition_score["pass_rate"] == 0.667
+    assert transition_score["expectations"][0]["matched_count"] == 1
+    assert transition_score["expectations"][1]["matched_count"] == 0
+    assert transition_score["expectations"][2]["matched_count"] == 1
+    assert transition_score["expectations"][2]["passed"] is False
+
+
 def test_last_observed_table_roster_survives_non_room_or_quiet_end() -> None:
     metrics = [
         _table_metric(0, 0.0, "valve_deployment", [7]),
@@ -1050,6 +1152,23 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "spans_full_stage": True,
             }
         ],
+        "table_transition_expectations": [
+            {
+                "event_type": "table_present_at_stage_start",
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "min_events": 2,
+                "min_observed_table_frames": 2,
+                "min_room_coverage_ratio": 1.0,
+            },
+            {
+                "event_type": "table_present_at_stage_start",
+                "stage": "closure_finish",
+                "role": "table_operator",
+                "min_events": 1,
+                "min_observed_table_frames": 1,
+            },
+        ],
         "stage_handoff_expectations": [
             {
                 "stage": "valve_deployment",
@@ -1228,6 +1347,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
         ]
         == 2
     )
+    assert score["table_transition_score"]["pass_rate"] == 1.0
+    assert score["table_transition_score"]["expectations"][0]["matched_count"] == 2
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["expectations"][0]["matched_count"] == 1
     assert score["stage_roster_score"]["pass_rate"] == 1.0

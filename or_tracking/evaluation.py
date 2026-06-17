@@ -521,6 +521,10 @@ def score_tavr_metrics(
             tavr_metrics,
             labels.get("stage_table_coverage_expectations", []),
         ),
+        "table_transition_score": _table_transition_score(
+            tavr_metrics,
+            labels.get("table_transition_expectations", []),
+        ),
         "stage_handoff_score": _stage_handoff_score(
             tavr_metrics,
             labels.get("stage_handoff_expectations", []),
@@ -3289,6 +3293,82 @@ def _stage_table_coverage_score(
     }
 
 
+def _table_transition_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    events = table_transition_events(metrics, min_observed_table_frames=1)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        event_types = _expected_event_types(expectation)
+        stage = expectation.get("stage")
+        stage_segment_index = expectation.get("stage_segment_index")
+        min_events = int(
+            expectation.get(
+                "min_events",
+                0 if "max_events" in expectation else 1,
+            )
+        )
+        max_events = expectation.get("max_events")
+        candidates = [
+            event
+            for event in events
+            if (not event_types or event["event_type"] in event_types)
+            and (stage is None or event["stage"] == stage)
+            and (
+                stage_segment_index is None
+                or event["stage_segment_index"] == int(stage_segment_index)
+            )
+            and _transition_event_overlaps_expectation(event, expectation)
+        ]
+        scored_candidates = [
+            _score_table_transition_candidate(event, expectation)
+            for event in candidates
+        ]
+        matched_candidates = [
+            candidate for candidate in scored_candidates if candidate["passed"]
+        ]
+        matched_count = len(matched_candidates)
+        checks = {
+            "min_events": matched_count >= min_events,
+            "max_events": (
+                max_events is None or matched_count <= int(max_events)
+            ),
+        }
+        expectation_pass = all(checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "event_types": sorted(event_types) or None,
+                "stage": stage,
+                "stage_segment_index": stage_segment_index,
+                "role": expectation.get("role")
+                or expectation.get("table_team_role"),
+                "dominant_role": expectation.get("dominant_role"),
+                "min_events": min_events,
+                "max_events": max_events,
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "candidate_checks": scored_candidates,
+                "candidate_count": len(scored_candidates),
+                "matched_candidates": matched_candidates,
+                "matched_count": matched_count,
+                "checks": checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _stage_handoff_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -3801,6 +3881,17 @@ def _expected_handoff_types(expectation: Dict[str, Any]) -> set[str]:
     return {str(value) for value in values}
 
 
+def _expected_event_types(expectation: Dict[str, Any]) -> set[str]:
+    values = expectation.get("event_types")
+    if values is None and expectation.get("event_type") is not None:
+        values = [expectation["event_type"]]
+    if values is None:
+        return set()
+    if isinstance(values, str):
+        return {values}
+    return {str(value) for value in values}
+
+
 def _expected_evidence_levels(expectation: Dict[str, Any]) -> set[str]:
     values = expectation.get("evidence_levels")
     if values is None and expectation.get("evidence_level") is not None:
@@ -3930,6 +4021,15 @@ def _stage_coverage_overlaps_expectation(
     start_s = float(expectation.get("start_s", float("-inf")))
     end_s = float(expectation.get("end_s", float("inf")))
     return row["first_seen_s"] <= end_s and row["last_seen_s"] >= start_s
+
+
+def _transition_event_overlaps_expectation(
+    event: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> bool:
+    start_s = float(expectation.get("start_s", float("-inf")))
+    end_s = float(expectation.get("end_s", float("inf")))
+    return start_s <= event["timestamp_s"] <= end_s
 
 
 def _score_stage_table_coverage_candidate(
@@ -4081,6 +4181,130 @@ def _score_stage_table_coverage_candidate(
         "exited_during_stage": row.get("exited_during_stage"),
         "spans_full_stage": row.get("spans_full_stage"),
         "label": row.get("label", ""),
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _score_table_transition_candidate(
+    event: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    role = expectation.get("role") or expectation.get("table_team_role")
+    dominant_role = expectation.get("dominant_role")
+    track_id = expectation.get("track_id")
+    canonical_table_id = expectation.get("canonical_table_id")
+    required_merged_track_ids = {
+        int(track_id) for track_id in expectation.get("required_merged_track_ids", [])
+    }
+    min_observed_table_frames = expectation.get("min_observed_table_frames")
+    max_observed_table_frames = expectation.get("max_observed_table_frames")
+    min_coverage_ratio = expectation.get("min_coverage_ratio")
+    max_coverage_ratio = expectation.get("max_coverage_ratio")
+    min_room_coverage_ratio = expectation.get("min_room_coverage_ratio")
+    max_room_coverage_ratio = expectation.get("max_room_coverage_ratio")
+    min_tracking_available_rate = expectation.get("min_tracking_available_rate")
+    min_table_team_role_confidence = expectation.get(
+        "min_table_team_role_confidence"
+    )
+    required_label_text = _expected_text_fragments(
+        expectation.get("required_label_text")
+    )
+    forbidden_label_text = _expected_text_fragments(
+        expectation.get("forbidden_label_text")
+    )
+    label_text = event.get("label", "")
+    merged_track_ids = {
+        int(track_id) for track_id in event.get("merged_track_ids", [])
+    }
+    checks = {
+        "role": role is None or event.get("table_team_role") == role,
+        "dominant_role": (
+            dominant_role is None or event.get("dominant_role") == dominant_role
+        ),
+        "track_id": track_id is None or event.get("track_id") == int(track_id),
+        "canonical_table_id": (
+            canonical_table_id is None
+            or event.get("canonical_table_id") == int(canonical_table_id)
+        ),
+        "required_merged_track_ids": required_merged_track_ids.issubset(
+            merged_track_ids
+        ),
+        "min_observed_table_frames": (
+            min_observed_table_frames is None
+            or event.get("observed_table_frames", 0)
+            >= int(min_observed_table_frames)
+        ),
+        "max_observed_table_frames": (
+            max_observed_table_frames is None
+            or event.get("observed_table_frames", 0)
+            <= int(max_observed_table_frames)
+        ),
+        "min_coverage_ratio": (
+            min_coverage_ratio is None
+            or event.get("coverage_ratio", 0.0) >= float(min_coverage_ratio)
+        ),
+        "max_coverage_ratio": (
+            max_coverage_ratio is None
+            or event.get("coverage_ratio", 0.0) <= float(max_coverage_ratio)
+        ),
+        "min_room_coverage_ratio": (
+            min_room_coverage_ratio is None
+            or (
+                event.get("room_coverage_ratio") is not None
+                and event.get("room_coverage_ratio")
+                >= float(min_room_coverage_ratio)
+            )
+        ),
+        "max_room_coverage_ratio": (
+            max_room_coverage_ratio is None
+            or (
+                event.get("room_coverage_ratio") is not None
+                and event.get("room_coverage_ratio")
+                <= float(max_room_coverage_ratio)
+            )
+        ),
+        "min_tracking_available_rate": (
+            min_tracking_available_rate is None
+            or (
+                event.get("tracking_available_rate") is not None
+                and event.get("tracking_available_rate")
+                >= float(min_tracking_available_rate)
+            )
+        ),
+        "min_table_team_role_confidence": (
+            min_table_team_role_confidence is None
+            or (
+                event.get("table_team_role_confidence") is not None
+                and event.get("table_team_role_confidence")
+                >= float(min_table_team_role_confidence)
+            )
+        ),
+        "required_label_text": all(
+            fragment in label_text for fragment in required_label_text
+        ),
+        "forbidden_label_text": not any(
+            fragment in label_text for fragment in forbidden_label_text
+        ),
+    }
+    return {
+        "event_type": event["event_type"],
+        "timestamp_s": event["timestamp_s"],
+        "frame_index": event["frame_index"],
+        "stage_segment_index": event["stage_segment_index"],
+        "stage": event["stage"],
+        "stage_label": event["stage_label"],
+        "track_id": event["track_id"],
+        "canonical_table_id": event["canonical_table_id"],
+        "merged_track_ids": event.get("merged_track_ids", []),
+        "dominant_role": event.get("dominant_role"),
+        "table_team_role": event.get("table_team_role"),
+        "table_team_role_confidence": event.get("table_team_role_confidence"),
+        "observed_table_frames": event.get("observed_table_frames"),
+        "coverage_ratio": event.get("coverage_ratio"),
+        "room_coverage_ratio": event.get("room_coverage_ratio"),
+        "tracking_available_rate": event.get("tracking_available_rate"),
+        "label": event.get("label", ""),
         "checks": checks,
         "passed": all(checks.values()),
     }

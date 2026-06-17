@@ -110,6 +110,48 @@
       "required_label_text": "Balloon valvuloplasty"
     }
   ],
+  "table_transition_expectations": [
+    {
+      "event_type": "table_present_at_stage_start",
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "min_events": 2,
+      "min_observed_table_frames": 70,
+      "min_room_coverage_ratio": 0.75,
+      "required_label_text": "Access / sheathing"
+    },
+    {
+      "event_type": "table_present_at_stage_end",
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "min_events": 2,
+      "min_observed_table_frames": 70,
+      "min_room_coverage_ratio": 0.75
+    },
+    {
+      "event_type": "table_entry",
+      "stage": "bav_optional",
+      "stage_segment_index": 2,
+      "role": "table_operator",
+      "min_events": 1,
+      "min_observed_table_frames": 3,
+      "min_room_coverage_ratio": 0.6,
+      "max_coverage_ratio": 0.01,
+      "required_label_text": "table_entry"
+    },
+    {
+      "event_type": "table_exit",
+      "stage": "bav_optional",
+      "stage_segment_index": 2,
+      "role": "table_operator",
+      "min_events": 3,
+      "min_observed_table_frames": 3,
+      "min_room_coverage_ratio": 0.6,
+      "max_coverage_ratio": 0.01
+    }
+  ],
   "stage_evidence_expectations": [
     {
       "stage": "access_sheathing",
