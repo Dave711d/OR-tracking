@@ -7,7 +7,7 @@ that require fluoroscopy, hemodynamics, audio, or procedure logs.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
 
 from .models import Detection
@@ -67,6 +67,77 @@ ROLE_ZONE_MAP: Dict[str, str] = {
 TABLE_ZONES = ("table", "table_left", "table_right", "access")
 
 
+ROLE_DOMINANCE_ORDER = (
+    "access_operator",
+    "table_operator",
+    "device_prep",
+    "imaging",
+    "anesthesia",
+    "entry_supply",
+    "unassigned",
+)
+
+
+@dataclass(frozen=True)
+class TrackRoleSummary:
+    """Persistent role estimate for one tracked person/object."""
+
+    track_id: int
+    dominant_role: str
+    frames_seen: int
+    first_frame: int
+    last_frame: int
+    table_frames: int
+    role_counts: Dict[str, int]
+
+    @property
+    def table_presence_ratio(self) -> float:
+        if self.frames_seen <= 0:
+            return 0.0
+        return self.table_frames / self.frames_seen
+
+    def to_compact(self) -> str:
+        return (
+            f"{self.track_id}:{self.dominant_role}:frames={self.frames_seen}:"
+            f"table={self.table_presence_ratio:.2f}:last={self.last_frame}"
+        )
+
+    def to_who_at_table(self) -> str:
+        return (
+            f"ID {self.track_id} {self.dominant_role} "
+            f"table={self.table_presence_ratio:.0%}"
+        )
+
+
+@dataclass
+class _TrackRoleHistory:
+    track_id: int
+    first_frame: int
+    last_frame: int
+    frames_seen: int = 0
+    table_frames: int = 0
+    role_counts: Dict[str, int] = field(default_factory=dict)
+
+    def update(self, frame_index: int, roles: Sequence[str], at_table: bool) -> None:
+        self.last_frame = frame_index
+        self.frames_seen += 1
+        if at_table:
+            self.table_frames += 1
+        for role in roles or ("unassigned",):
+            self.role_counts[role] = self.role_counts.get(role, 0) + 1
+
+    def snapshot(self) -> TrackRoleSummary:
+        return TrackRoleSummary(
+            track_id=self.track_id,
+            dominant_role=_dominant_role(self.role_counts),
+            frames_seen=self.frames_seen,
+            first_frame=self.first_frame,
+            last_frame=self.last_frame,
+            table_frames=self.table_frames,
+            role_counts=dict(sorted(self.role_counts.items())),
+        )
+
+
 @dataclass(frozen=True)
 class TAVRFrameState:
     """TAVR-specific interpretation attached to one frame."""
@@ -78,16 +149,27 @@ class TAVRFrameState:
     table_track_ids: List[int]
     role_counts: Dict[str, int]
     role_track_ids: Dict[str, List[int]]
+    track_role_summaries: Dict[int, TrackRoleSummary]
     signals: Dict[str, float]
     note: str
 
     def to_row_fields(self) -> Dict[str, object]:
+        track_summaries = [
+            self.track_role_summaries[track_id].to_compact()
+            for track_id in sorted(self.track_role_summaries)
+        ]
+        table_summaries = [
+            self.track_role_summaries[track_id].to_who_at_table()
+            for track_id in self.table_track_ids
+            if track_id in self.track_role_summaries
+        ]
         return {
             "tavr_stage": self.stage,
             "tavr_stage_label": self.stage_label,
             "tavr_confidence": round(float(self.confidence), 3),
             "table_count": self.table_count,
             "table_track_ids": ",".join(str(track_id) for track_id in self.table_track_ids),
+            "who_at_table": "; ".join(table_summaries),
             "role_counts": ",".join(
                 f"{role}:{count}" for role, count in sorted(self.role_counts.items())
             ),
@@ -95,6 +177,7 @@ class TAVRFrameState:
                 f"{role}:{','.join(str(track_id) for track_id in track_ids)}"
                 for role, track_ids in sorted(self.role_track_ids.items())
             ),
+            "track_role_summary": ";".join(track_summaries),
             "tavr_signals": ",".join(
                 f"{name}:{value:.2f}" for name, value in sorted(self.signals.items())
             ),
@@ -106,9 +189,12 @@ class TAVRWorkflowAnalyzer:
     """Small stateful heuristic stage estimator for TAVR-room footage."""
 
     min_confidence_to_advance: float = 0.42
+    advance_margin: float = 0.06
     min_stage_frames: int = 30
     current_stage_index: int = 0
     current_stage_start_frame: int = 0
+    track_histories: Dict[int, _TrackRoleHistory] = field(default_factory=dict)
+    initialized: bool = False
 
     def update(
         self,
@@ -122,9 +208,18 @@ class TAVRWorkflowAnalyzer:
         normalized_role_track_ids = {
             role: sorted(set(track_ids)) for role, track_ids in role_track_ids.items()
         }
+        if not self.initialized:
+            self.current_stage_start_frame = frame_index
+            self.initialized = True
         role_counts = {
             role: len(track_ids) for role, track_ids in normalized_role_track_ids.items()
         }
+        track_role_summaries = self._update_track_histories(
+            detections=detections,
+            table_track_ids=table_track_ids,
+            role_track_ids=normalized_role_track_ids,
+            frame_index=frame_index,
+        )
         signals = _signals(zone_counts, len(detections), movement_px)
         stage_scores = _stage_scores(signals, frame_index)
         stage_index, confidence = self._choose_stage(stage_scores, frame_index)
@@ -140,9 +235,41 @@ class TAVRWorkflowAnalyzer:
             table_track_ids=sorted(set(table_track_ids)),
             role_counts=role_counts,
             role_track_ids=normalized_role_track_ids,
+            track_role_summaries=track_role_summaries,
             signals=signals,
             note=TAVR_STAGE_NOTES[stage],
         )
+
+    def _update_track_histories(
+        self,
+        detections: Sequence[Detection],
+        table_track_ids: Sequence[int],
+        role_track_ids: Mapping[str, Sequence[int]],
+        frame_index: int,
+    ) -> Dict[int, TrackRoleSummary]:
+        roles_by_track: Dict[int, List[str]] = {}
+        for role, track_ids in role_track_ids.items():
+            for track_id in track_ids:
+                roles_by_track.setdefault(track_id, []).append(role)
+
+        table_ids = set(table_track_ids)
+        active_summaries: Dict[int, TrackRoleSummary] = {}
+        for detection in detections:
+            history = self.track_histories.setdefault(
+                detection.track_id,
+                _TrackRoleHistory(
+                    track_id=detection.track_id,
+                    first_frame=frame_index,
+                    last_frame=frame_index,
+                ),
+            )
+            history.update(
+                frame_index=frame_index,
+                roles=roles_by_track.get(detection.track_id, ["unassigned"]),
+                at_table=detection.track_id in table_ids,
+            )
+            active_summaries[detection.track_id] = history.snapshot()
+        return active_summaries
 
     def _choose_stage(self, scores: Mapping[str, float], frame_index: int) -> Tuple[int, float]:
         current_stage = TAVR_STAGE_ORDER[self.current_stage_index]
@@ -159,11 +286,16 @@ class TAVRWorkflowAnalyzer:
             delivery_score = scores.get("valve_delivery_positioning", 0.0)
             if (
                 delivery_score >= self.min_confidence_to_advance
+                and delivery_score > current_score + self.advance_margin
                 and delivery_score > next_score + 0.05
             ):
                 return delivery_index, min(delivery_score, 0.95)
 
-        if next_index > self.current_stage_index and next_score >= self.min_confidence_to_advance:
+        if (
+            next_index > self.current_stage_index
+            and next_score >= self.min_confidence_to_advance
+            and next_score > current_score + self.advance_margin
+        ):
             return next_index, min(next_score, 0.95)
         return self.current_stage_index, min(max(current_score, next_score), 0.9)
 
@@ -263,3 +395,13 @@ def _stage_scores(signals: Mapping[str, float], frame_index: int) -> Dict[str, f
         "post_deploy_assessment": 0.20 + 0.34 * signals["imaging"] + 0.18 * signals["anesthesia"] + 0.08 * signals["table"],
         "closure_finish": 0.18 + 0.38 * signals["access"] + 0.16 * signals["stillness"] + late_bonus,
     }
+
+
+def _dominant_role(role_counts: Mapping[str, int]) -> str:
+    if not role_counts:
+        return "unassigned"
+    priority = {role: index for index, role in enumerate(ROLE_DOMINANCE_ORDER)}
+    return max(
+        role_counts.items(),
+        key=lambda item: (item[1], -priority.get(item[0], len(priority))),
+    )[0]

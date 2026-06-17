@@ -69,6 +69,71 @@ def test_tavr_workflow_can_skip_optional_bav_when_delivery_signal_is_stronger() 
     assert state.stage in TAVR_STAGE_ORDER
 
 
+def test_tavr_workflow_remembers_track_role_history() -> None:
+    analyzer = TAVRWorkflowAnalyzer(min_stage_frames=0)
+    detections = [Detection(7, (10, 10, 20, 40), (20, 30), 700)]
+
+    analyzer.update(
+        detections,
+        {"table": 1},
+        [7],
+        {"table_operator": [7]},
+        0,
+        10,
+    )
+    analyzer.update(
+        detections,
+        {"table": 1},
+        [7],
+        {"table_operator": [7]},
+        1,
+        10,
+    )
+    state = analyzer.update(
+        detections,
+        {"access": 1, "table": 1},
+        [7],
+        {"access_operator": [7]},
+        2,
+        10,
+    )
+
+    summary = state.track_role_summaries[7]
+    assert summary.dominant_role == "table_operator"
+    assert summary.frames_seen == 3
+    assert summary.table_frames == 3
+    assert summary.table_presence_ratio == 1
+
+    row = state.to_row_fields()
+    assert row["who_at_table"] == "ID 7 table_operator table=100%"
+    assert "7:table_operator:frames=3" in row["track_role_summary"]
+
+
+def test_tavr_stage_dwell_uses_first_observed_frame_for_offset_slices() -> None:
+    analyzer = TAVRWorkflowAnalyzer(min_stage_frames=30)
+    detections = [Detection(1, (10, 10, 20, 40), (20, 30), 700)]
+
+    first = analyzer.update(
+        detections,
+        {"access": 2, "table": 1},
+        [1],
+        {"access_operator": [1]},
+        1800,
+        10,
+    )
+    second = analyzer.update(
+        detections,
+        {"access": 2, "table": 1},
+        [1],
+        {"access_operator": [1]},
+        1801,
+        10,
+    )
+
+    assert first.stage == "room_prep_drape"
+    assert second.stage == "room_prep_drape"
+
+
 def test_stage_timeline_groups_contiguous_states() -> None:
     analyzer = TAVRWorkflowAnalyzer(min_stage_frames=0)
     state_a = analyzer.update([], {}, [], {}, 0, 0)

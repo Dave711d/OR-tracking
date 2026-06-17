@@ -10,6 +10,7 @@ const cellSizeInput = document.querySelector("#cellSize");
 const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
+const tableRoster = document.querySelector("#tableRoster");
 const activityMetric = document.querySelector("#activityMetric");
 const elapsedMetric = document.querySelector("#elapsedMetric");
 const entryZone = document.querySelector("#entryZone");
@@ -142,6 +143,16 @@ const ROLE_FILLS = {
 
 const TABLE_SIDE_ZONES = new Set(["access", "table", "table_left", "table_right"]);
 const TABLE_SIDE_ROLES = new Set(["access_operator", "table_operator"]);
+const ROLE_ZONE_PRIORITY = [
+  "access",
+  "device_table",
+  "imaging",
+  "anesthesia",
+  "table_left",
+  "table_right",
+  "table",
+  "entry",
+];
 const SYNTHETIC_CYCLE_SECONDS = TAVR_STAGES.reduce(
   (total, stage) => total + stage.duration,
   0,
@@ -269,6 +280,7 @@ function getTavrStage(elapsed) {
 function buildSyntheticTavrBoxes(elapsed, stage) {
   const boxes = [
     {
+      id: "T1",
       role: "table_operator",
       x: 0.37 + 0.05 * oscillate(elapsed, 0.28),
       y: 0.5 + 0.03 * oscillate(elapsed + 0.4, 0.36),
@@ -276,6 +288,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
       h: 0.22,
     },
     {
+      id: "T2",
       role: "table_operator",
       label: "Table 2",
       x: 0.60 - 0.04 * oscillate(elapsed + 0.8, 0.26),
@@ -284,6 +297,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
       h: 0.21,
     },
     {
+      id: "A1",
       role: "access_operator",
       x: 0.31 + 0.04 * oscillate(elapsed + 2.4, 0.22),
       y: 0.70 + 0.02 * oscillate(elapsed + 0.2, 0.42),
@@ -291,6 +305,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
       h: 0.18,
     },
     {
+      id: "AN1",
       role: "anesthesia",
       x: 0.80 + 0.03 * oscillate(elapsed + 0.9, 0.18),
       y: 0.18 + 0.04 * oscillate(elapsed + 1.8, 0.3),
@@ -298,6 +313,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
       h: 0.2,
     },
     {
+      id: "S1",
       role: "entry_supply",
       x: 0.05 + 0.08 * oscillate(elapsed + 1.6, 0.3),
       y: 0.42 + 0.12 * oscillate(elapsed + 0.5, 0.2),
@@ -305,6 +321,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
       h: 0.21,
     },
     {
+      id: "D1",
       role: "device_prep",
       x: 0.13 + 0.04 * oscillate(elapsed + 0.3, 0.24),
       y: 0.18 + 0.02 * oscillate(elapsed + 1.1, 0.36),
@@ -312,6 +329,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
       h: 0.2,
     },
     {
+      id: "I1",
       role: "imaging",
       x: 0.54 + 0.04 * oscillate(elapsed + 2.3, 0.28),
       y: 0.13 + 0.02 * oscillate(elapsed + 0.7, 0.3),
@@ -502,6 +520,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageLabel = "Uploaded r
   tableSideMetric.textContent = String(summary.tableSide);
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
+  renderTableRoster(summary.tableRoster);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
   tableZone.textContent = String(summary.zones.table);
@@ -539,9 +558,10 @@ function summarizeBoxes(boxes) {
       anesthesia: 0,
       entry_supply: 0,
     },
+    tableRoster: [],
   };
 
-  boxes.forEach((box) => {
+  boxes.forEach((box, index) => {
     const zoneKeys = getZoneKeys(box);
     const roleKey = box.role || inferRoleFromZones(zoneKeys);
     const inferredTableSide = zoneKeys.some((zoneKey) => TABLE_SIDE_ZONES.has(zoneKey));
@@ -551,7 +571,13 @@ function summarizeBoxes(boxes) {
       if (summary.zones[zoneKey] !== undefined) summary.zones[zoneKey] += 1;
     });
     if (roleKey && summary.roles[roleKey] !== undefined) summary.roles[roleKey] += 1;
-    if (isTableSide) summary.tableSide += 1;
+    if (isTableSide) {
+      summary.tableSide += 1;
+      summary.tableRoster.push({
+        id: box.id || `M${index + 1}`,
+        role: roleKey || "motion",
+      });
+    }
   });
 
   return summary;
@@ -566,15 +592,32 @@ function getZoneKeys(box) {
 }
 
 function inferRoleFromZones(zoneKeys) {
-  if (zoneKeys.includes("entry")) return "entry_supply";
-  if (zoneKeys.includes("access")) return "access_operator";
-  if (zoneKeys.includes("table") || zoneKeys.includes("table_left") || zoneKeys.includes("table_right")) {
+  const primaryZone = ROLE_ZONE_PRIORITY.find((zoneKey) => zoneKeys.includes(zoneKey));
+  if (primaryZone === "access") return "access_operator";
+  if (primaryZone === "device_table") return "device_prep";
+  if (primaryZone === "imaging") return "imaging";
+  if (primaryZone === "anesthesia") return "anesthesia";
+  if (primaryZone === "table" || primaryZone === "table_left" || primaryZone === "table_right") {
     return "table_operator";
   }
-  if (zoneKeys.includes("anesthesia")) return "anesthesia";
-  if (zoneKeys.includes("imaging")) return "imaging";
-  if (zoneKeys.includes("device_table")) return "device_prep";
+  if (primaryZone === "entry") return "entry_supply";
   return null;
+}
+
+function renderTableRoster(roster) {
+  tableRoster.replaceChildren();
+  if (!roster.length) {
+    const item = document.createElement("li");
+    item.textContent = "None";
+    tableRoster.append(item);
+    return;
+  }
+  roster.forEach(({ id, role }) => {
+    const item = document.createElement("li");
+    const roleLabel = ROLE_LABELS[role] || role;
+    item.textContent = `${id} - ${roleLabel}`;
+    tableRoster.append(item);
+  });
 }
 
 function resetMetrics(options = {}) {
@@ -584,6 +627,7 @@ function resetMetrics(options = {}) {
   stageMetric.textContent = "Idle";
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";
+  renderTableRoster([]);
   activityMetric.textContent = "0";
   elapsedMetric.textContent = "0.0s";
   entryZone.textContent = "0";

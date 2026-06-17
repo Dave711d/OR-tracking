@@ -37,8 +37,10 @@ For each processed frame, the tracker emits:
 - Stage confidence
 - Table-side count
 - Table-side track IDs
+- Current `who_at_table` roster with track IDs and dominant role estimates
 - Coarse role-zone counts, such as `table_operator`, `access_operator`,
   `imaging`, `device_prep`, and `anesthesia`
+- Per-track role dwell summaries in `track_role_summary`
 - Zone and motion signals used by the heuristic
 
 These values are written to the metrics CSV and shown in Streamlit.
@@ -52,8 +54,40 @@ The current model uses deterministic room-video heuristics:
 - Track IDs from OpenCV motion/contour tracking.
 - Table-side membership based on whether tracked centroids are inside table or
   access zones.
+- Persistent role history per track, so "who is at the table" is reported as
+  stable track IDs with dominant role and table-presence ratio rather than only
+  a transient frame count.
 - A sequential stage model with minimum dwell time so the estimate progresses
   like a procedure timeline rather than flickering frame by frame.
+
+## Test-Footage Evaluation Loop
+
+Use the evaluator for every new clip before changing heuristics:
+
+```bash
+python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
+```
+
+For a long live case, use `--start-s` or `--start-frame` to inspect targeted
+access, deployment, and closure windows without losing source timestamps:
+
+```bash
+python evaluate_tavr.py samples/live_tavr.mp4 --start-s 900 --max-frames 600
+```
+
+The JSON output includes:
+
+- `stage_timeline`: contiguous stage segments with timestamps, peak table
+  counts, and end-of-stage table roster snapshots.
+- `track_role_report`: latest role dwell for every track ID seen in the clip.
+- `current_table_roster`: the most recent table-side roster.
+- `low_confidence_segments`: frame ranges where stage confidence fell below the
+  review threshold.
+- `quality_flags`: warnings for rapid stage progression, early closure,
+  fragmented tracks, or unusually noisy motion detections.
+
+This is the preferred refinement surface for comparing synthetic fixtures,
+downloaded public footage, and future labelled clips.
 
 ## Caveats
 
@@ -61,9 +95,11 @@ This is not a clinical decision system. It is a workflow prototype.
 
 Video alone usually cannot identify named staff, distinguish surgeon from
 interventional cardiologist, confirm internal catheter position, prove rapid
-pacing, or separate balloon valvuloplasty from post-dilation. Those require
-extra context such as fluoroscopy feed, hemodynamics, device logs, audio, case
-metadata, or supervised labels.
+pacing, or separate balloon valvuloplasty from post-dilation. Current "who"
+output means track IDs plus role/zone estimates, not biometric or badge-based
+identity. Stronger identity and stage certainty require extra context such as
+fluoroscopy feed, hemodynamics, device logs, audio, case metadata, or supervised
+labels.
 
 Use the current output as annotation scaffolding and QA instrumentation for test
 footage. Treat low-confidence or visually ambiguous stages as review candidates.

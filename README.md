@@ -13,7 +13,9 @@ added behind the same metrics surface later.
 - Streamlit uploader and tracking dashboard in `app.py`
 - Deterministic video tracker in `or_tracking/`
 - TAVR table-presence and procedure-stage inference
+- Per-track TAVR role dwell, current table roster, and evaluation summaries
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
+- Test-clip evaluator in `evaluate_tavr.py`
 - Browser-only Vercel demo in `public/`
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
@@ -45,6 +47,22 @@ For deterministic TAVR-stage test footage:
 python download_sample.py --tavr-fixture --output samples/tavr_sample.mp4
 ```
 
+To run a repeatable TAVR evaluation pass on any local clip:
+
+```bash
+python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
+```
+
+The evaluator prints JSON with the stage timeline, current table roster,
+per-track role dwell, and low-confidence segments to inspect before changing
+heuristics.
+
+For long cases, evaluate targeted slices while preserving source timestamps:
+
+```bash
+python evaluate_tavr.py samples/live_tavr.mp4 --start-s 900 --max-frames 600
+```
+
 ## Streamlit app
 
 Run the Python prototype locally:
@@ -61,7 +79,9 @@ sample` / `Use TAVR sample`. The app writes:
 
 For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
 `tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`, and
-`tavr_signals`.
+`tavr_signals`. The role/roster layer also emits `who_at_table`,
+`role_track_ids`, and `track_role_summary` so a test run can be audited by track
+ID rather than only by frame-level counts.
 
 ## Vercel static demo
 

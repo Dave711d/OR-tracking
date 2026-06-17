@@ -114,6 +114,8 @@ def _run_analysis(
             f"(confidence {latest.get('tavr_confidence', 0)}) | "
             f"table IDs: {latest.get('table_track_ids', '') or 'none'}"
         )
+        if latest.get("who_at_table"):
+            st.success(f"At table now: {latest['who_at_table']}")
 
     chart_col, table_col = st.columns([3, 2])
     with chart_col:
@@ -131,7 +133,9 @@ def _run_analysis(
                 "tavr_confidence",
                 "table_count",
                 "table_track_ids",
+                "who_at_table",
                 "role_counts",
+                "track_role_summary",
                 "movement_px",
                 "alert_flags",
             ]

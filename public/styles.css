@@ -168,7 +168,8 @@ input[type="range"] {
 }
 
 .metric,
-.count-list div {
+.count-list div,
+.roster-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -180,7 +181,8 @@ input[type="range"] {
 }
 
 .metric span,
-.count-list span {
+.count-list span,
+.roster-card > span {
   color: var(--muted);
   font-size: 13px;
   font-weight: 650;
@@ -197,6 +199,27 @@ input[type="range"] {
   font-size: 18px;
   line-height: 1.15;
   text-align: right;
+}
+
+.roster-card {
+  align-items: flex-start;
+}
+
+.roster-card ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  max-width: 180px;
+  padding: 0;
+  text-align: right;
+}
+
+.roster-card li {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.2;
+  list-style: none;
 }
 
 #sparkline {

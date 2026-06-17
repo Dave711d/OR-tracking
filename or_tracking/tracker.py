@@ -19,6 +19,16 @@ from .tavr import ROLE_ZONE_MAP, TABLE_ZONES, TAVRWorkflowAnalyzer, tavr_default
 
 
 ZoneMap = Mapping[str, Tuple[float, float, float, float]]
+ROLE_ZONE_PRIORITY = (
+    "access",
+    "device_table",
+    "imaging",
+    "anesthesia",
+    "table_left",
+    "table_right",
+    "table",
+    "entry",
+)
 
 
 def _default_zones() -> Dict[str, Tuple[float, float, float, float]]:
@@ -333,20 +343,32 @@ class ORActivityTracker:
             role: [] for role in sorted(set(ROLE_ZONE_MAP.values()))
         }
         for detection in detections:
-            cx = detection.centroid[0] / max(width, 1)
-            cy = detection.centroid[1] / max(height, 1)
-            for zone_name, role in ROLE_ZONE_MAP.items():
-                zone = self.config.zones.get(zone_name)
-                if zone is None:
-                    continue
-                x0, y0, x1, y1 = zone
-                if x0 <= cx <= x1 and y0 <= cy <= y1:
-                    role_track_ids[role].append(detection.track_id)
+            zone_name = self._primary_role_zone(detection, width, height)
+            if zone_name is None:
+                continue
+            role_track_ids[ROLE_ZONE_MAP[zone_name]].append(detection.track_id)
 
         return {
             role: sorted(set(track_ids))
             for role, track_ids in role_track_ids.items()
         }
+
+    def _primary_role_zone(
+        self,
+        detection: Detection,
+        width: int,
+        height: int,
+    ) -> Optional[str]:
+        cx = detection.centroid[0] / max(width, 1)
+        cy = detection.centroid[1] / max(height, 1)
+        for zone_name in ROLE_ZONE_PRIORITY:
+            zone = self.config.zones.get(zone_name)
+            if zone is None:
+                continue
+            x0, y0, x1, y1 = zone
+            if x0 <= cx <= x1 and y0 <= cy <= y1:
+                return zone_name
+        return None
 
     def _alert_flags(
         self, detections: Sequence[Detection], zone_counts: Mapping[str, int]

@@ -30,6 +30,8 @@ def process_video_file(
     output_dir: str | Path = "outputs",
     config: Optional[MotionTrackerConfig] = None,
     max_frames: Optional[int] = None,
+    start_frame: int = 0,
+    start_s: Optional[float] = None,
     write_annotated_video: bool = True,
     progress_callback: Optional[ProgressCallback] = None,
 ) -> TrackingRunResult:
@@ -48,7 +50,14 @@ def process_video_file(
 
     fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
     total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-    frame_limit = _frame_limit(total_frames, max_frames)
+    resolved_start_frame = _start_frame(fps, start_frame, start_s)
+    if resolved_start_frame > 0:
+        capture.set(cv2.CAP_PROP_POS_FRAMES, resolved_start_frame)
+
+    remaining_frames = (
+        max(total_frames - resolved_start_frame, 0) if total_frames > 0 else total_frames
+    )
+    frame_limit = _frame_limit(remaining_frames, max_frames)
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
 
@@ -58,35 +67,36 @@ def process_video_file(
     annotated_path: Optional[Path] = None
 
     if write_annotated_video:
-        annotated_path = output_path / f"{source.stem}_tracked.mp4"
+        annotated_path = output_path / f"{_run_stem(source, resolved_start_frame)}_tracked.mp4"
         writer = _make_writer(annotated_path, fps, width, height)
 
-    frame_index = 0
+    processed_count = 0
     try:
         while True:
             ok, frame = capture.read()
             if not ok:
                 break
-            if frame_limit is not None and frame_index >= frame_limit:
+            if frame_limit is not None and processed_count >= frame_limit:
                 break
 
-            timestamp_s = frame_index / max(fps, 1.0)
-            frame_metrics = tracker.process_frame(frame, frame_index, timestamp_s)
+            source_frame_index = resolved_start_frame + processed_count
+            timestamp_s = source_frame_index / max(fps, 1.0)
+            frame_metrics = tracker.process_frame(frame, source_frame_index, timestamp_s)
             metrics.append(frame_metrics)
 
             if writer is not None:
                 writer.write(tracker.annotate_frame(frame, frame_metrics))
 
-            frame_index += 1
+            processed_count += 1
             if progress_callback:
-                progress_callback(frame_index, frame_limit or total_frames or None)
+                progress_callback(processed_count, frame_limit or remaining_frames or None)
     finally:
         capture.release()
         if writer is not None:
             writer.release()
 
     summary = TrackingSummary.from_metrics(metrics)
-    csv_path = output_path / f"{source.stem}_metrics.csv"
+    csv_path = output_path / f"{_run_stem(source, resolved_start_frame)}_metrics.csv"
     write_metrics_csv(csv_path, metrics)
     return TrackingRunResult(
         input_path=source,
@@ -112,8 +122,10 @@ def write_metrics_csv(path: str | Path, metrics: List[FrameMetrics]) -> None:
         "tavr_confidence",
         "table_count",
         "table_track_ids",
+        "who_at_table",
         "role_counts",
         "role_track_ids",
+        "track_role_summary",
         "tavr_signals",
     ]
     with Path(path).open("w", newline="", encoding="utf-8") as handle:
@@ -138,3 +150,15 @@ def _frame_limit(total_frames: int, max_frames: Optional[int]) -> Optional[int]:
     if total_frames <= 0:
         return max_frames
     return min(total_frames, max_frames)
+
+
+def _start_frame(fps: float, start_frame: int, start_s: Optional[float]) -> int:
+    if start_s is not None:
+        return max(0, int(start_s * max(fps, 1.0)))
+    return max(0, int(start_frame))
+
+
+def _run_stem(source: Path, start_frame: int) -> str:
+    if start_frame <= 0:
+        return source.stem
+    return f"{source.stem}_f{start_frame}"
