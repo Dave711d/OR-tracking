@@ -5,7 +5,13 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from .models import FrameMetrics
-from .tavr import TAVRFrameState, TrackRoleSummary
+from .tavr import (
+    ROLE_DOMINANCE_ORDER,
+    TAVRFrameState,
+    TAVR_STAGE_LABELS,
+    TAVR_STAGE_ORDER,
+    TrackRoleSummary,
+)
 
 
 def summarize_tavr_metrics(
@@ -25,6 +31,8 @@ def summarize_tavr_metrics(
             tavr_metrics,
             min_observed_table_frames=3,
         ),
+        "stage_table_coverage": stage_table_coverage(tavr_metrics),
+        "stage_staffing_summary": stage_staffing_summary(tavr_metrics),
         "low_confidence_segments": low_confidence_segments(
             tavr_metrics,
             threshold=confidence_threshold,
@@ -49,6 +57,10 @@ def score_tavr_metrics(
         "table_presence_score": _table_presence_score(
             tavr_metrics,
             labels.get("table_presence_expectations", []),
+        ),
+        "stage_staffing_score": _stage_staffing_score(
+            tavr_metrics,
+            labels.get("stage_staffing_expectations", []),
         ),
     }
 
@@ -206,6 +218,167 @@ def table_presence_intervals(
         )
     )
     return intervals
+
+
+def stage_staffing_summary(
+    metrics: Sequence[FrameMetrics],
+    min_observed_table_frames: int = 3,
+) -> List[Dict[str, Any]]:
+    """Summarize table-side staffing and role mix for each observed TAVR stage."""
+
+    if not metrics:
+        return []
+
+    sample_period_s = _sample_period_s(metrics)
+    accumulators: Dict[str, Dict[str, Any]] = {}
+    timeline = tavr_stage_timeline(metrics)
+    segment_counts = _counts(item["stage"] for item in timeline)
+
+    for metric in metrics:
+        state = _tavr_state(metric)
+        accumulator = accumulators.setdefault(
+            state.stage,
+            {
+                "stage": state.stage,
+                "stage_label": state.stage_label,
+                "first_frame": metric.frame_index,
+                "last_frame": metric.frame_index,
+                "start_s": metric.timestamp_s,
+                "end_s": metric.timestamp_s,
+                "frames": 0,
+                "table_counts": [],
+                "role_counts": {},
+                "tracks": {},
+            },
+        )
+        accumulator["first_frame"] = min(accumulator["first_frame"], metric.frame_index)
+        accumulator["last_frame"] = max(accumulator["last_frame"], metric.frame_index)
+        accumulator["start_s"] = min(accumulator["start_s"], metric.timestamp_s)
+        accumulator["end_s"] = max(accumulator["end_s"], metric.timestamp_s)
+        accumulator["frames"] += 1
+        accumulator["table_counts"].append(state.table_count)
+        _merge_counts(accumulator["role_counts"], state.role_counts)
+
+        for track_id in state.table_track_ids:
+            role = _role_for_track(state, track_id)
+            track = accumulator["tracks"].setdefault(
+                track_id,
+                {
+                    "track_id": track_id,
+                    "first_frame": metric.frame_index,
+                    "last_frame": metric.frame_index,
+                    "first_s": metric.timestamp_s,
+                    "last_s": metric.timestamp_s,
+                    "observed_table_frames": 0,
+                    "role_counts": {},
+                },
+            )
+            track["first_frame"] = min(track["first_frame"], metric.frame_index)
+            track["last_frame"] = max(track["last_frame"], metric.frame_index)
+            track["first_s"] = min(track["first_s"], metric.timestamp_s)
+            track["last_s"] = max(track["last_s"], metric.timestamp_s)
+            track["observed_table_frames"] += 1
+            track["role_counts"][role] = track["role_counts"].get(role, 0) + 1
+
+    summaries: List[Dict[str, Any]] = []
+    for stage, accumulator in accumulators.items():
+        table_counts = accumulator["table_counts"]
+        frames = accumulator["frames"]
+        table_roster = [
+            _stage_staffing_track_item(track, frames, sample_period_s)
+            for track in accumulator["tracks"].values()
+            if track["observed_table_frames"] >= min_observed_table_frames
+        ]
+        table_roster.sort(
+            key=lambda item: (
+                -item["observed_table_frames"],
+                item["first_s"],
+                item["track_id"],
+            )
+        )
+        summaries.append(
+            {
+                "stage": stage,
+                "stage_label": accumulator["stage_label"],
+                "segment_count": segment_counts.get(stage, 0),
+                "start_frame": accumulator["first_frame"],
+                "end_frame": accumulator["last_frame"],
+                "start_s": round(float(accumulator["start_s"]), 3),
+                "end_s": round(float(accumulator["end_s"]), 3),
+                "duration_s": round(
+                    float(
+                        max(
+                            0.0,
+                            accumulator["end_s"]
+                            - accumulator["start_s"]
+                            + sample_period_s,
+                        )
+                    ),
+                    3,
+                ),
+                "frames": frames,
+                "mean_table_count": (
+                    round(sum(table_counts) / len(table_counts), 3)
+                    if table_counts
+                    else None
+                ),
+                "peak_table_count": max(table_counts) if table_counts else 0,
+                "table_occupancy_rate": _ratio(
+                    sum(1 for count in table_counts if count > 0),
+                    len(table_counts),
+                ),
+                "table_count_distribution": _counts(str(count) for count in table_counts),
+                "role_counts": dict(sorted(accumulator["role_counts"].items())),
+                "unique_table_track_count": len(accumulator["tracks"]),
+                "table_roster": table_roster,
+            }
+        )
+
+    order = {stage: index for index, stage in enumerate(TAVR_STAGE_ORDER)}
+    summaries.sort(
+        key=lambda item: (
+            item["start_s"],
+            order.get(item["stage"], len(order)),
+        )
+    )
+    return summaries
+
+
+def stage_table_coverage(
+    metrics: Sequence[FrameMetrics],
+    min_observed_table_frames: int = 1,
+) -> List[Dict[str, Any]]:
+    """Return table-side track coverage rows split by contiguous TAVR stage."""
+
+    if not metrics:
+        return []
+
+    rows: List[Dict[str, Any]] = []
+    active_state = _tavr_state(metrics[0])
+    segment_start = 0
+    segment_index = 0
+    for index, metric in enumerate(metrics[1:], start=1):
+        state = _tavr_state(metric)
+        if state.stage != active_state.stage:
+            rows.extend(
+                _stage_table_coverage_rows(
+                    metrics[segment_start:index],
+                    segment_index=segment_index,
+                    min_observed_table_frames=min_observed_table_frames,
+                )
+            )
+            segment_index += 1
+            segment_start = index
+            active_state = state
+
+    rows.extend(
+        _stage_table_coverage_rows(
+            metrics[segment_start:],
+            segment_index=segment_index,
+            min_observed_table_frames=min_observed_table_frames,
+        )
+    )
+    return rows
 
 
 def _roster_from_state(state: TAVRFrameState) -> List[Dict[str, Any]]:
@@ -523,6 +696,90 @@ def _table_presence_score(
     }
 
 
+def _stage_staffing_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    stage_summaries = {
+        item["stage"]: item
+        for item in stage_staffing_summary(metrics, min_observed_table_frames=1)
+    }
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        stage = str(expectation["stage"])
+        role = expectation.get("role")
+        min_tracks = int(expectation.get("min_tracks", 0))
+        min_observed_table_frames = int(expectation.get("min_observed_table_frames", 1))
+        min_peak_count = expectation.get("min_peak_count")
+        min_mean_count = expectation.get("min_mean_count")
+        min_table_occupancy_rate = expectation.get("min_table_occupancy_rate")
+        stage_summary = stage_summaries.get(stage)
+        matching_roster = []
+        if stage_summary is not None:
+            matching_roster = [
+                track
+                for track in stage_summary["table_roster"]
+                if (role is None or track["dominant_role"] == role)
+                and track["observed_table_frames"] >= min_observed_table_frames
+            ]
+
+        checks = {
+            "stage_present": stage_summary is not None,
+            "min_tracks": len(matching_roster) >= min_tracks,
+            "min_peak_count": (
+                min_peak_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["peak_table_count"] >= min_peak_count
+                )
+            ),
+            "min_mean_count": (
+                min_mean_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["mean_table_count"] is not None
+                    and stage_summary["mean_table_count"] >= min_mean_count
+                )
+            ),
+            "min_table_occupancy_rate": (
+                min_table_occupancy_rate is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["table_occupancy_rate"] is not None
+                    and stage_summary["table_occupancy_rate"] >= min_table_occupancy_rate
+                )
+            ),
+        }
+        expectation_pass = all(checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "stage": stage,
+                "stage_label": TAVR_STAGE_LABELS.get(stage, stage),
+                "role": role,
+                "min_tracks": min_tracks,
+                "min_observed_table_frames": min_observed_table_frames,
+                "min_peak_count": min_peak_count,
+                "min_mean_count": min_mean_count,
+                "min_table_occupancy_rate": min_table_occupancy_rate,
+                "matched_tracks": matching_roster,
+                "matched_track_count": len(matching_roster),
+                "checks": checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _table_observations(
     metrics: Sequence[FrameMetrics],
 ) -> Dict[int, List[Dict[str, Any]]]:
@@ -608,6 +865,144 @@ def _interval_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
     return roster
 
 
+def _stage_staffing_track_item(
+    track: Dict[str, Any],
+    stage_frames: int,
+    sample_period_s: float,
+) -> Dict[str, Any]:
+    role_counts = dict(sorted(track["role_counts"].items()))
+    dominant_role = _dominant_role_from_counts(role_counts)
+    observed_frames = track["observed_table_frames"]
+    estimated_duration_s = observed_frames * sample_period_s
+    return {
+        "track_id": track["track_id"],
+        "dominant_role": dominant_role,
+        "observed_table_frames": observed_frames,
+        "stage_table_presence_ratio": _ratio(observed_frames, stage_frames),
+        "estimated_table_duration_s": round(float(estimated_duration_s), 3),
+        "first_frame": track["first_frame"],
+        "last_frame": track["last_frame"],
+        "first_s": round(float(track["first_s"]), 3),
+        "last_s": round(float(track["last_s"]), 3),
+        "role_counts": role_counts,
+        "label": (
+            f"ID {track['track_id']} {dominant_role} "
+            f"frames={observed_frames}"
+        ),
+    }
+
+
+def _stage_table_coverage_rows(
+    segment_metrics: Sequence[FrameMetrics],
+    segment_index: int,
+    min_observed_table_frames: int,
+) -> List[Dict[str, Any]]:
+    if not segment_metrics:
+        return []
+
+    stage_state = _tavr_state(segment_metrics[0])
+    stage_start = segment_metrics[0]
+    stage_end = segment_metrics[-1]
+    stage_frames = len(segment_metrics)
+    sample_period_s = _sample_period_s(segment_metrics)
+    stage_duration_s = max(
+        0.0,
+        stage_end.timestamp_s - stage_start.timestamp_s + sample_period_s,
+    )
+    tracks: Dict[int, Dict[str, Any]] = {}
+
+    for metric in segment_metrics:
+        state = _tavr_state(metric)
+        for track_id in state.table_track_ids:
+            role = _role_for_track(state, track_id)
+            track = tracks.setdefault(
+                track_id,
+                {
+                    "track_id": track_id,
+                    "first_frame": metric.frame_index,
+                    "last_frame": metric.frame_index,
+                    "first_s": metric.timestamp_s,
+                    "last_s": metric.timestamp_s,
+                    "observed_table_frames": 0,
+                    "role_counts": {},
+                },
+            )
+            track["first_frame"] = min(track["first_frame"], metric.frame_index)
+            track["last_frame"] = max(track["last_frame"], metric.frame_index)
+            track["first_s"] = min(track["first_s"], metric.timestamp_s)
+            track["last_s"] = max(track["last_s"], metric.timestamp_s)
+            track["observed_table_frames"] += 1
+            track["role_counts"][role] = track["role_counts"].get(role, 0) + 1
+
+    rows = []
+    for track in tracks.values():
+        if track["observed_table_frames"] < min_observed_table_frames:
+            continue
+        role_counts = dict(sorted(track["role_counts"].items()))
+        dominant_role = _dominant_role_from_counts(role_counts)
+        coverage_ratio = _ratio(track["observed_table_frames"], stage_frames)
+        estimated_duration_s = track["observed_table_frames"] * sample_period_s
+        row = {
+            "stage_segment_index": segment_index,
+            "stage": stage_state.stage,
+            "stage_label": stage_state.stage_label,
+            "stage_start_frame": stage_start.frame_index,
+            "stage_end_frame": stage_end.frame_index,
+            "stage_start_s": round(float(stage_start.timestamp_s), 3),
+            "stage_end_s": round(float(stage_end.timestamp_s), 3),
+            "stage_duration_s": round(float(stage_duration_s), 3),
+            "track_id": track["track_id"],
+            "dominant_role": dominant_role,
+            "observed_table_frames": track["observed_table_frames"],
+            "first_seen_frame": track["first_frame"],
+            "last_seen_frame": track["last_frame"],
+            "first_seen_s": round(float(track["first_s"]), 3),
+            "last_seen_s": round(float(track["last_s"]), 3),
+            "coverage_ratio": coverage_ratio,
+            "estimated_table_duration_s": round(float(estimated_duration_s), 3),
+            "entered_during_stage": track["first_frame"] > stage_start.frame_index,
+            "exited_during_stage": track["last_frame"] < stage_end.frame_index,
+            "role_counts": role_counts,
+        }
+        row["spans_full_stage"] = (
+            not row["entered_during_stage"] and not row["exited_during_stage"]
+        )
+        row["label"] = (
+            f"{row['stage_label']}: ID {track['track_id']} {dominant_role} "
+            f"{coverage_ratio:.0%}"
+        )
+        rows.append(row)
+
+    rows.sort(
+        key=lambda item: (
+            item["stage_start_s"],
+            item["track_id"],
+            -item["observed_table_frames"],
+        )
+    )
+    return rows
+
+
+def _role_for_track(state: TAVRFrameState, track_id: int) -> str:
+    roles = [
+        role
+        for role, track_ids in state.role_track_ids.items()
+        if track_id in track_ids
+    ]
+    if roles:
+        priority = {role: index for index, role in enumerate(ROLE_DOMINANCE_ORDER)}
+        return min(roles, key=lambda role: priority.get(role, len(priority)))
+    summary = state.track_role_summaries.get(track_id)
+    if summary is not None:
+        return summary.dominant_role
+    return "unassigned"
+
+
+def _merge_counts(target: Dict[str, int], source: Dict[str, int]) -> None:
+    for key, value in source.items():
+        target[key] = target.get(key, 0) + value
+
+
 def _counts(values: Iterable[str]) -> Dict[str, int]:
     counts: Dict[str, int] = {}
     for value in values:
@@ -619,6 +1014,16 @@ def _dominant_from_counts(counts: Dict[str, int]) -> str:
     if not counts:
         return "unassigned"
     return max(counts.items(), key=lambda item: (item[1], item[0]))[0]
+
+
+def _dominant_role_from_counts(counts: Dict[str, int]) -> str:
+    if not counts:
+        return "unassigned"
+    priority = {role: index for index, role in enumerate(ROLE_DOMINANCE_ORDER)}
+    return max(
+        counts.items(),
+        key=lambda item: (item[1], -priority.get(item[0], len(priority))),
+    )[0]
 
 
 def _sample_period_s(metrics: Sequence[FrameMetrics]) -> float:

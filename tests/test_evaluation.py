@@ -7,6 +7,7 @@ from evaluate_tavr import parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
     score_tavr_metrics,
+    stage_table_coverage,
     summarize_tavr_metrics,
     table_presence_intervals,
 )
@@ -40,6 +41,8 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["peak_table_roster"]["roster"]
     assert summary["table_presence_roster"]
     assert summary["table_presence_intervals"]
+    assert summary["stage_table_coverage"]
+    assert summary["stage_staffing_summary"]
     assert any(
         item["table_presence_roster"]
         for item in summary["stage_timeline"]
@@ -87,6 +90,30 @@ def test_table_presence_intervals_group_by_track_and_gap() -> None:
     assert intervals[2]["dominant_role"] == "table_operator"
 
 
+def test_stage_table_coverage_splits_tracks_by_stage_segment() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(4, 0.4, "valve_deployment", [8]),
+    ]
+
+    coverage = stage_table_coverage(metrics)
+
+    assert [(item["stage"], item["track_id"]) for item in coverage] == [
+        ("access_sheathing", 7),
+        ("valve_deployment", 7),
+        ("valve_deployment", 8),
+    ]
+    assert coverage[0]["spans_full_stage"] is True
+    assert coverage[1]["coverage_ratio"] == 0.667
+    assert coverage[1]["entered_during_stage"] is False
+    assert coverage[1]["exited_during_stage"] is True
+    assert coverage[2]["entered_during_stage"] is True
+    assert coverage[2]["exited_during_stage"] is False
+
+
 def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -115,6 +142,16 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_observed_table_frames": 3,
             }
         ],
+        "stage_staffing_expectations": [
+            {
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "min_tracks": 2,
+                "min_observed_table_frames": 2,
+                "min_peak_count": 2,
+                "min_table_occupancy_rate": 1.0,
+            }
+        ],
     }
 
     score = score_tavr_metrics(metrics, labels)
@@ -125,6 +162,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["table_count_score"]["pass_rate"] == 1.0
     assert score["table_presence_score"]["pass_rate"] == 1.0
     assert score["table_presence_score"]["expectations"][0]["matched_count"] == 1
+    assert score["stage_staffing_score"]["pass_rate"] == 1.0
+    assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
 
 
 def test_parse_roi_accepts_normalized_crop() -> None:

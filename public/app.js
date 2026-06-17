@@ -11,6 +11,7 @@ const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
+const stageCoverageList = document.querySelector("#stageCoverageList");
 const activityMetric = document.querySelector("#activityMetric");
 const elapsedMetric = document.querySelector("#elapsedMetric");
 const entryZone = document.querySelector("#entryZone");
@@ -160,6 +161,7 @@ const SYNTHETIC_CYCLE_SECONDS = TAVR_STAGES.reduce(
 
 let previousFrame = null;
 let activityHistory = [];
+let stageCoverage = new Map();
 let rafId = null;
 let syntheticMode = false;
 let syntheticStartedAt = 0;
@@ -252,7 +254,10 @@ function analyzeFrame() {
   if (activityHistory.length > 80) activityHistory.shift();
 
   drawOverlay(boxes, activity, { label: "Uploaded review", progress: 0 });
-  updateMetrics(boxes, activity, video.currentTime, "Uploaded review");
+  updateMetrics(boxes, activity, video.currentTime, {
+    key: "uploaded_review",
+    label: "Uploaded review",
+  });
 }
 
 function analyzeSyntheticFrame() {
@@ -263,7 +268,7 @@ function analyzeSyntheticFrame() {
   activityHistory.push(activity);
   if (activityHistory.length > 80) activityHistory.shift();
   drawOverlay(boxes, activity, stage);
-  updateMetrics(boxes, activity, elapsed, stage.label);
+  updateMetrics(boxes, activity, elapsed, stage);
 }
 
 function getTavrStage(elapsed) {
@@ -513,14 +518,16 @@ function drawSparkline(activity) {
   sparkCtx.stroke();
 }
 
-function updateMetrics(boxes, activity, elapsedSeconds, stageLabel = "Uploaded review") {
+function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded review") {
+  const stage = normalizeStage(stageInput);
   const summary = summarizeBoxes(boxes);
-  stageMetric.textContent = stageLabel;
+  stageMetric.textContent = stage.label;
   countMetric.textContent = String(boxes.length);
   tableSideMetric.textContent = String(summary.tableSide);
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
   renderTableRoster(summary.tableRoster);
+  updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
   tableZone.textContent = String(summary.zones.table);
@@ -535,6 +542,16 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageLabel = "Uploaded r
   imagingRole.textContent = String(summary.roles.imaging);
   anesthesiaRole.textContent = String(summary.roles.anesthesia);
   entryRole.textContent = String(summary.roles.entry_supply);
+}
+
+function normalizeStage(stageInput) {
+  if (typeof stageInput === "string") {
+    return { key: stageInput.toLowerCase().replaceAll(/\s+/g, "_"), label: stageInput };
+  }
+  return {
+    key: stageInput.key || stageInput.label.toLowerCase().replaceAll(/\s+/g, "_"),
+    label: stageInput.label,
+  };
 }
 
 function summarizeBoxes(boxes) {
@@ -604,6 +621,53 @@ function inferRoleFromZones(zoneKeys) {
   return null;
 }
 
+function updateStageCoverage(stage, roster, elapsedSeconds) {
+  roster.forEach(({ id, role }) => {
+    const key = `${stage.key}:${id}`;
+    const item = stageCoverage.get(key) || {
+      stageKey: stage.key,
+      stageLabel: stage.label,
+      id,
+      role,
+      frames: 0,
+      firstSeen: elapsedSeconds,
+      lastSeen: elapsedSeconds,
+    };
+    item.role = role;
+    item.frames += 1;
+    item.firstSeen = Math.min(item.firstSeen, elapsedSeconds);
+    item.lastSeen = Math.max(item.lastSeen, elapsedSeconds);
+    stageCoverage.set(key, item);
+  });
+  renderStageCoverage();
+}
+
+function renderStageCoverage() {
+  stageCoverageList.replaceChildren();
+  const items = [...stageCoverage.values()]
+    .sort((a, b) => b.frames - a.frames || a.firstSeen - b.firstSeen)
+    .slice(0, 8);
+
+  if (!items.length) {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    label.textContent = "None yet";
+    row.append(label);
+    stageCoverageList.append(row);
+    return;
+  }
+
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    label.textContent = `${item.stageLabel}: ${item.id} ${ROLE_LABELS[item.role] || item.role}`;
+    value.textContent = `${item.frames}f ${item.firstSeen.toFixed(1)}-${item.lastSeen.toFixed(1)}s`;
+    row.append(label, value);
+    stageCoverageList.append(row);
+  });
+}
+
 function renderTableRoster(roster) {
   tableRoster.replaceChildren();
   if (!roster.length) {
@@ -624,10 +688,12 @@ function resetMetrics(options = {}) {
   if (!options.keepSyntheticMode) syntheticMode = false;
   previousFrame = null;
   activityHistory = [];
+  stageCoverage = new Map();
   stageMetric.textContent = "Idle";
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";
   renderTableRoster([]);
+  renderStageCoverage();
   activityMetric.textContent = "0";
   elapsedMetric.textContent = "0.0s";
   entryZone.textContent = "0";

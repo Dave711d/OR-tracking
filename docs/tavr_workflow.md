@@ -107,12 +107,20 @@ The JSON output includes:
   in the clip, useful when the final frames are still or empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
   and end timestamps, observed table frames, dominant role, and dominant stage.
+- `stage_table_coverage`: one row per table-side track per contiguous stage
+  segment, including stage start/end, first/last seen timestamps, coverage
+  ratio, dominant role, and whether the track entered or exited during the
+  stage.
+- `stage_staffing_summary`: one compact row per observed stage with duration,
+  mean/peak table count, table occupancy, role mix, and the meaningful
+  table-side roster for that stage.
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
 - `quality_flags`: warnings for rapid stage progression, early closure,
   fragmented tracks, or unusually noisy motion detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
-  count range pass rates, and table-presence expectation pass rates.
+  count range pass rates, table-presence expectation pass rates, and
+  stage-staffing expectation pass rates.
 
 This is the preferred refinement surface for comparing synthetic fixtures,
 downloaded public footage, and future labelled clips.
@@ -139,6 +147,9 @@ The label file can include:
   `min_peak_count` when the requirement is that the table count reaches a peak
   during the window.
 - `table_presence_expectations`: expected role-specific table-side intervals.
+- `stage_staffing_expectations`: expected table-side staffing within a stage,
+  such as minimum table-operator tracks, minimum observed table frames, minimum
+  stage peak count, mean table count, or table-occupancy rate.
 
 Labels are deliberately lightweight JSON so they can be hand-authored from
 public clips, broadcast timestamps, or future labelled theatre footage.

@@ -169,6 +169,7 @@ input[type="range"] {
 
 .metric,
 .count-list div,
+.coverage-list div,
 .roster-card {
   display: flex;
   align-items: center;
@@ -248,9 +249,35 @@ input[type="range"] {
   gap: 8px;
 }
 
-.count-list b {
+.coverage-list {
+  display: grid;
+  gap: 8px;
+}
+
+.coverage-list div {
+  align-items: flex-start;
+  padding: 10px 12px;
+}
+
+.coverage-list span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.count-list b,
+.coverage-list b {
   color: var(--warn);
   font-size: 18px;
+}
+
+.coverage-list b {
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: right;
+  white-space: nowrap;
 }
 
 @media (max-width: 900px) {

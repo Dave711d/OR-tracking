@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
@@ -172,6 +172,35 @@ def _run_analysis(
             st.success(f"At table now: {latest['who_at_table']}")
 
     tavr_summary = summarize_tavr_metrics(result.metrics)
+    staffing = tavr_summary.get("stage_staffing_summary", [])
+    if staffing:
+        st.subheader("Stage staffing summary")
+        st.dataframe(
+            pd.DataFrame(_stage_staffing_rows(staffing)),
+            width="stretch",
+            hide_index=True,
+        )
+
+    coverage = tavr_summary.get("stage_table_coverage", [])
+    if coverage:
+        st.subheader("Stage table coverage")
+        coverage_columns = [
+            "stage_label",
+            "track_id",
+            "dominant_role",
+            "coverage_ratio",
+            "observed_table_frames",
+            "first_seen_s",
+            "last_seen_s",
+            "entered_during_stage",
+            "exited_during_stage",
+        ]
+        st.dataframe(
+            pd.DataFrame(coverage)[coverage_columns].head(40),
+            width="stretch",
+            hide_index=True,
+        )
+
     intervals = tavr_summary.get("table_presence_intervals", [])
     if intervals:
         st.subheader("Table presence intervals")
@@ -242,6 +271,34 @@ def _run_analysis(
     if result.annotated_video_path and result.annotated_video_path.exists():
         st.subheader("Annotated output")
         st.video(str(result.annotated_video_path))
+
+
+def _stage_staffing_rows(staffing: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in staffing:
+        roster = "; ".join(
+            track["label"] for track in item.get("table_roster", [])[:6]
+        )
+        rows.append(
+            {
+                "stage_label": item["stage_label"],
+                "duration_s": item["duration_s"],
+                "frames": item["frames"],
+                "mean_table_count": item["mean_table_count"],
+                "peak_table_count": item["peak_table_count"],
+                "table_occupancy_rate": item["table_occupancy_rate"],
+                "unique_table_track_count": item["unique_table_track_count"],
+                "role_mix": _count_label(item.get("role_counts", {})),
+                "table_roster": roster or "none",
+            }
+        )
+    return rows
+
+
+def _count_label(counts: dict[str, int]) -> str:
+    return ", ".join(
+        f"{key}:{value}" for key, value in sorted(counts.items()) if value
+    )
 
 
 if __name__ == "__main__":

@@ -54,8 +54,9 @@ python evaluate_tavr.py samples/tavr_sample.mp4 --max-frames 360
 ```
 
 The evaluator prints JSON with the stage timeline, current and peak table
-rosters, per-track role dwell, table-presence intervals, and low-confidence
-segments to inspect before changing heuristics.
+rosters, per-track role dwell, table-presence intervals, stage-by-stage table
+coverage, stage staffing summaries, and low-confidence segments to inspect
+before changing heuristics.
 
 To compare output against expected stage/table labels:
 
@@ -101,8 +102,10 @@ streamlit run app.py --server.headless true
 Open the local URL Streamlit prints, upload a video, or click `Use synthetic
 sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
-The app shows the latest table roster plus a `Table presence intervals` table
-with track ID, dominant role/stage, start/end time, and observed table frames.
+The app shows the latest table roster plus `Stage staffing summary`,
+`Stage table coverage`, and `Table presence intervals` tables. Together these
+show which track IDs were table-side in each TAVR phase, how long they were
+present, their dominant role, and whether they entered or exited during a stage.
 It also writes:
 
 - `outputs/*_metrics.csv`
