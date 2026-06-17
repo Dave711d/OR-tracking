@@ -74,6 +74,19 @@
       "max_table_count": 0
     }
   ],
+  "stage_roster_expectations": [
+    {
+      "stage": "access_sheathing",
+      "role": "table_operator",
+      "handoff_type": "initial_table_roster",
+      "lead_role": "table_operator",
+      "min_tracks": 2,
+      "min_peak_table_count": 2,
+      "min_canonical_table_identity_count": 2,
+      "min_tracking_available_rate": 0.9,
+      "evidence_level": "moderate_visual_support"
+    }
+  ],
   "stage_evidence_expectations": [
     {
       "stage": "access_sheathing",

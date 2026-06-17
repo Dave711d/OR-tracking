@@ -26,6 +26,7 @@ DEFAULT_THRESHOLDS = {
     "table_presence_pass_rate": 1.0,
     "stage_staffing_pass_rate": 1.0,
     "stage_handoff_pass_rate": 1.0,
+    "stage_roster_pass_rate": 1.0,
     "stage_evidence_pass_rate": 1.0,
     "procedure_milestone_pass_rate": 1.0,
     "procedure_status_pass_rate": 1.0,
@@ -226,6 +227,11 @@ def _score_summary(
             "stage_handoff_pass_rate",
             label_score["stage_handoff_score"]["pass_rate"],
             thresholds["stage_handoff_pass_rate"],
+        ),
+        _threshold_check(
+            "stage_roster_pass_rate",
+            label_score["stage_roster_score"]["pass_rate"],
+            thresholds["stage_roster_pass_rate"],
         ),
         _threshold_check(
             "stage_evidence_pass_rate",

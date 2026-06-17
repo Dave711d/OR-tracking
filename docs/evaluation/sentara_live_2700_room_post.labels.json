@@ -66,6 +66,20 @@
       "min_tracking_available_rate": 0.45
     }
   ],
+  "stage_roster_expectations": [
+    {
+      "stage": "closure_finish",
+      "role": "table_operator",
+      "handoff_type": "roster_added",
+      "lead_role": "table_operator",
+      "min_tracks": 3,
+      "min_peak_table_count": 4,
+      "min_new_tracks": 4,
+      "min_continued_tracks": 1,
+      "min_tracking_available_rate": 0.4,
+      "evidence_level": "weak_visual_support"
+    }
+  ],
   "event_timeline_expectations": [
     {
       "event_type": "stage_started",

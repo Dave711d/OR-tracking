@@ -487,6 +487,10 @@ def score_tavr_metrics(
             tavr_metrics,
             labels.get("stage_handoff_expectations", []),
         ),
+        "stage_roster_score": _stage_roster_score(
+            tavr_metrics,
+            labels.get("stage_roster_expectations", []),
+        ),
         "stage_evidence_score": _stage_evidence_score(
             tavr_metrics,
             labels.get("stage_evidence_expectations", []),
@@ -3131,6 +3135,57 @@ def _stage_handoff_score(
     }
 
 
+def _stage_roster_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    rows = stage_roster_summary(metrics, min_observed_table_frames=1)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        stage = expectation.get("stage")
+        stage_segment_index = expectation.get("stage_segment_index")
+        candidates = [
+            row
+            for row in rows
+            if (stage is None or row["stage"] == stage)
+            and (
+                stage_segment_index is None
+                or row["stage_segment_index"] == int(stage_segment_index)
+            )
+            and _stage_row_overlaps_expectation(row, expectation)
+        ]
+        scored_candidates = [
+            _score_stage_roster_candidate(row, expectation)
+            for row in candidates
+        ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "stage": stage,
+                "stage_segment_index": stage_segment_index,
+                "handoff_types": sorted(_expected_handoff_types(expectation)) or None,
+                "evidence_levels": sorted(_expected_evidence_levels(expectation))
+                or None,
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _stage_evidence_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -3543,6 +3598,180 @@ def _score_stage_evidence_candidate(
         "room_view_frames": row["room_view_frames"],
         "non_room_view_frames": row["non_room_view_frames"],
         "support_label": row["support_label"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _stage_row_overlaps_expectation(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> bool:
+    start_s = float(expectation.get("start_s", float("-inf")))
+    end_s = float(expectation.get("end_s", float("inf")))
+    return row["start_s"] <= end_s and row["end_s"] >= start_s
+
+
+def _score_stage_roster_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    expected_handoff_types = _expected_handoff_types(expectation)
+    expected_evidence_levels = _expected_evidence_levels(expectation)
+    role = expectation.get("role") or expectation.get("table_team_role")
+    dominant_role = expectation.get("dominant_role")
+    lead_role = expectation.get("lead_role") or expectation.get("lead_table_team_role")
+    lead_dominant_role = expectation.get("lead_dominant_role")
+    active_roster = row.get("active_table_roster", [])
+    active_matches = _roster_role_matches(active_roster, role, dominant_role)
+    lead = active_roster[0] if active_roster else None
+
+    min_tracks = expectation.get("min_tracks", expectation.get("min_active_tracks"))
+    max_tracks = expectation.get("max_tracks", expectation.get("max_active_tracks"))
+    min_peak_table_count = expectation.get("min_peak_table_count")
+    max_peak_table_count = expectation.get("max_peak_table_count")
+    min_canonical_table_identity_count = expectation.get(
+        "min_canonical_table_identity_count"
+    )
+    max_canonical_table_identity_count = expectation.get(
+        "max_canonical_table_identity_count"
+    )
+    min_continued_tracks = expectation.get("min_continued_tracks")
+    min_new_tracks = expectation.get("min_new_tracks")
+    min_dropped_tracks = expectation.get("min_dropped_tracks")
+    min_within_stage_entry_tracks = expectation.get("min_within_stage_entry_tracks")
+    min_within_stage_exit_tracks = expectation.get("min_within_stage_exit_tracks")
+    min_tracking_available_rate = expectation.get("min_tracking_available_rate")
+    min_observable_rate = expectation.get("min_observable_rate")
+    max_observable_rate = expectation.get("max_observable_rate")
+    min_mean_confidence = expectation.get("min_mean_confidence")
+    max_mean_confidence = expectation.get("max_mean_confidence")
+    required_active_track_ids = {
+        int(track_id) for track_id in expectation.get("required_active_track_ids", [])
+    }
+    active_track_ids = {int(track_id) for track_id in row["active_table_track_ids"]}
+    checks = {
+        "handoff_type": (
+            not expected_handoff_types
+            or row["handoff_type"] in expected_handoff_types
+        ),
+        "evidence_level": (
+            not expected_evidence_levels
+            or row.get("evidence_level") in expected_evidence_levels
+        ),
+        "min_tracks": min_tracks is None or len(active_matches) >= int(min_tracks),
+        "max_tracks": max_tracks is None or len(active_matches) <= int(max_tracks),
+        "min_peak_table_count": (
+            min_peak_table_count is None
+            or row["peak_table_count"] >= int(min_peak_table_count)
+        ),
+        "max_peak_table_count": (
+            max_peak_table_count is None
+            or row["peak_table_count"] <= int(max_peak_table_count)
+        ),
+        "min_canonical_table_identity_count": (
+            min_canonical_table_identity_count is None
+            or row["canonical_table_identity_count"]
+            >= int(min_canonical_table_identity_count)
+        ),
+        "max_canonical_table_identity_count": (
+            max_canonical_table_identity_count is None
+            or row["canonical_table_identity_count"]
+            <= int(max_canonical_table_identity_count)
+        ),
+        "min_continued_tracks": (
+            min_continued_tracks is None
+            or len(row["continued_track_ids"]) >= int(min_continued_tracks)
+        ),
+        "min_new_tracks": (
+            min_new_tracks is None
+            or len(row["new_track_ids"]) >= int(min_new_tracks)
+        ),
+        "min_dropped_tracks": (
+            min_dropped_tracks is None
+            or len(row["dropped_track_ids"]) >= int(min_dropped_tracks)
+        ),
+        "min_within_stage_entry_tracks": (
+            min_within_stage_entry_tracks is None
+            or len(row["within_stage_entry_track_ids"])
+            >= int(min_within_stage_entry_tracks)
+        ),
+        "min_within_stage_exit_tracks": (
+            min_within_stage_exit_tracks is None
+            or len(row["within_stage_exit_track_ids"])
+            >= int(min_within_stage_exit_tracks)
+        ),
+        "min_tracking_available_rate": (
+            min_tracking_available_rate is None
+            or (
+                row["tracking_available_rate"] is not None
+                and row["tracking_available_rate"]
+                >= float(min_tracking_available_rate)
+            )
+        ),
+        "min_observable_rate": (
+            min_observable_rate is None
+            or (
+                row["observable_rate"] is not None
+                and row["observable_rate"] >= float(min_observable_rate)
+            )
+        ),
+        "max_observable_rate": (
+            max_observable_rate is None
+            or (
+                row["observable_rate"] is not None
+                and row["observable_rate"] <= float(max_observable_rate)
+            )
+        ),
+        "min_mean_confidence": (
+            min_mean_confidence is None
+            or (
+                row["mean_confidence"] is not None
+                and row["mean_confidence"] >= float(min_mean_confidence)
+            )
+        ),
+        "max_mean_confidence": (
+            max_mean_confidence is None
+            or (
+                row["mean_confidence"] is not None
+                and row["mean_confidence"] <= float(max_mean_confidence)
+            )
+        ),
+        "lead_role": (
+            lead_role is None
+            or (lead is not None and lead.get("table_team_role") == lead_role)
+        ),
+        "lead_dominant_role": (
+            lead_dominant_role is None
+            or (lead is not None and lead.get("dominant_role") == lead_dominant_role)
+        ),
+        "required_active_track_ids": required_active_track_ids.issubset(
+            active_track_ids
+        ),
+    }
+    return {
+        "stage_segment_index": row["stage_segment_index"],
+        "stage": row["stage"],
+        "stage_label": row["stage_label"],
+        "start_s": row["start_s"],
+        "end_s": row["end_s"],
+        "handoff_type": row["handoff_type"],
+        "evidence_level": row.get("evidence_level"),
+        "observable_rate": row.get("observable_rate"),
+        "mean_confidence": row.get("mean_confidence"),
+        "peak_table_count": row["peak_table_count"],
+        "active_table_track_count": row["active_table_track_count"],
+        "canonical_table_identity_count": row["canonical_table_identity_count"],
+        "lead_track_id": row.get("lead_track_id"),
+        "lead_table_team_role": row.get("lead_table_team_role"),
+        "active_match_count": len(active_matches),
+        "active_table_track_ids": row["active_table_track_ids"],
+        "continued_track_ids": row["continued_track_ids"],
+        "new_track_ids": row["new_track_ids"],
+        "dropped_track_ids": row["dropped_track_ids"],
+        "within_stage_entry_track_ids": row["within_stage_entry_track_ids"],
+        "within_stage_exit_track_ids": row["within_stage_exit_track_ids"],
+        "roster_summary": row["roster_summary"],
         "checks": checks,
         "passed": all(checks.values()),
     }

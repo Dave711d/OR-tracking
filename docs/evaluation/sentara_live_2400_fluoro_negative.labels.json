@@ -31,6 +31,17 @@
       "max_table_count": 0
     }
   ],
+  "stage_roster_expectations": [
+    {
+      "stage": "valve_deployment",
+      "handoff_type": "initial_no_table_evidence",
+      "max_tracks": 0,
+      "max_peak_table_count": 0,
+      "max_canonical_table_identity_count": 0,
+      "max_observable_rate": 0.0,
+      "evidence_level": "held_non_room"
+    }
+  ],
   "stage_evidence_expectations": [
     {
       "stage": "valve_deployment",

@@ -200,7 +200,7 @@ The JSON output includes:
   detections.
 - `label_score`: when `--labels` is provided, stage accuracy/confusion, table
   count range pass rates, table-presence expectation pass rates, and
-  stage-staffing, stage-handoff, stage-evidence, procedure-milestone,
+  stage-staffing, stage-handoff, stage-roster, stage-evidence, procedure-milestone,
   procedure-status, table-team, procedure-event-timeline, roster-snapshot, and
   quality-flag expectation pass rates.
 
@@ -242,6 +242,12 @@ The label file can include:
   counts, minimum lead table frames, or minimum tracking-available rate. `role`
   and `lead_role` match operator-facing table roles; `dominant_role` and
   `lead_dominant_role` constrain the raw role when needed.
+- `stage_roster_expectations`: expected concise per-stage roster summaries,
+  combining stage, handoff type, evidence level, active table-facing role
+  counts, peak table count, canonical table-person count, continued/new/dropped
+  IDs, within-stage entry/exit IDs, lead role, observable rate, tracking rate,
+  and mean confidence. Use this when the question is "who was at the table
+  during this procedure stage?" rather than only "what happened at the boundary?"
 - `stage_evidence_expectations`: expected evidence support for a stage segment,
   such as requiring fluoroscopy-only stages to be `held_non_room`, requiring a
   room-visible deployment stage to have strong support, or requiring a visually
@@ -322,21 +328,25 @@ The current local Sentara suite covers:
   proven.
 - `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
   roster expectations once the room view returns, plus room-view denominator
-  checks for the deployment-stage staffing summary and a deployment-stage
-  `table_roster_started` handoff expectation. Event-timeline labels also verify
-  the room-view return, table roster start, and deployment table peak. Stage
-  evidence labels distinguish held non-room delivery-positioning context from
-  strong room-visible deployment evidence.
+  checks for the deployment-stage staffing summary, a deployment-stage
+  `table_roster_started` handoff expectation, and a stage-roster expectation
+  that proves the deployment stage has a table-operator lead, strong visual
+  support, peak table count of 3, and at least eight canonical table identities.
+  Event-timeline labels also verify the room-view return, table roster start,
+  and deployment table peak. Stage evidence labels distinguish held non-room
+  delivery-positioning context from strong room-visible deployment evidence.
 - `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
   table staff, should be flagged `non_room_view`, and should emit non-room
-  timeline events with zero table count. Stage evidence should remain
-  `held_non_room`.
+  timeline events with zero table count. Stage evidence and stage-roster labels
+  should remain `held_non_room` / no-table-evidence.
 - `sentara_2700_room_post`: post-deployment / closure room-view segment with
   stage, table count, presence, staffing, room-view occupancy, quality, and
   post-deploy-to-closure handoff expectations. Event-timeline labels verify the
   closure stage start, closure roster addition, table peak, and later non-room
-  transition. Stage-evidence labels keep both post-deploy and closure stages
-  weak because the visual confidence is low and closure is partly non-room.
+  transition. Stage-roster labels verify the closure roster addition with
+  continued and new table-side tracks. Stage-evidence labels keep both
+  post-deploy and closure stages weak because the visual confidence is low and
+  closure is partly non-room.
 
 ## Caveats
 

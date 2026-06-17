@@ -559,6 +559,16 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
                     "min_active_tracks": 1,
                 }
             ],
+            "stage_roster_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "lead_role": "table_operator",
+                    "lead_dominant_role": "imaging",
+                    "handoff_type": "initial_table_roster",
+                    "min_tracks": 1,
+                }
+            ],
             "event_timeline_expectations": [
                 {
                     "event_type": "table_handoff",
@@ -591,6 +601,7 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
 
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
+    assert score["stage_roster_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["pass_rate"] == 1.0
 
 
@@ -900,6 +911,19 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_lead_observed_table_frames": 2,
             }
         ],
+        "stage_roster_expectations": [
+            {
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "handoff_type": "roster_changed",
+                "min_tracks": 2,
+                "min_peak_table_count": 2,
+                "min_canonical_table_identity_count": 2,
+                "max_canonical_table_identity_count": 2,
+                "min_new_tracks": 2,
+                "min_dropped_tracks": 1,
+            }
+        ],
         "stage_evidence_expectations": [
             {
                 "stage": "access_sheathing",
@@ -1028,6 +1052,14 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
     assert score["stage_handoff_score"]["pass_rate"] == 1.0
     assert score["stage_handoff_score"]["expectations"][0]["matched_count"] == 1
+    assert score["stage_roster_score"]["pass_rate"] == 1.0
+    assert score["stage_roster_score"]["expectations"][0]["matched_count"] == 1
+    assert (
+        score["stage_roster_score"]["expectations"][0]["matched_candidates"][0][
+            "active_match_count"
+        ]
+        == 2
+    )
     assert score["stage_evidence_score"]["pass_rate"] == 1.0
     assert score["stage_evidence_score"]["expectations"][1]["matched_count"] == 1
     assert score["procedure_milestone_score"]["pass_rate"] == 1.0
