@@ -8,6 +8,7 @@ from evaluate_tavr import parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
     score_tavr_metrics,
+    stage_staffing_summary,
     stage_table_coverage,
     summarize_tavr_metrics,
     table_presence_intervals,
@@ -188,6 +189,37 @@ def test_stage_table_coverage_splits_tracks_by_stage_segment() -> None:
     assert coverage[2]["exited_during_stage"] is False
 
 
+def test_stage_table_coverage_reports_room_view_denominator() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7]),
+        _table_metric(4, 0.4, "valve_deployment", []),
+    ]
+
+    coverage = stage_table_coverage(metrics)
+
+    assert len(coverage) == 1
+    assert coverage[0]["stage_room_view_frames"] == 3
+    assert coverage[0]["stage_non_room_view_frames"] == 2
+    assert coverage[0]["tracking_available_rate"] == 0.6
+    assert coverage[0]["coverage_ratio"] == 0.4
+    assert coverage[0]["room_coverage_ratio"] == 0.667
+
+
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -210,6 +242,42 @@ def test_table_transition_events_report_stage_entries_and_exits() -> None:
         ("table_exit", "valve_deployment", 7),
         ("table_present_at_stage_end", "valve_deployment", 8),
     ]
+    assert events[2]["room_coverage_ratio"] == 0.667
+    assert events[2]["tracking_available_rate"] == 1.0
+
+
+def test_stage_staffing_summary_reports_room_view_rates() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7]),
+        _table_metric(4, 0.4, "valve_deployment", []),
+    ]
+
+    staffing = stage_staffing_summary(metrics, min_observed_table_frames=1)
+
+    assert len(staffing) == 1
+    assert staffing[0]["frames"] == 5
+    assert staffing[0]["room_view_frames"] == 3
+    assert staffing[0]["non_room_view_frames"] == 2
+    assert staffing[0]["tracking_available_rate"] == 0.6
+    assert staffing[0]["mean_table_count"] == 0.4
+    assert staffing[0]["mean_room_table_count"] == 0.667
+    assert staffing[0]["table_occupancy_rate"] == 0.4
+    assert staffing[0]["room_table_occupancy_rate"] == 0.667
 
 
 def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
@@ -232,8 +300,12 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "view_segments",
     }.issubset(paths)
     coverage_csv = Path(paths["stage_table_coverage"]).read_text(encoding="utf-8")
+    staffing_csv = Path(paths["stage_staffing_summary"]).read_text(encoding="utf-8")
     assert "track_id" in coverage_csv
     assert "coverage_ratio" in coverage_csv
+    assert "room_coverage_ratio" in coverage_csv
+    assert "tracking_available_rate" in staffing_csv
+    assert "room_table_occupancy_rate" in staffing_csv
     assert "ID 7" in coverage_csv
 
 
@@ -273,6 +345,9 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_observed_table_frames": 2,
                 "min_peak_count": 2,
                 "min_table_occupancy_rate": 1.0,
+                "min_tracking_available_rate": 0.5,
+                "min_room_mean_count": 1.0,
+                "min_room_table_occupancy_rate": 1.0,
             }
         ],
         "quality_flag_expectations": [
@@ -337,10 +412,12 @@ def _table_metric(
     timestamp_s: float,
     stage: str,
     table_track_ids: list[int],
+    alert_flags: Optional[List[str]] = None,
 ) -> FrameMetrics:
     return FrameMetrics(
         frame_index=frame_index,
         timestamp_s=timestamp_s,
+        alert_flags=alert_flags or [],
         tavr=TAVRFrameState(
             stage=stage,
             stage_label=TAVR_STAGE_LABELS[stage],

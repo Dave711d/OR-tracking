@@ -121,7 +121,9 @@ The app shows the latest table roster plus `View segments`,
 and `Table presence intervals` tables. Together these show when the room camera
 is actually visible, which track IDs were table-side in each TAVR phase, how
 long they were present, their dominant role, and whether they entered or exited
-during a stage.
+during a stage. Mixed room/fluoroscopy runs also include room-view frame counts,
+tracking-available rates, and room-view table occupancy so staff/table coverage
+is not understated by frames where the room was not visible.
 It also writes:
 
 - `outputs/*_metrics.csv`
@@ -142,7 +144,8 @@ ID rather than only by frame-level counts.
 Broadcast footage can switch the ROI from room camera to fluoroscopy. Frames
 that look like non-room / fluoroscopy views are flagged as `non_room_view`, and
 staff/table detections are suppressed for those frames to avoid inventing
-table-side rosters from imaging motion.
+table-side rosters from imaging motion. Stage staffing and coverage tables keep
+both total-stage rates and room-view-only rates for those mixed-view clips.
 
 ## Vercel static demo
 

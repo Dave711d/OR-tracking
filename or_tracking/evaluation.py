@@ -58,9 +58,14 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_s",
         "duration_s",
         "frames",
+        "room_view_frames",
+        "non_room_view_frames",
+        "tracking_available_rate",
         "mean_table_count",
+        "mean_room_table_count",
         "peak_table_count",
         "table_occupancy_rate",
+        "room_table_occupancy_rate",
         "table_count_distribution",
         "role_counts",
         "unique_table_track_count",
@@ -75,6 +80,9 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_start_s",
         "stage_end_s",
         "stage_duration_s",
+        "stage_room_view_frames",
+        "stage_non_room_view_frames",
+        "tracking_available_rate",
         "track_id",
         "dominant_role",
         "observed_table_frames",
@@ -83,6 +91,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "first_seen_s",
         "last_seen_s",
         "coverage_ratio",
+        "room_coverage_ratio",
         "estimated_table_duration_s",
         "entered_during_stage",
         "exited_during_stage",
@@ -100,6 +109,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_label",
         "stage_segment_index",
         "coverage_ratio",
+        "room_coverage_ratio",
+        "tracking_available_rate",
         "observed_table_frames",
         "label",
     ],
@@ -469,7 +480,10 @@ def stage_staffing_summary(
                 "start_s": metric.timestamp_s,
                 "end_s": metric.timestamp_s,
                 "frames": 0,
+                "room_view_frames": 0,
+                "non_room_view_frames": 0,
                 "table_counts": [],
+                "room_table_counts": [],
                 "role_counts": {},
                 "tracks": {},
             },
@@ -480,6 +494,12 @@ def stage_staffing_summary(
         accumulator["end_s"] = max(accumulator["end_s"], metric.timestamp_s)
         accumulator["frames"] += 1
         accumulator["table_counts"].append(state.table_count)
+        is_room_view = _view_label(metric) == "room"
+        if is_room_view:
+            accumulator["room_view_frames"] += 1
+            accumulator["room_table_counts"].append(state.table_count)
+        else:
+            accumulator["non_room_view_frames"] += 1
         _merge_counts(accumulator["role_counts"], state.role_counts)
 
         for track_id in state.table_track_ids:
@@ -506,7 +526,9 @@ def stage_staffing_summary(
     summaries: List[Dict[str, Any]] = []
     for stage, accumulator in accumulators.items():
         table_counts = accumulator["table_counts"]
+        room_table_counts = accumulator["room_table_counts"]
         frames = accumulator["frames"]
+        room_view_frames = accumulator["room_view_frames"]
         table_roster = [
             _stage_staffing_track_item(track, frames, sample_period_s)
             for track in accumulator["tracks"].values()
@@ -540,15 +562,27 @@ def stage_staffing_summary(
                     3,
                 ),
                 "frames": frames,
+                "room_view_frames": room_view_frames,
+                "non_room_view_frames": accumulator["non_room_view_frames"],
+                "tracking_available_rate": _ratio(room_view_frames, frames),
                 "mean_table_count": (
                     round(sum(table_counts) / len(table_counts), 3)
                     if table_counts
+                    else None
+                ),
+                "mean_room_table_count": (
+                    round(sum(room_table_counts) / len(room_table_counts), 3)
+                    if room_table_counts
                     else None
                 ),
                 "peak_table_count": max(table_counts) if table_counts else 0,
                 "table_occupancy_rate": _ratio(
                     sum(1 for count in table_counts if count > 0),
                     len(table_counts),
+                ),
+                "room_table_occupancy_rate": _ratio(
+                    sum(1 for count in room_table_counts if count > 0),
+                    len(room_table_counts),
                 ),
                 "table_count_distribution": _counts(str(count) for count in table_counts),
                 "role_counts": dict(sorted(accumulator["role_counts"].items())),
@@ -871,6 +905,8 @@ def _table_transition_event(
         "stage_label": coverage["stage_label"],
         "stage_segment_index": coverage["stage_segment_index"],
         "coverage_ratio": coverage["coverage_ratio"],
+        "room_coverage_ratio": coverage["room_coverage_ratio"],
+        "tracking_available_rate": coverage["tracking_available_rate"],
         "observed_table_frames": coverage["observed_table_frames"],
         "label": (
             f"{timestamp_s:.1f}s {event_type}: ID {coverage['track_id']} "
@@ -1100,6 +1136,11 @@ def _stage_staffing_score(
         min_peak_count = expectation.get("min_peak_count")
         min_mean_count = expectation.get("min_mean_count")
         min_table_occupancy_rate = expectation.get("min_table_occupancy_rate")
+        min_tracking_available_rate = expectation.get("min_tracking_available_rate")
+        min_room_mean_count = expectation.get("min_room_mean_count")
+        min_room_table_occupancy_rate = expectation.get(
+            "min_room_table_occupancy_rate"
+        )
         stage_summary = stage_summaries.get(stage)
         matching_roster = []
         if stage_summary is not None:
@@ -1136,6 +1177,32 @@ def _stage_staffing_score(
                     and stage_summary["table_occupancy_rate"] >= min_table_occupancy_rate
                 )
             ),
+            "min_tracking_available_rate": (
+                min_tracking_available_rate is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["tracking_available_rate"] is not None
+                    and stage_summary["tracking_available_rate"]
+                    >= min_tracking_available_rate
+                )
+            ),
+            "min_room_mean_count": (
+                min_room_mean_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["mean_room_table_count"] is not None
+                    and stage_summary["mean_room_table_count"] >= min_room_mean_count
+                )
+            ),
+            "min_room_table_occupancy_rate": (
+                min_room_table_occupancy_rate is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["room_table_occupancy_rate"] is not None
+                    and stage_summary["room_table_occupancy_rate"]
+                    >= min_room_table_occupancy_rate
+                )
+            ),
         }
         expectation_pass = all(checks.values())
         if expectation_pass:
@@ -1150,6 +1217,9 @@ def _stage_staffing_score(
                 "min_peak_count": min_peak_count,
                 "min_mean_count": min_mean_count,
                 "min_table_occupancy_rate": min_table_occupancy_rate,
+                "min_tracking_available_rate": min_tracking_available_rate,
+                "min_room_mean_count": min_room_mean_count,
+                "min_room_table_occupancy_rate": min_room_table_occupancy_rate,
                 "matched_tracks": matching_roster,
                 "matched_track_count": len(matching_roster),
                 "checks": checks,
@@ -1332,6 +1402,10 @@ def _stage_table_coverage_rows(
     stage_start = segment_metrics[0]
     stage_end = segment_metrics[-1]
     stage_frames = len(segment_metrics)
+    stage_room_view_frames = sum(
+        1 for metric in segment_metrics if _view_label(metric) == "room"
+    )
+    stage_non_room_view_frames = stage_frames - stage_room_view_frames
     sample_period_s = _sample_period_s(segment_metrics)
     stage_duration_s = max(
         0.0,
@@ -1369,6 +1443,10 @@ def _stage_table_coverage_rows(
         role_counts = dict(sorted(track["role_counts"].items()))
         dominant_role = _dominant_role_from_counts(role_counts)
         coverage_ratio = _ratio(track["observed_table_frames"], stage_frames)
+        room_coverage_ratio = _ratio(
+            track["observed_table_frames"],
+            stage_room_view_frames,
+        )
         estimated_duration_s = track["observed_table_frames"] * sample_period_s
         row = {
             "stage_segment_index": segment_index,
@@ -1379,6 +1457,9 @@ def _stage_table_coverage_rows(
             "stage_start_s": round(float(stage_start.timestamp_s), 3),
             "stage_end_s": round(float(stage_end.timestamp_s), 3),
             "stage_duration_s": round(float(stage_duration_s), 3),
+            "stage_room_view_frames": stage_room_view_frames,
+            "stage_non_room_view_frames": stage_non_room_view_frames,
+            "tracking_available_rate": _ratio(stage_room_view_frames, stage_frames),
             "track_id": track["track_id"],
             "dominant_role": dominant_role,
             "observed_table_frames": track["observed_table_frames"],
@@ -1387,6 +1468,7 @@ def _stage_table_coverage_rows(
             "first_seen_s": round(float(track["first_s"]), 3),
             "last_seen_s": round(float(track["last_s"]), 3),
             "coverage_ratio": coverage_ratio,
+            "room_coverage_ratio": room_coverage_ratio,
             "estimated_table_duration_s": round(float(estimated_duration_s), 3),
             "entered_during_stage": track["first_frame"] > stage_start.frame_index,
             "exited_during_stage": track["last_frame"] < stage_end.frame_index,

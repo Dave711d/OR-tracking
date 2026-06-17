@@ -117,10 +117,11 @@ The JSON output includes:
   stage-end presence events derived from the stage coverage rows.
 - `stage_table_coverage`: one row per table-side track per contiguous stage
   segment, including stage start/end, first/last seen timestamps, coverage
-  ratio, dominant role, and whether the track entered or exited during the
-  stage.
+  ratio, room-view coverage ratio, dominant role, and whether the track entered
+  or exited during the stage.
 - `stage_staffing_summary`: one compact row per observed stage with duration,
-  mean/peak table count, table occupancy, role mix, and the meaningful
+  room-view frame counts, tracking-available rate, mean/peak table count,
+  total-stage and room-view table occupancy, role mix, and the meaningful
   table-side roster for that stage.
 - `low_confidence_segments`: frame ranges where stage confidence fell below the
   review threshold.
@@ -158,7 +159,8 @@ The label file can include:
 - `table_presence_expectations`: expected role-specific table-side intervals.
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
-  stage peak count, mean table count, or table-occupancy rate.
+  stage peak count, mean table count, table-occupancy rate, room-view mean table
+  count, room-view table-occupancy rate, or tracking-available rate.
 - `quality_flag_expectations`: expected quality flags, such as requiring
   `non_room_view` to cover a fluoroscopy-only ROI.
 
@@ -188,11 +190,13 @@ The current local Sentara suite covers:
   motion evidence followed by fluoroscopy, proving the system flags likely
   undercount instead of inventing table staff.
 - `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
-  roster expectations once the room view returns.
+  roster expectations once the room view returns, plus room-view denominator
+  checks for the deployment-stage staffing summary.
 - `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
   table staff and should be flagged `non_room_view`.
 - `sentara_2700_room_post`: post-deployment / closure room-view segment with
-  stage, table count, presence, staffing, and quality expectations.
+  stage, table count, presence, staffing, room-view occupancy, and quality
+  expectations.
 
 ## Caveats
 

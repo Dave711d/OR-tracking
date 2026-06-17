@@ -30,7 +30,10 @@
       "role": "table_operator",
       "min_tracks": 4,
       "min_observed_table_frames": 3,
-      "min_peak_count": 3
+      "min_peak_count": 3,
+      "min_tracking_available_rate": 0.7,
+      "min_room_mean_count": 0.25,
+      "min_room_table_occupancy_rate": 0.15
     }
   ],
   "quality_flag_expectations": [
