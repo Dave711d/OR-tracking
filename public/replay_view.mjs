@@ -250,6 +250,7 @@ export function operatorAnswerRowsFromSnapshots({
       detail: tableSnapshotDetail(effective),
       context: effective.count ? "effective" : "empty",
     },
+    operatorTableTrustRow(current, effective, trackingAvailable, currentView),
     ...handoffRows,
     {
       kind: "quality",
@@ -546,6 +547,7 @@ function operatorHandoffAnswerRows(handoff = null, stageRoster = null) {
     }];
   }
 
+  const rosterSummary = operatorStageRosterSummary(stageRoster, activeCount);
   const handoffType = handoff?.handoffType || handoff?.handoff_type ||
     stageRoster?.handoff_type || "unknown";
   const continuedIds = asArray(
@@ -575,28 +577,95 @@ function operatorHandoffAnswerRows(handoff = null, stageRoster = null) {
     formatBriefPersonIds(droppedIds, "dropped"),
     formatBriefPersonIds(withinStageEntryIds, "entered"),
     formatBriefPersonIds(withinStageExitIds, "exited"),
+    ...rosterSummary.detailParts,
   ].join("; ");
   return [{
     kind: "handoff",
     label: "Stage roster",
-    value: `${activeCount} stage people`,
+    value: rosterSummary.value || `${activeCount} stage people`,
     detail,
     context: activeCount ? "handoff" : "empty",
   }];
 }
 
+function operatorTableTrustRow(
+  current = {},
+  effective = {},
+  trackingAvailable = null,
+  currentView = "",
+) {
+  const source = effective.source || "";
+  const value = operatorTableTrustValue(current, effective);
+  const detail = [
+    `${current.count} visible now`,
+    effective.count
+      ? `${effective.count} effective from ${effective.sourceLabel}`
+      : "no effective roster",
+    tableSnapshotAgeText(effective),
+    currentView ? `view ${currentView}` : "",
+    trackingAvailable === null || trackingAvailable === undefined
+      ? ""
+      : `tracking ${trackingAvailable ? "yes" : "no"}`,
+  ].filter(Boolean).join("; ");
+  const staleContext = source === "last_observed_room_view" ||
+    source === "no_room_table_evidence";
+  return {
+    kind: "trust",
+    label: "Table trust",
+    value,
+    detail,
+    context: staleContext ? "warn" : (effective.count ? "effective" : "empty"),
+  };
+}
+
+function operatorTableTrustValue(current = {}, effective = {}) {
+  const source = effective.source || "";
+  if (!effective.count) return current.count ? "live room view" : "no table evidence";
+  if (source === "current_room_view") return "live room view";
+  if (source === "current_stage_recent_room_window") {
+    return current.count ? "live + recent context" : "recent stage context only";
+  }
+  if (source === "recent_room_view_hold") return "recent context only";
+  if (source === "last_observed_room_view") return "fallback context only";
+  return current.count ? "mixed context" : "context only";
+}
+
+function operatorStageRosterSummary(stageRoster = null, activeCount = 0) {
+  if (!stageRoster) return { value: "", detailParts: [] };
+  const roster = asArray(stageRoster.active_table_roster);
+  const coreRoster = roster.filter((row) => stageRosterContactIsCore(row));
+  const coreCount = coreRoster.length;
+  const briefCount = Math.max(0, roster.length - coreCount);
+  const peakCount = Number(stageRoster.peak_table_count ?? 0) || 0;
+  const trackingRate = Number(stageRoster.tracking_available_rate);
+  const lead = coreRoster[0] || roster[0] || null;
+  return {
+    value: `${activeCount} stage people; ${coreCount} core`,
+    detailParts: [
+      `peak ${peakCount}`,
+      Number.isFinite(trackingRate) ? `tracking ${formatPercent(trackingRate)}` : "",
+      lead ? `lead ${formatRosterPersonLabel(lead)}` : "",
+      briefCount ? `${briefCount} brief contacts` : "",
+    ].filter(Boolean),
+  };
+}
+
 function operatorStageRosterCount(stageRoster = null, handoff = null) {
+  if (stageRoster) {
+    const activeCount = Number(
+      stageRoster.canonical_table_identity_count ??
+      stageRoster.active_table_track_count,
+    );
+    if (Number.isFinite(activeCount)) return activeCount;
+    const rosterCount = asArray(stageRoster.active_table_roster).length;
+    if (rosterCount) return rosterCount;
+  }
   const activeIds = asArray(
     handoff?.activeIds ?? handoff?.active_table_canonical_ids ??
     stageRoster?.active_table_canonical_ids,
   );
   if (activeIds.length) return activeIds.length;
-  const activeCount = Number(
-    stageRoster?.canonical_table_identity_count ??
-    stageRoster?.active_table_track_count,
-  );
-  if (Number.isFinite(activeCount)) return activeCount;
-  return asArray(stageRoster?.active_table_roster).length;
+  return 0;
 }
 
 export function focusedReplayEvents(events = [], status = {}, maxVisible = 12) {
@@ -871,8 +940,13 @@ function tableSnapshotSourceDetail(snapshot = {}) {
 }
 
 function tableSnapshotAgeSuffix(snapshot = {}) {
+  const ageText = tableSnapshotAgeText(snapshot);
+  return ageText ? `; ${ageText}` : "";
+}
+
+function tableSnapshotAgeText(snapshot = {}) {
   const age = snapshot.ageFromClipEndS ?? snapshot.ageSeconds;
-  return age === null || age === undefined ? "" : `; age ${formatSeconds(age)}`;
+  return age === null || age === undefined ? "" : `age ${formatSeconds(age)}`;
 }
 
 function stageRosterPersonBriefRow(row = {}) {

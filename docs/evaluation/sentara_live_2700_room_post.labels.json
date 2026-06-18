@@ -579,7 +579,8 @@
       "evidence_level": "weak_visual_support",
       "lead_role": "table_operator",
       "min_peak_table_count": 4,
-      "min_active_tracks": 5,
+      "min_stage_table_tracks": 5,
+      "min_active_tracks": 1,
       "min_canonical_table_identity_count": 7,
       "min_new_tracks": 4,
       "min_continued_tracks": 1,
@@ -596,14 +597,6 @@
         "non_room_view"
       ],
       "expected_active_canonical_table_ids": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
         9
       ],
       "expected_effective_canonical_table_ids": [
@@ -625,11 +618,9 @@
         "evidence weak visual support",
         "handoff roster added",
         "stage roster people",
+        "active people Person 9",
         "latest table status last observed room view 1 people",
         "quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
-      ],
-      "forbidden_packet_text": [
-        "active people"
       ]
     }
   ],

@@ -40,6 +40,7 @@ test("replay projection keeps current table empty when only held evidence exists
     "Readout",
     "Visible now",
     "Effective table",
+    "Table trust",
     "Stage roster",
     "Quality",
   ]);
@@ -52,7 +53,15 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.match(view.operatorAnswerRows[2].detail, /current room view empty; people none/);
   assert.equal(view.operatorAnswerRows[3].value, "2 effective");
   assert.match(view.operatorAnswerRows[3].detail, /recent room-view hold; people Person 8, Person 10/);
-  assert.match(view.operatorAnswerRows[4].detail, /table roster started/);
+  assert.equal(view.operatorAnswerRows[4].value, "recent context only");
+  assert.match(view.operatorAnswerRows[4].detail, /0 visible now; 2 effective from recent room-view hold/);
+  assert.match(view.operatorAnswerRows[4].detail, /age 3\.6s/);
+  assert.equal(view.operatorAnswerRows[5].value, "10 stage people; 6 core");
+  assert.match(view.operatorAnswerRows[5].detail, /table roster started/);
+  assert.match(view.operatorAnswerRows[5].detail, /peak 3/);
+  assert.match(view.operatorAnswerRows[5].detail, /tracking 100%/);
+  assert.match(view.operatorAnswerRows[5].detail, /lead Person 8 \(ID 21\)/);
+  assert.match(view.operatorAnswerRows[5].detail, /4 brief contacts/);
   assert.deepEqual(view.stageTableBriefRows.slice(0, 10).map((row) => row.label), [
     "Stage",
     "Procedure progress",
@@ -182,6 +191,10 @@ test("replay projection separates current visible person from current-stage effe
   assert.equal(view.operatorAnswerRows[2].value, "1 visible");
   assert.equal(view.operatorAnswerRows[3].value, "2 effective");
   assert.match(view.operatorAnswerRows[3].detail, /current-stage recent room window; people Person 9, Person 10/);
+  assert.equal(view.operatorAnswerRows[4].value, "live + recent context");
+  assert.match(view.operatorAnswerRows[4].detail, /1 visible now; 2 effective from current-stage recent room window/);
+  assert.equal(view.operatorAnswerRows[5].value, "2 stage people; 2 core");
+  assert.match(view.operatorAnswerRows[5].detail, /peak 2; tracking 100%; lead Person 9/);
   assert.deepEqual(view.currentTable.canonicalIds, [9]);
   assert.equal(view.currentTable.sourceLabel, "current room view");
   assert.equal(view.tableRosterItems.length, 1);
@@ -225,6 +238,11 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.equal(view.operatorAnswerRows[2].value, "0 visible");
   assert.equal(view.operatorAnswerRows[3].value, "3 effective");
   assert.match(view.operatorAnswerRows[3].detail, /last observed room view; people Person 1, Person 2, Person 3/);
+  assert.equal(view.operatorAnswerRows[4].value, "fallback context only");
+  assert.match(view.operatorAnswerRows[4].detail, /0 visible now; 3 effective from last observed room view/);
+  assert.match(view.operatorAnswerRows[4].detail, /age 25\.8s/);
+  assert.equal(view.operatorAnswerRows[5].value, "3 stage people; 2 core");
+  assert.match(view.operatorAnswerRows[5].detail, /peak 3; tracking 14%; lead Person 1/);
   assert.equal(view.effectiveTableRosterItems.length, 3);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 1/);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 2/);
@@ -373,9 +391,11 @@ test("operator answer rows can summarize browser-current and held table snapshot
   assert.equal(rows[1].value, "0 visible");
   assert.equal(rows[2].value, "2 effective");
   assert.match(rows[2].detail, /recent room-view hold; people P1, P2; age 1\.4s/);
-  assert.equal(rows[3].value, "2 stage people");
-  assert.match(rows[3].detail, /roster changed; .*new P2; dropped P3/);
-  assert.equal(rows[4].value, "table_roster_held_from_room_view");
+  assert.equal(rows[3].value, "recent context only");
+  assert.match(rows[3].detail, /0 visible now; 2 effective from recent room-view hold; age 1\.4s/);
+  assert.equal(rows[4].value, "2 stage people");
+  assert.match(rows[4].detail, /roster changed; .*new P2; dropped P3/);
+  assert.equal(rows[5].value, "table_roster_held_from_room_view");
 });
 
 test("stage table brief formats browser handoff people without double person labels", () => {

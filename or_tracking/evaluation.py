@@ -973,6 +973,25 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             roster.get("evidence_level"),
             roster.get("observable_rate"),
         )
+        stage_table_track_ids = list(roster.get("active_table_track_ids", []))
+        stage_table_canonical_ids = list(
+            roster.get("active_table_canonical_ids", [])
+        )
+        active_table_track_ids = stage_table_track_ids
+        active_table_canonical_ids = stage_table_canonical_ids
+        active_table_count = roster.get("active_table_track_count", 0)
+        lead_track_id = roster.get("lead_track_id")
+        lead_canonical_table_id = roster.get("lead_canonical_table_id")
+        lead_table_team_role = roster.get("lead_table_team_role")
+        if is_current_stage:
+            active_table_track_ids = list(status.get("effective_table_track_ids", []))
+            active_table_canonical_ids = list(
+                status.get("effective_table_canonical_ids", [])
+            )
+            active_table_count = status.get(
+                "effective_table_count",
+                len(active_table_track_ids),
+            )
         row = {
             "packet_index": packet_index,
             "stage_segment_index": roster["stage_segment_index"],
@@ -1000,25 +1019,19 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             "handoff_type": roster.get("handoff_type"),
             "peak_table_count": roster.get("peak_table_count", 0),
             "stage_table_track_count": roster.get("active_table_track_count", 0),
-            "stage_table_track_ids": roster.get("active_table_track_ids", []),
-            "stage_table_canonical_ids": roster.get(
-                "active_table_canonical_ids",
-                [],
-            ),
+            "stage_table_track_ids": stage_table_track_ids,
+            "stage_table_canonical_ids": stage_table_canonical_ids,
             "stage_table_roster_summary": roster.get("roster_summary", "none"),
-            "active_table_track_count": roster.get("active_table_track_count", 0),
+            "active_table_track_count": active_table_count,
             "canonical_table_identity_count": roster.get(
                 "canonical_table_identity_count",
                 0,
             ),
-            "lead_track_id": roster.get("lead_track_id"),
-            "lead_canonical_table_id": roster.get("lead_canonical_table_id"),
-            "lead_table_team_role": roster.get("lead_table_team_role"),
-            "active_table_track_ids": roster.get("active_table_track_ids", []),
-            "active_table_canonical_ids": roster.get(
-                "active_table_canonical_ids",
-                [],
-            ),
+            "lead_track_id": lead_track_id,
+            "lead_canonical_table_id": lead_canonical_table_id,
+            "lead_table_team_role": lead_table_team_role,
+            "active_table_track_ids": active_table_track_ids,
+            "active_table_canonical_ids": active_table_canonical_ids,
             "continued_track_ids": roster.get("continued_track_ids", []),
             "continued_canonical_table_ids": roster.get(
                 "continued_canonical_table_ids",
@@ -3197,6 +3210,18 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
             row.get("active_table_canonical_ids", []),
         )
     )
+    active_ids = row.get("active_table_track_ids", [])
+    active_people = _person_ids_text(row.get("active_table_canonical_ids", []))
+    active_table_differs = (
+        list(row.get("stage_table_track_ids", [])) != list(active_ids)
+        or list(row.get("stage_table_canonical_ids", []))
+        != list(row.get("active_table_canonical_ids", []))
+    )
+    active_clause = (
+        f"active people {active_people} (raw IDs {_track_ids_text(active_ids)}); "
+        if active_table_differs
+        else ""
+    )
     new_ids = _track_ids_text(row.get("new_track_ids", []))
     new_people = _person_ids_text(row.get("new_canonical_table_ids", []))
     dropped_ids = _track_ids_text(row.get("dropped_track_ids", []))
@@ -3219,6 +3244,7 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
         f"observable {observable_rate}; handoff {handoff}; "
         f"peak table {row.get('peak_table_count', 0)}; "
         f"stage roster people {stage_table_people} (raw IDs {stage_table_ids}); "
+        f"{active_clause}"
         f"new people {new_people} (raw IDs {new_ids}); "
         f"dropped people {dropped_people} (raw IDs {dropped_ids}); "
         f"within-stage entered {within_entry_people} (raw IDs {within_entry_ids}); "

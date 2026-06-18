@@ -1621,33 +1621,17 @@
           10
         ],
         "stage_table_roster_summary": "Person 8: ID 21 table_operator 36 frames 24.3-26.3s; Person 1: ID 1 table_operator 32 frames 8.0-9.0s; Person 2: ID 2 table_operator 29 frames 8.0-8.9s; Person 6: ID 14 table_operator 20 frames 12.2-13.1s; Person 10: ID 24 table_operator 18 frames 24.5-25.1s; Person 9: ID 22 imaging 16 frames 24.4-24.9s",
-        "active_table_track_count": 10,
+        "active_table_track_count": 2,
         "canonical_table_identity_count": 10,
         "lead_track_id": 21,
         "lead_canonical_table_id": 8,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
-          21,
-          1,
-          2,
-          14,
-          24,
-          22,
-          8,
-          15,
-          16,
-          6
+          27,
+          24
         ],
         "active_table_canonical_ids": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
           8,
-          9,
           10
         ],
         "continued_track_ids": [],
@@ -1738,7 +1722,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Valve deployment 1808.006s-1829.961s; evidence strong visual support, confidence 0.51, observable 100%; handoff table roster started; peak table 3; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 21, 1, 2, 14, 24, 22, 8, 15, 16, 6); new people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 1, 2, 6, 8, 14, 15, 16, 21, 22, 24); dropped people none (raw IDs none); within-stage entered Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 6, 8, 14, 15, 16, 21, 22, 24); within-stage exited Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 1, 2, 6, 8, 14, 15, 16, 21, 22, 24); roster Person 8: ID 21 table_operator 36 frames 24.3-26.3s; Person 1: ID 1 table_operator 32 frames 8.0-9.0s; Person 2: ID 2 table_operator 29 frames 8.0-8.9s; Person 6: ID 14 table_operator 20 frames 12.2-13.1s; Person 10: ID 24 table_operator 18 frames 24.5-25.1s; Person 9: ID 22 imaging 16 frames 24.4-24.9s; latest table status recent room view hold 2 people Person 8, Person 10 (raw IDs 27, 24); next Post-deploy assessment; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Valve deployment 1808.006s-1829.961s; evidence strong visual support, confidence 0.51, observable 100%; handoff table roster started; peak table 3; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 21, 1, 2, 14, 24, 22, 8, 15, 16, 6); active people Person 8, Person 10 (raw IDs 27, 24); new people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 1, 2, 6, 8, 14, 15, 16, 21, 22, 24); dropped people none (raw IDs none); within-stage entered Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 6, 8, 14, 15, 16, 21, 22, 24); within-stage exited Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9, Person 10 (raw IDs 1, 2, 6, 8, 14, 15, 16, 21, 22, 24); roster Person 8: ID 21 table_operator 36 frames 24.3-26.3s; Person 1: ID 1 table_operator 32 frames 8.0-9.0s; Person 2: ID 2 table_operator 29 frames 8.0-8.9s; Person 6: ID 14 table_operator 20 frames 12.2-13.1s; Person 10: ID 24 table_operator 18 frames 24.5-25.1s; Person 9: ID 22 imaging 16 frames 24.4-24.9s; latest table status recent room view hold 2 people Person 8, Person 10 (raw IDs 27, 24); next Post-deploy assessment; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [

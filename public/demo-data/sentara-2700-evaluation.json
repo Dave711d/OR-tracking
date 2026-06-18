@@ -2336,31 +2336,15 @@
           9
         ],
         "stage_table_roster_summary": "Person 3: ID 4 table_operator 63 frames 2.6-4.9s; Person 1: ID 2 table_operator 43 frames 2.6-4.0s; Person 7: ID 12 device_prep 24 frames 8.4-9.4s; Person 9: ID 14 table_operator 23 frames 12.0-12.9s; Person 6: ID 7 table_operator 10 frames 3.8-4.1s; Person 5: ID 6 table_operator 7 frames 3.6-4.0s",
-        "active_table_track_count": 9,
+        "active_table_track_count": 1,
         "canonical_table_identity_count": 9,
         "lead_track_id": 4,
         "lead_canonical_table_id": 3,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
-          4,
-          2,
-          12,
-          14,
-          7,
-          6,
-          3,
-          5,
-          13
+          14
         ],
         "active_table_canonical_ids": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
           9
         ],
         "continued_track_ids": [
@@ -2446,7 +2430,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 4, 2, 12, 14, 7, 6, 3, 5, 13); new people Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 4, 5, 6, 7, 12, 13, 14); dropped people none (raw IDs none); within-stage entered Person 2, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 5, 6, 7, 12, 13, 14); within-stage exited Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 2, 3, 4, 5, 6, 7, 12, 13, 14); roster Person 3: ID 4 table_operator 63 frames 2.6-4.9s; Person 1: ID 2 table_operator 43 frames 2.6-4.0s; Person 7: ID 12 device_prep 24 frames 8.4-9.4s; Person 9: ID 14 table_operator 23 frames 12.0-12.9s; Person 6: ID 7 table_operator 10 frames 3.8-4.1s; Person 5: ID 6 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 people Person 9 (raw IDs 14); quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 4, 2, 12, 14, 7, 6, 3, 5, 13); active people Person 9 (raw IDs 14); new people Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 4, 5, 6, 7, 12, 13, 14); dropped people none (raw IDs none); within-stage entered Person 2, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 5, 6, 7, 12, 13, 14); within-stage exited Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 2, 3, 4, 5, 6, 7, 12, 13, 14); roster Person 3: ID 4 table_operator 63 frames 2.6-4.9s; Person 1: ID 2 table_operator 43 frames 2.6-4.0s; Person 7: ID 12 device_prep 24 frames 8.4-9.4s; Person 9: ID 14 table_operator 23 frames 12.0-12.9s; Person 6: ID 7 table_operator 10 frames 3.8-4.1s; Person 5: ID 6 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 people Person 9 (raw IDs 14); quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [

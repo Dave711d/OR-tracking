@@ -416,6 +416,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert packet["effective_table_count"] == demo["table_count"]
         assert "active_table_canonical_ids" in packet
         assert "effective_table_canonical_ids" in packet
+        assert "stage_table_canonical_ids" in packet
+        assert packet["active_table_canonical_ids"] == packet[
+            "effective_table_canonical_ids"
+        ]
         assert "lead_canonical_table_id" in packet
         assert "canonical_table_identity_count" in packet
         assert "within_stage_entry_canonical_table_ids" in packet
@@ -461,6 +465,11 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert any(len(row["merged_track_ids"]) > 1 for row in strong_identities)
     strong_rosters = strong_payload["tavr"]["stage_roster_summary"]
     assert any(8 in row["active_table_canonical_ids"] for row in strong_rosters)
+    strong_packet = strong_payload["tavr"]["operator_stage_packet"][-1]
+    assert strong_packet["active_table_canonical_ids"] == [8, 10]
+    assert strong_packet["effective_table_canonical_ids"] == [8, 10]
+    assert strong_packet["stage_table_canonical_ids"] == list(range(1, 11))
+    assert "active people Person 8, Person 10" in strong_packet["operator_packet"]
     strong_current_roster = strong_rosters[-1]
     assert strong_current_roster["active_table_roster"]
     assert {
@@ -497,6 +506,12 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     fallback_roster = fallback_payload["tavr"]["stage_roster_summary"][0]
     assert fallback_roster["within_stage_entry_canonical_table_ids"] == [3]
     assert fallback_roster["within_stage_exit_canonical_table_ids"] == [1, 2, 3]
+    late_payload = load_public_demo_payload("sentara-2700-evaluation.json")
+    late_packet = late_payload["tavr"]["operator_stage_packet"][-1]
+    assert late_packet["active_table_canonical_ids"] == [9]
+    assert late_packet["effective_table_canonical_ids"] == [9]
+    assert late_packet["stage_table_canonical_ids"] == list(range(1, 10))
+    assert "active people Person 9" in late_packet["operator_packet"]
     synthetic_payload = load_public_demo_payload(
         "synthetic-full-tavr-evaluation.json"
     )
@@ -673,6 +688,9 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function sameStageRosterRow" in app_js
     assert "Earlier selected-stage events" in app_js
     assert "Stage roster" in replay_js
+    assert "Table trust" in replay_js
+    assert "fallback context only" in replay_js
+    assert "brief contacts" in replay_js
     assert "stage roster people" in app_js
     assert "Stage handoff" in replay_js
     assert "export function stageTableBriefHandoffRows" in replay_js

@@ -217,6 +217,11 @@ the compact handover surface: one row per observed stage segment with current
 stage status, evidence, handoff type, active/new/dropped table IDs, effective
 current table context, canonical within-stage entrants/exits, quality flags,
 and a plain-English packet sentence.
+In that packet, `stage_table_*` fields are cumulative stage-history evidence
+for everyone seen table-side during the segment. For the current stage,
+`active_table_*` is the trusted active/effective roster at the operator status
+point, so it may be narrower than the stage roster when the view is held from a
+recent or last-observed room frame.
 It also writes:
 
 - `outputs/*_metrics.csv`
@@ -284,8 +289,8 @@ the lower stage-roster and event timeline evidence panes are focused on the
 selected snapshot's stage rather than showing a stale whole-case prefix. The
 packet text uses
 `stage roster people` for everyone seen table-side during that stage and keeps
-`latest table status` as the current/effective answer to who is at the table
-now. Stage roster and operator packet cards show canonical people for
+`active people` plus `latest table status` as the current/effective answer to
+who is at the table now. Stage roster and operator packet cards show canonical people for
 within-stage entry/exit while retaining raw IDs as audit detail. Refresh those
 public replay JSON files after rerunning the local suites with:
 

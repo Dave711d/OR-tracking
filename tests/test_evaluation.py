@@ -504,12 +504,18 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
     assert current["handoff_type"] == "table_cleared"
     assert current["stage_table_track_count"] == 0
     assert current["stage_table_track_ids"] == []
+    assert current["active_table_track_count"] == 2
+    assert current["active_table_track_ids"] == [7, 8]
+    assert current["active_table_canonical_ids"] == [1, 2]
     assert current["effective_table_source"] == "last_observed_room_view"
     assert current["effective_table_track_ids"] == [7, 8]
     assert current["effective_table_canonical_ids"] == [1, 2]
     assert "Current held stage: Closure / finish" in current["operator_packet"]
     assert "stage support held from non-room context" in current["operator_packet"]
     assert "stage roster people none" in current["operator_packet"]
+    assert "active people Person 1, Person 2 (raw IDs 7, 8)" in (
+        current["operator_packet"]
+    )
     assert "latest table status last observed room view 2 people Person 1, Person 2" in (
         current["operator_packet"]
     )
@@ -791,13 +797,13 @@ def test_operator_status_uses_canonical_table_people_for_fragmented_tracks() -> 
     assert status["current_table_roster"][0]["canonical_table_id"] == 1
     assert status["current_table_roster"][0]["merged_track_ids"] == [18, 21]
     assert "Person 1: ID 21" in status["operator_summary"]
-    assert packet["active_table_track_ids"] == [18]
+    assert packet["active_table_track_ids"] == [21]
     assert packet["active_table_canonical_ids"] == [1]
     assert packet["stage_table_track_ids"] == [18]
     assert packet["stage_table_canonical_ids"] == [1]
     assert packet["canonical_table_identity_count"] == 1
     assert "stage roster people Person 1 (raw IDs 18)" in packet["operator_packet"]
-    assert "active people" not in packet["operator_packet"]
+    assert "active people Person 1 (raw IDs 21)" in packet["operator_packet"]
     assert "latest table status current room view 1 people Person 1" in (
         packet["operator_packet"]
     )
@@ -812,6 +818,29 @@ def test_operator_status_uses_canonical_table_people_for_fragmented_tracks() -> 
         ("peak", 21, 1),
     }
     assert all(row["merged_track_ids"] == [18, 21] for row in snapshot_rows)
+
+
+def test_operator_packet_splits_stage_cumulative_from_current_active_roster() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+        _table_metric(2, 6.0, "valve_deployment", [8]),
+    ]
+
+    packet = operator_stage_packet(metrics)[-1]
+
+    assert packet["is_current_stage"] is True
+    assert packet["stage_table_track_ids"] == [7, 8]
+    assert packet["stage_table_canonical_ids"] == [1, 2]
+    assert packet["active_table_track_ids"] == [8]
+    assert packet["active_table_canonical_ids"] == [2]
+    assert packet["effective_table_source"] == "current_room_view"
+    assert packet["effective_table_track_ids"] == [8]
+    assert packet["canonical_table_identity_count"] == 2
+    assert "stage roster people Person 1, Person 2 (raw IDs 7, 8)" in (
+        packet["operator_packet"]
+    )
+    assert "active people Person 2 (raw IDs 8)" in packet["operator_packet"]
 
 
 def test_operator_snapshot_score_combines_stage_table_and_canonical_people() -> None:
