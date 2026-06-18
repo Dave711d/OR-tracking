@@ -508,7 +508,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert any(
         row["dominant_stage"] == "valve_deployment"
         and row["canonical_table_id"] == 7
-        and row["merged_track_ids"] == [18]
+        and row["merged_track_ids"] == [19]
         for row in synthetic_presence
     )
     assert [

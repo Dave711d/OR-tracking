@@ -497,13 +497,25 @@
       {
         "track_id": 1,
         "dominant_role": "imaging",
-        "frames_seen": 5,
+        "frames_seen": 3,
         "first_frame": 27064,
+        "last_frame": 27066,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "imaging": 3
+        }
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "imaging",
+        "frames_seen": 2,
+        "first_frame": 27096,
         "last_frame": 27097,
         "table_frames": 0,
         "table_presence_ratio": 0.0,
         "role_counts": {
-          "imaging": 5
+          "imaging": 2
         }
       }
     ],
@@ -687,7 +699,7 @@
         "mean_imaging_signal": 0.003,
         "mean_device_signal": 0.0,
         "mean_anesthesia_signal": 0.0,
-        "mean_stillness_signal": 0.999,
+        "mean_stillness_signal": 1.0,
         "mean_crowd_signal": 0.001,
         "support_label": "observable=14%, confidence=0.21, strongest=stillness:1.00",
         "label": "Access / sheathing: weak_visual_support; observable=14%, confidence=0.21, strongest=stillness:1.00"
@@ -1025,7 +1037,7 @@
         "ratio": 0.14,
         "peak_people_count": 1,
         "peak_table_count": 0,
-        "mean_movement_px": 0.576
+        "mean_movement_px": 0.051
       }
     ]
   }

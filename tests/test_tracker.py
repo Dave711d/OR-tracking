@@ -7,6 +7,7 @@ from or_tracking import MotionTrackerConfig, ORActivityTracker, process_video_fi
 from or_tracking.models import Detection
 from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 from or_tracking.tavr import TAVR_STAGE_ORDER
+from or_tracking.tracker import _CentroidTracker
 from or_tracking.video import _crop_frame, _resolve_roi
 
 
@@ -25,6 +26,21 @@ def test_tracker_detects_motion_on_synthetic_frames(tmp_path: Path) -> None:
 
     assert max(people_counts[4:]) >= 1
     assert tracker.total_tracks_seen >= 1
+
+
+def test_centroid_tracker_expires_tracks_across_empty_frames() -> None:
+    tracker = _CentroidTracker(max_distance=90.0, max_disappeared=2)
+
+    first_detections, _ = tracker.update([((0, 0, 12, 24), (6, 12), 288.0)], 0)
+    assert [detection.track_id for detection in first_detections] == [1]
+
+    assert tracker.update([], 1)[0] == []
+    assert tracker.update([], 2)[0] == []
+    assert tracker.update([], 3)[0] == []
+
+    next_detections, _ = tracker.update([((4, 0, 12, 24), (10, 12), 288.0)], 4)
+    assert [detection.track_id for detection in next_detections] == [2]
+    assert tracker.track_count == 2
 
 
 def test_process_video_file_writes_metrics_and_summary(tmp_path: Path) -> None:

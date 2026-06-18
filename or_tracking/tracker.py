@@ -96,7 +96,7 @@ class _CentroidTracker:
         self, candidates: Sequence[Tuple[BBox, Point, float]], frame_index: int
     ) -> Tuple[List[Detection], float]:
         if not candidates:
-            self._age_unmatched(set())
+            self._age_unmatched(set(self._tracks))
             return [], 0.0
 
         if not self._tracks:

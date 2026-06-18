@@ -359,6 +359,71 @@ def test_stage_handoff_summary_reports_boundary_roster_changes() -> None:
     assert handoffs[2]["dropped_table_roster"]
 
 
+def test_long_empty_gap_splits_later_table_person_from_stale_track() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "access_sheathing",
+            [1],
+            centroids_by_track={1: (80, 70)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "access_sheathing",
+            [1],
+            centroids_by_track={1: (81, 70)},
+        ),
+        _metric(20, 2.0, "access_sheathing", alert_flags=["non_room_view"]),
+        _metric(30, 3.0, "access_sheathing", alert_flags=["non_room_view"]),
+        _table_metric(
+            41,
+            4.1,
+            "valve_deployment",
+            [2],
+            centroids_by_track={2: (84, 70)},
+        ),
+        _table_metric(
+            42,
+            4.2,
+            "valve_deployment",
+            [2],
+            centroids_by_track={2: (85, 70)},
+        ),
+    ]
+
+    handoff = stage_handoff_summary(metrics)[1]
+    roster = stage_roster_summary(metrics)[1]
+    packet = operator_stage_packet(metrics)[1]
+    status = procedure_status_summary(metrics)[0]
+
+    assert handoff["handoff_type"] == "roster_changed"
+    assert handoff["continued_track_ids"] == []
+    assert handoff["continued_canonical_table_ids"] == []
+    assert handoff["new_track_ids"] == [2]
+    assert handoff["new_canonical_table_ids"] == [2]
+    assert handoff["dropped_track_ids"] == [1]
+    assert handoff["dropped_canonical_table_ids"] == [1]
+    assert roster["active_table_track_ids"] == [2]
+    assert roster["continued_track_ids"] == []
+    assert roster["new_track_ids"] == [2]
+    assert roster["dropped_track_ids"] == [1]
+    assert packet["active_table_track_ids"] == [2]
+    assert packet["continued_track_ids"] == []
+    assert packet["new_track_ids"] == [2]
+    assert packet["dropped_track_ids"] == [1]
+    assert packet["effective_table_track_ids"] == [2]
+    assert packet["effective_table_canonical_ids"] == [2]
+    assert "handoff roster changed" in packet["operator_packet"]
+    assert "new people Person 2" in packet["operator_packet"]
+    assert "dropped people Person 1" in packet["operator_packet"]
+    assert "continued people Person 1" not in packet["operator_packet"]
+    assert status["current_table_track_ids"] == [2]
+    assert status["current_table_canonical_ids"] == [2]
+    assert "at table now: Person 2" in status["operator_summary"]
+
+
 def test_stage_roster_summary_reports_per_stage_table_team() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),

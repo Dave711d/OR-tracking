@@ -620,20 +620,20 @@
       "min_stage_frames": 18
     },
     {
-      "track_id": 8,
+      "track_id": 9,
       "stage": "valve_deployment",
       "role": "table_operator",
-      "required_merged_track_ids": [8, 14, 17],
-      "expected_merged_track_ids": [8, 14, 17],
+      "required_merged_track_ids": [9, 15, 18],
+      "expected_merged_track_ids": [9, 15, 18],
       "min_merged_track_count": 3,
       "min_observed_table_frames": 90
     },
     {
-      "track_id": 12,
+      "track_id": 13,
       "stage": "valve_deployment",
       "role": "table_operator",
-      "required_merged_track_ids": [12, 16, 20],
-      "expected_merged_track_ids": [12, 16, 20],
+      "required_merged_track_ids": [13, 17, 21],
+      "expected_merged_track_ids": [13, 17, 21],
       "min_merged_track_count": 3,
       "min_observed_table_frames": 70
     },

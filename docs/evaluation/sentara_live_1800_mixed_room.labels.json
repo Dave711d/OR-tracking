@@ -54,11 +54,11 @@
           "min_observed_table_frames": 30,
           "min_overlap_s": 0.9,
           "max_canonical_table_ids": 1,
-          "max_merged_track_ids": 3
+          "max_merged_track_ids": 4
         },
         {
           "person_id": "gt_1800_late_anesthesia",
-          "role": "anesthesia",
+          "role": "imaging",
           "expected_canonical_table_ids": [9],
           "min_intervals": 1,
           "min_observed_table_frames": 16,
@@ -570,12 +570,12 @@
       "min_stage_frames": 3
     },
     {
-      "track_id": 18,
+      "track_id": 21,
       "stage": "valve_deployment",
       "role": "table_operator",
-      "required_merged_track_ids": [18, 21, 22],
-      "expected_merged_track_ids": [18, 21, 22],
-      "min_merged_track_count": 3,
+      "required_merged_track_ids": [21, 25, 26, 27],
+      "expected_merged_track_ids": [21, 25, 26, 27],
+      "min_merged_track_count": 4,
       "min_observed_table_frames": 30,
       "min_stage_frames": 30
     }

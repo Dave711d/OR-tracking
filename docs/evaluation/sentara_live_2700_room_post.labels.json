@@ -677,11 +677,11 @@
       "min_stage_frames": 1
     },
     {
-      "track_id": 1,
+      "track_id": 2,
       "stage": "post_deploy_assessment",
       "role": "table_operator",
-      "required_merged_track_ids": [1],
-      "expected_merged_track_ids": [1],
+      "required_merged_track_ids": [2],
+      "expected_merged_track_ids": [2],
       "min_observed_table_frames": 70,
       "min_stage_frames": 20
     }

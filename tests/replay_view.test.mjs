@@ -57,12 +57,12 @@ test("replay projection keeps current table empty when only held evidence exists
     "Procedure progress",
     "Stage handoff",
     "Stage roster",
-    "Stage Person 8 (ID 18)",
+    "Stage Person 8 (ID 21)",
     "Stage Person 1 (ID 1)",
     "Stage Person 2 (ID 2)",
     "Now visible",
     "Effective for stage",
-    "Person 8 (ID 21)",
+    "Person 8 (ID 27)",
   ]);
   assert.equal(view.stageTableBriefRows[1].value, "6/8 stages");
   assert.match(view.stageTableBriefRows[1].detail, /next Post-deploy assessment/);
@@ -163,13 +163,13 @@ test("replay projection separates current visible person from current-stage effe
     demo.presenceIntervals
       .filter((row) => row.dominant_stage === "closure_finish")
       .map((row) => row.merged_track_ids),
-    [[22], [23]],
+    [[23], [24]],
   );
   assert.equal(view.stageMetric, "Closure / finish (strong_visual_support)");
   assert.equal(view.tableSideMetric, "1");
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Procedure progress: 8\/8 stages; next complete; observed 8\/8/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Stage roster: 2 tracked; 2 core; peak 2; tracking 100%; lead Person 9/);
-  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Stage Person 9 \(ID 22\): core; Access; 41f; 11\.6s-13\.3s; room 100%/);
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Stage Person 9 \(ID 23\): core; Access; 41f; 11\.6s-13\.3s; room 100%/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 9.*now \+ effective/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 10.*held/);
   assert.match(view.tablePresenceRows[0].value, /1 at table; current room view; people Person 9/);
