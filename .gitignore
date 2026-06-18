@@ -18,3 +18,4 @@ samples/**/*.mov
 samples/**/*.m4v
 samples/**/*.avi
 !samples/.gitkeep
+!samples/synthetic_tavr_sample.mp4

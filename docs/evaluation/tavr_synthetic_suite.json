@@ -1,0 +1,54 @@
+{
+  "name": "Synthetic full TAVR workflow regression suite",
+  "description": "Deterministic full-sequence TAVR fixture covering all eight canonical stages plus table roster, handoff, identity, packet, and quality scoring. The fixture is committed at samples/synthetic_tavr_sample.mp4 and can be regenerated with `python download_sample.py --tavr-fixture --output samples/synthetic_tavr_sample.mp4`.",
+  "thresholds": {
+    "stage_accuracy": 1.0,
+    "table_count_pass_rate": 1.0,
+    "stage_staffing_pass_rate": 1.0,
+    "stage_table_coverage_pass_rate": 1.0,
+    "table_transition_pass_rate": 1.0,
+    "stage_handoff_pass_rate": 1.0,
+    "stage_roster_pass_rate": 1.0,
+    "stage_evidence_pass_rate": 1.0,
+    "procedure_milestone_pass_rate": 1.0,
+    "procedure_status_pass_rate": 1.0,
+    "operator_snapshot_pass_rate": 1.0,
+    "operator_packet_pass_rate": 1.0,
+    "table_team_pass_rate": 1.0,
+    "table_identity_group_pass_rate": 1.0,
+    "event_timeline_pass_rate": 1.0,
+    "roster_snapshot_pass_rate": 1.0,
+    "quality_flag_pass_rate": 1.0
+  },
+  "cases": [
+    {
+      "name": "synthetic_full_tavr_workflow",
+      "video_path": "samples/synthetic_tavr_sample.mp4",
+      "labels_path": "docs/evaluation/synthetic_tavr_full.labels.json",
+      "config": {
+        "max_frames": 320,
+        "min_area": 180,
+        "initial_stage": "room_prep_drape"
+      },
+      "required_score_checks": [
+        "stage_accuracy",
+        "table_count_pass_rate",
+        "stage_staffing_pass_rate",
+        "stage_table_coverage_pass_rate",
+        "table_transition_pass_rate",
+        "stage_handoff_pass_rate",
+        "stage_roster_pass_rate",
+        "stage_evidence_pass_rate",
+        "procedure_milestone_pass_rate",
+        "procedure_status_pass_rate",
+        "operator_snapshot_pass_rate",
+        "operator_packet_pass_rate",
+        "table_team_pass_rate",
+        "table_identity_group_pass_rate",
+        "event_timeline_pass_rate",
+        "roster_snapshot_pass_rate",
+        "quality_flag_pass_rate"
+      ]
+    }
+  ]
+}

@@ -1,10 +1,12 @@
 import json
+import sys
 from pathlib import Path
 
 import pytest
 
 from evaluate_tavr_suite import DEFAULT_THRESHOLDS, _score_summary, run_suite
 from or_tracking.synthetic import generate_synthetic_tavr_video
+from or_tracking.tavr import TAVR_STAGE_ORDER
 
 
 def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
@@ -243,6 +245,83 @@ def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
     assert Path(summary["summary_path"]).exists()
 
 
+def test_synthetic_full_tavr_labels_cover_all_canonical_stages() -> None:
+    labels = json.loads(
+        Path("docs/evaluation/synthetic_tavr_full.labels.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    manifest = json.loads(
+        Path("docs/evaluation/tavr_synthetic_suite.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert [row["stage"] for row in labels["stage_segments"]] == TAVR_STAGE_ORDER
+    assert [
+        row["stage"] for row in labels["procedure_milestone_expectations"]
+    ] == TAVR_STAGE_ORDER
+    assert {row["stage"] for row in labels["stage_roster_expectations"]} == set(
+        TAVR_STAGE_ORDER
+    )
+    assert {row["stage"] for row in labels["stage_evidence_expectations"]} == set(
+        TAVR_STAGE_ORDER
+    )
+    assert Path(manifest["cases"][0]["video_path"]).exists()
+    assert manifest["cases"][0]["labels_path"] == (
+        "docs/evaluation/synthetic_tavr_full.labels.json"
+    )
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("linux"),
+    reason="Linux OpenCV decodes the mp4v fixture differently enough to shift the strict visual oracle.",
+)
+def test_synthetic_full_tavr_suite_scores_all_canonical_stages(
+    tmp_path: Path,
+) -> None:
+    manifest = json.loads(
+        Path("docs/evaluation/tavr_synthetic_suite.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert Path(manifest["cases"][0]["video_path"]).exists()
+    manifest_path = tmp_path / "suite.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    summary = run_suite(manifest_path, tmp_path / "outputs")
+
+    assert summary["passed"] is True, json.dumps(
+        summary["cases"][0]["score_summary"],
+        indent=2,
+    )
+    assert summary["case_count"] == 1
+    result = json.loads(
+        Path(summary["cases"][0]["result_path"]).read_text(encoding="utf-8")
+    )
+    milestone_stages = [
+        row["stage"] for row in result["tavr"]["procedure_milestones"]
+    ]
+    assert milestone_stages == TAVR_STAGE_ORDER
+    assert all(
+        row["observed_in_clip"]
+        for row in result["tavr"]["procedure_milestones"]
+    )
+    assert (
+        result["label_score"]["operator_packet_score"]["pass_rate"] == 1.0
+    )
+    assert (
+        result["label_score"]["table_identity_group_score"]["pass_rate"]
+        == 1.0
+    )
+    assert (
+        result["label_score"]["quality_flag_score"]["expectations"][0][
+            "checks"
+        ]["min_stage_count"]
+        is True
+    )
+
+
 def test_static_table_fallback_suite_manifest_is_explicitly_opt_in() -> None:
     manifest = json.loads(
         Path("docs/evaluation/tavr_static_table_fallback_suite.json").read_text(
@@ -265,6 +344,7 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
     manifest_paths = [
         Path("docs/evaluation/tavr_suite.json"),
         Path("docs/evaluation/tavr_static_table_fallback_suite.json"),
+        Path("docs/evaluation/tavr_synthetic_suite.json"),
     ]
     core_required = {
         "table_count_pass_rate",
@@ -293,6 +373,14 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
         "sentara_1800_mixed_room",
         "sentara_2700_room_post",
         "sentara_900_static_table_fallback",
+        "synthetic_full_tavr_workflow",
+    }
+    full_procedure_cases = {"synthetic_full_tavr_workflow"}
+    full_procedure_required = {
+        "stage_staffing_pass_rate",
+        "stage_handoff_pass_rate",
+        "operator_snapshot_pass_rate",
+        "roster_snapshot_pass_rate",
     }
 
     for manifest_path in manifest_paths:
@@ -306,3 +394,5 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
                 assert "stage_accuracy" in required, case["name"]
             if case["name"] in full_room_cases:
                 assert full_room_required <= required, case["name"]
+            if case["name"] in full_procedure_cases:
+                assert full_procedure_required <= required, case["name"]

@@ -1,0 +1,396 @@
+{
+  "name": "Synthetic full TAVR sequence",
+  "clip_hint": "Committed fixture: samples/synthetic_tavr_sample.mp4. Regenerate with: python download_sample.py --tavr-fixture --output samples/synthetic_tavr_sample.mp4",
+  "command_hint": "python evaluate_tavr.py samples/synthetic_tavr_sample.mp4 --min-area 180 --max-frames 320 --no-annotated-video --labels docs/evaluation/synthetic_tavr_full.labels.json",
+  "timebase": "clip",
+  "stage_segments": [
+    {"start_s": 0.0, "end_s": 1.7, "stage": "room_prep_drape"},
+    {"start_s": 1.75, "end_s": 3.45, "stage": "access_sheathing"},
+    {"start_s": 3.5, "end_s": 4.7, "stage": "angio_alignment_crossing"},
+    {"start_s": 4.75, "end_s": 7.4, "stage": "bav_optional"},
+    {"start_s": 7.45, "end_s": 8.65, "stage": "valve_delivery_positioning"},
+    {"start_s": 8.7, "end_s": 10.3, "stage": "valve_deployment"},
+    {"start_s": 10.35, "end_s": 11.55, "stage": "post_deploy_assessment"},
+    {"start_s": 11.6, "end_s": 13.25, "stage": "closure_finish"}
+  ],
+  "table_count_segments": [
+    {"start_s": 0.0, "end_s": 1.7, "max_count": 0, "min_within_range_rate": 1.0},
+    {"start_s": 1.75, "end_s": 3.45, "min_peak_count": 2},
+    {"start_s": 3.5, "end_s": 4.7, "min_peak_count": 2},
+    {"start_s": 4.75, "end_s": 7.4, "min_peak_count": 4},
+    {"start_s": 7.45, "end_s": 8.65, "min_peak_count": 3},
+    {"start_s": 8.7, "end_s": 10.3, "min_peak_count": 4},
+    {"start_s": 10.35, "end_s": 11.55, "min_peak_count": 1},
+    {"start_s": 11.6, "end_s": 13.25, "min_peak_count": 2}
+  ],
+  "stage_staffing_expectations": [
+    {
+      "stage": "bav_optional",
+      "role": "table_operator",
+      "min_tracks": 4,
+      "min_peak_count": 4,
+      "min_canonical_table_identity_count": 4,
+      "min_tracking_available_rate": 1.0,
+      "min_room_table_occupancy_rate": 0.9
+    },
+    {
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "min_tracks": 4,
+      "min_peak_count": 4,
+      "min_canonical_table_identity_count": 4,
+      "min_tracking_available_rate": 1.0,
+      "min_room_table_occupancy_rate": 0.9
+    },
+    {
+      "stage": "closure_finish",
+      "role": "access_operator",
+      "min_tracks": 2,
+      "min_peak_count": 2,
+      "min_canonical_table_identity_count": 2,
+      "min_tracking_available_rate": 1.0,
+      "min_room_table_occupancy_rate": 1.0
+    }
+  ],
+  "stage_table_coverage_expectations": [
+    {
+      "stage": "access_sheathing",
+      "role": "access_operator",
+      "min_tracks": 2,
+      "min_observed_table_frames": 18,
+      "min_tracking_available_rate": 1.0
+    },
+    {
+      "stage": "angio_alignment_crossing",
+      "role": "table_operator",
+      "min_tracks": 2,
+      "min_observed_table_frames": 30,
+      "min_tracking_available_rate": 1.0
+    },
+    {
+      "stage": "bav_optional",
+      "role": "table_operator",
+      "min_tracks": 4,
+      "min_observed_table_frames": 15,
+      "min_tracking_available_rate": 1.0
+    },
+    {
+      "stage": "valve_delivery_positioning",
+      "role": "table_operator",
+      "min_tracks": 3,
+      "min_observed_table_frames": 8,
+      "min_tracking_available_rate": 1.0
+    },
+    {
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "min_tracks": 4,
+      "min_observed_table_frames": 7,
+      "min_tracking_available_rate": 1.0
+    },
+    {
+      "stage": "post_deploy_assessment",
+      "role": "table_operator",
+      "min_tracks": 1,
+      "min_observed_table_frames": 4,
+      "min_tracking_available_rate": 1.0
+    },
+    {
+      "stage": "closure_finish",
+      "role": "access_operator",
+      "min_tracks": 2,
+      "min_observed_table_frames": 30,
+      "min_tracking_available_rate": 1.0
+    }
+  ],
+  "table_transition_expectations": [
+    {"event_type": "table_present_at_stage_start", "stage": "access_sheathing", "role": "access_operator", "min_events": 2},
+    {"event_type": "table_present_at_stage_start", "stage": "angio_alignment_crossing", "role": "table_operator", "min_events": 2},
+    {"event_type": "table_entry", "stage": "bav_optional", "role": "table_operator", "min_events": 2},
+    {"event_type": "table_exit", "stage": "bav_optional", "role": "table_operator", "min_events": 2},
+    {"event_type": "table_entry", "stage": "valve_deployment", "role": "table_operator", "min_events": 1},
+    {"event_type": "table_present_at_stage_start", "stage": "closure_finish", "role": "access_operator", "min_events": 2}
+  ],
+  "stage_handoff_expectations": [
+    {
+      "stage": "access_sheathing",
+      "handoff_type": "table_roster_started",
+      "lead_role": "access_operator",
+      "min_active_tracks": 2,
+      "min_new_tracks": 2
+    },
+    {
+      "stage": "angio_alignment_crossing",
+      "handoff_type": "roster_changed",
+      "lead_role": "table_operator",
+      "min_active_tracks": 2,
+      "min_new_tracks": 2,
+      "min_dropped_tracks": 2
+    },
+    {
+      "stage": "bav_optional",
+      "handoff_type": "roster_added",
+      "lead_role": "table_operator",
+      "min_active_tracks": 4,
+      "min_new_tracks": 2
+    },
+    {
+      "stage": "closure_finish",
+      "handoff_type": "roster_changed",
+      "lead_role": "access_operator",
+      "min_active_tracks": 2,
+      "min_new_tracks": 2,
+      "min_dropped_tracks": 1
+    }
+  ],
+  "stage_roster_expectations": [
+    {
+      "stage": "room_prep_drape",
+      "handoff_type": "initial_no_table_evidence",
+      "max_tracks": 0,
+      "max_peak_table_count": 0,
+      "max_canonical_table_identity_count": 0,
+      "evidence_level": "moderate_visual_support"
+    },
+    {
+      "stage": "access_sheathing",
+      "role": "access_operator",
+      "handoff_type": "table_roster_started",
+      "lead_role": "access_operator",
+      "min_tracks": 2,
+      "min_peak_table_count": 2,
+      "min_canonical_table_identity_count": 2,
+      "evidence_level": "strong_visual_support"
+    },
+    {
+      "stage": "angio_alignment_crossing",
+      "role": "table_operator",
+      "handoff_type": "roster_changed",
+      "lead_role": "table_operator",
+      "min_tracks": 2,
+      "min_peak_table_count": 2,
+      "min_canonical_table_identity_count": 2,
+      "evidence_level": "strong_visual_support"
+    },
+    {
+      "stage": "bav_optional",
+      "role": "table_operator",
+      "handoff_type": "roster_added",
+      "lead_role": "table_operator",
+      "min_tracks": 4,
+      "min_peak_table_count": 4,
+      "min_canonical_table_identity_count": 4,
+      "evidence_level": "strong_visual_support"
+    },
+    {
+      "stage": "valve_delivery_positioning",
+      "role": "table_operator",
+      "handoff_type": "roster_removed",
+      "lead_role": "table_operator",
+      "min_tracks": 3,
+      "min_peak_table_count": 3,
+      "min_canonical_table_identity_count": 3,
+      "evidence_level": "strong_visual_support"
+    },
+    {
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "handoff_type": "roster_added",
+      "lead_role": "table_operator",
+      "min_tracks": 4,
+      "min_peak_table_count": 4,
+      "min_canonical_table_identity_count": 4,
+      "evidence_level": "strong_visual_support"
+    },
+    {
+      "stage": "post_deploy_assessment",
+      "role": "table_operator",
+      "handoff_type": "roster_changed",
+      "lead_role": "table_operator",
+      "min_tracks": 1,
+      "min_peak_table_count": 1,
+      "min_canonical_table_identity_count": 1,
+      "evidence_level": "moderate_visual_support"
+    },
+    {
+      "stage": "closure_finish",
+      "role": "access_operator",
+      "handoff_type": "roster_changed",
+      "lead_role": "access_operator",
+      "min_tracks": 2,
+      "min_peak_table_count": 2,
+      "min_canonical_table_identity_count": 2,
+      "evidence_level": "strong_visual_support"
+    }
+  ],
+  "stage_evidence_expectations": [
+    {"stage": "room_prep_drape", "evidence_level": "moderate_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.4},
+    {"stage": "access_sheathing", "evidence_level": "strong_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.5},
+    {"stage": "angio_alignment_crossing", "evidence_level": "strong_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.6},
+    {"stage": "bav_optional", "evidence_level": "strong_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.75},
+    {"stage": "valve_delivery_positioning", "evidence_level": "strong_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.6},
+    {"stage": "valve_deployment", "evidence_level": "strong_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.75},
+    {"stage": "post_deploy_assessment", "evidence_level": "moderate_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.45},
+    {"stage": "closure_finish", "evidence_level": "strong_visual_support", "min_observable_rate": 1.0, "min_mean_confidence": 0.7}
+  ],
+  "procedure_milestone_expectations": [
+    {"stage": "room_prep_drape", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "moderate_visual_support", "max_peak_table_count": 0},
+    {"stage": "access_sheathing", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "strong_visual_support", "min_peak_table_count": 2, "min_canonical_table_identity_count": 2},
+    {"stage": "angio_alignment_crossing", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "strong_visual_support", "min_peak_table_count": 2, "min_canonical_table_identity_count": 2},
+    {"stage": "bav_optional", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "strong_visual_support", "min_peak_table_count": 4, "min_canonical_table_identity_count": 4},
+    {"stage": "valve_delivery_positioning", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "strong_visual_support", "min_peak_table_count": 3, "min_canonical_table_identity_count": 3},
+    {"stage": "valve_deployment", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "strong_visual_support", "min_peak_table_count": 4, "min_canonical_table_identity_count": 4},
+    {"stage": "post_deploy_assessment", "observed_in_clip": true, "milestone_status": "observed_prior", "evidence_level": "moderate_visual_support", "min_peak_table_count": 1, "min_canonical_table_identity_count": 1},
+    {"stage": "closure_finish", "observed_in_clip": true, "is_current_observed_stage": true, "milestone_status": "current_observed", "evidence_level": "strong_visual_support", "min_peak_table_count": 2, "min_canonical_table_identity_count": 2}
+  ],
+  "procedure_status_expectations": [
+    {
+      "current_stage": "closure_finish",
+      "current_stage_status": "current_observed",
+      "current_stage_evidence_status": "strong_visual_support",
+      "next_stage": null,
+      "current_view": "room",
+      "tracking_available": true,
+      "effective_table_source": "current_room_view",
+      "evidence_level": "strong_visual_support",
+      "min_current_table_count": 1,
+      "min_effective_table_count": 1,
+      "min_peak_table_count": 4,
+      "required_current_canonical_table_ids": [9],
+      "required_effective_canonical_table_ids": [9],
+      "required_peak_canonical_table_ids": [3, 5, 6, 7],
+      "required_quality_flags": ["rapid_stage_progression"]
+    }
+  ],
+  "operator_snapshot_expectations": [
+    {
+      "timestamp_s": 8.875,
+      "tolerance_s": 0.12,
+      "stage": "valve_deployment",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "strong_visual_support",
+      "current_view": "room",
+      "tracking_available": true,
+      "min_table_count": 3,
+      "min_peak_table_count": 4,
+      "required_current_canonical_table_ids": [3, 5, 6, 7],
+      "required_peak_canonical_table_ids": [3, 5, 6, 7]
+    },
+    {
+      "timestamp_s": 13.25,
+      "tolerance_s": 0.12,
+      "stage": "closure_finish",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "strong_visual_support",
+      "current_view": "room",
+      "tracking_available": true,
+      "min_table_count": 1,
+      "min_effective_table_count": 1,
+      "required_current_canonical_table_ids": [9]
+    }
+  ],
+  "operator_packet_expectations": [
+    {
+      "stage": "closure_finish",
+      "current": true,
+      "stage_status": "current_observed",
+      "stage_evidence_status": "strong_visual_support",
+      "handoff_type": "roster_changed",
+      "evidence_level": "strong_visual_support",
+      "lead_role": "access_operator",
+      "min_peak_table_count": 2,
+      "min_active_tracks": 2,
+      "min_canonical_table_identity_count": 2,
+      "min_effective_table_count": 1,
+      "effective_table_source": "current_room_view",
+      "required_active_canonical_table_ids": [9, 10],
+      "required_effective_canonical_table_ids": [9],
+      "required_quality_flags": ["rapid_stage_progression"],
+      "required_packet_text": [
+        "Current stage: Closure / finish",
+        "evidence strong visual support",
+        "handoff roster changed",
+        "active people Person 9, Person 10",
+        "latest table status current room view 1 people Person 9"
+      ]
+    }
+  ],
+  "table_team_expectations": [
+    {
+      "team_status": "active_current",
+      "table_team_role": "access_operator",
+      "dominant_stage": "closure_finish",
+      "min_tracks": 1,
+      "min_observed_table_frames": 30,
+      "require_in_current_table_roster": true,
+      "require_in_effective_table_roster": true
+    },
+    {
+      "team_status": "recent_last_observed",
+      "table_team_role": "access_operator",
+      "dominant_stage": "closure_finish",
+      "min_tracks": 1,
+      "min_observed_table_frames": 30,
+      "require_in_last_table_roster": true
+    },
+    {
+      "team_status": "recent_last_observed",
+      "table_team_role": "table_operator",
+      "min_tracks": 3,
+      "min_observed_table_frames": 25,
+      "require_in_peak_table_roster": true
+    }
+  ],
+  "table_identity_group_expectations": [
+    {
+      "stage": "access_sheathing",
+      "role": "access_operator",
+      "min_groups": 2,
+      "max_groups": 2,
+      "min_observed_table_frames": 18,
+      "min_stage_frames": 18
+    },
+    {
+      "track_id": 8,
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "required_merged_track_ids": [8, 14, 17],
+      "min_merged_track_count": 3,
+      "min_observed_table_frames": 90
+    },
+    {
+      "track_id": 12,
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "required_merged_track_ids": [12, 16, 20],
+      "min_merged_track_count": 3,
+      "min_observed_table_frames": 70
+    },
+    {
+      "stage": "closure_finish",
+      "role": "access_operator",
+      "min_groups": 2,
+      "max_groups": 2,
+      "min_observed_table_frames": 30
+    }
+  ],
+  "event_timeline_expectations": [
+    {"event_type": "stage_started", "stage": "room_prep_drape", "start_s": 0.0, "end_s": 0.1, "tracking_available": true, "max_table_count": 0},
+    {"event_type": "table_handoff", "stage": "access_sheathing", "handoff_type": "table_roster_started", "role": "access_operator", "min_tracks": 2, "min_table_count": 2, "tracking_available": true},
+    {"event_type": "table_handoff", "stage": "angio_alignment_crossing", "handoff_type": "roster_changed", "role": "table_operator", "min_tracks": 2, "min_table_count": 2, "tracking_available": true},
+    {"event_type": "table_peak", "stage": "bav_optional", "min_table_count": 4, "tracking_available": true},
+    {"event_type": "table_peak", "stage": "valve_deployment", "min_table_count": 4, "tracking_available": true},
+    {"event_type": "table_handoff", "stage": "closure_finish", "handoff_type": "roster_changed", "role": "access_operator", "min_tracks": 2, "min_table_count": 2, "tracking_available": true}
+  ],
+  "roster_snapshot_expectations": [
+    {"snapshot_type": "current", "role": "access_operator", "min_tracks": 1, "min_table_count": 1},
+    {"snapshot_type": "last_observed", "role": "access_operator", "min_tracks": 2, "min_table_count": 2},
+    {"snapshot_type": "peak", "role": "table_operator", "min_tracks": 4, "min_table_count": 4}
+  ],
+  "quality_flag_expectations": [
+    {
+      "code": "rapid_stage_progression",
+      "min_stage_count": 8
+    }
+  ]
+}

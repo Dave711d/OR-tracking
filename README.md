@@ -108,6 +108,16 @@ To run the current multi-clip real-footage regression suite:
 python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite
 ```
 
+To force the full canonical TAVR workflow through the same scored table,
+handoff, identity, packet, and quality checks, run the committed synthetic
+full-sequence fixture. Regenerate it first if you are changing the fixture
+generator:
+
+```bash
+python download_sample.py --tavr-fixture --output samples/synthetic_tavr_sample.mp4
+python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output-dir outputs/tavr_synthetic_suite
+```
+
 The suite currently covers a mixed fluoroscopy-to-room clip, a fluoroscopy-only
 negative clip, and a post-deployment/closure room clip from the public Sentara
 TAVR video. It fails if scored label sections fall below their configured

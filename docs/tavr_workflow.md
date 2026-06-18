@@ -397,6 +397,16 @@ opt-in fallback fixture separately when refining low-motion room-view tracking:
 python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.json --output-dir outputs/tavr_static_table_fallback_suite
 ```
 
+Run the deterministic full-workflow suite when you need a compact regression
+that covers every canonical stage, table handoff, canonical table identity,
+operator packet, roster snapshot, and rapid-progression quality flag:
+
+```bash
+# Optional when changing the fixture generator; the MP4 is committed.
+python download_sample.py --tavr-fixture --output samples/synthetic_tavr_sample.mp4
+python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output-dir outputs/tavr_synthetic_suite
+```
+
 ## Public Replay Artifacts
 
 The Vercel static demo can replay compact backend artifacts without shipping the

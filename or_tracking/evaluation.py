@@ -6471,17 +6471,53 @@ def _quality_flag_score(
     scored_expectations = []
     for expectation in expectations:
         code = str(expectation["code"])
-        min_frames = int(expectation.get("min_frames", 1))
+        has_non_frame_threshold = any(
+            key in expectation
+            for key in (
+                "min_stage_count",
+                "max_stage_count",
+                "min_duration_s",
+                "max_duration_s",
+            )
+        )
+        min_frames = int(
+            expectation.get(
+                "min_frames",
+                0 if has_non_frame_threshold else 1,
+            )
+        )
         min_ratio = expectation.get("min_ratio")
         max_ratio = expectation.get("max_ratio")
+        min_stage_count = expectation.get("min_stage_count")
+        max_stage_count = expectation.get("max_stage_count")
+        min_duration_s = expectation.get("min_duration_s")
+        max_duration_s = expectation.get("max_duration_s")
         flag = flags.get(code)
         frames = int(flag.get("frames", 0)) if flag else 0
         ratio = float(flag.get("ratio", 0.0)) if flag else 0.0
+        stage_count = int(flag.get("stage_count", 0)) if flag else 0
+        duration_s = float(flag.get("duration_s", 0.0)) if flag else 0.0
         checks = {
             "present": flag is not None,
             "min_frames": frames >= min_frames,
             "min_ratio": min_ratio is None or ratio >= float(min_ratio),
             "max_ratio": max_ratio is None or ratio <= float(max_ratio),
+            "min_stage_count": (
+                min_stage_count is None
+                or stage_count >= int(min_stage_count)
+            ),
+            "max_stage_count": (
+                max_stage_count is None
+                or stage_count <= int(max_stage_count)
+            ),
+            "min_duration_s": (
+                min_duration_s is None
+                or duration_s >= float(min_duration_s)
+            ),
+            "max_duration_s": (
+                max_duration_s is None
+                or duration_s <= float(max_duration_s)
+            ),
         }
         expectation_pass = all(checks.values())
         if expectation_pass:
@@ -6492,6 +6528,10 @@ def _quality_flag_score(
                 "min_frames": min_frames,
                 "min_ratio": min_ratio,
                 "max_ratio": max_ratio,
+                "min_stage_count": min_stage_count,
+                "max_stage_count": max_stage_count,
+                "min_duration_s": min_duration_s,
+                "max_duration_s": max_duration_s,
                 "matched_flag": flag,
                 "checks": checks,
                 "passed": expectation_pass,
