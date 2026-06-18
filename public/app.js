@@ -13,6 +13,7 @@ import {
   replaySnapshotAt,
   replaySnapshotLabel,
   rosterPersonLabel,
+  scoreVerificationRows,
   stageRosterForStatus,
   stageTableBriefRows,
   stageTableBriefRowsFromSnapshots,
@@ -1606,12 +1607,9 @@ function renderProcedureStatus(status = null, demo = null) {
     "Peak table",
     `${status.peak_table_count ?? 0} staff; ${formatPersonIds(status.peak_table_canonical_ids)}; raw ${formatIdList(status.peak_table_track_ids)}`,
   );
-  const scoreValues = Object.values(demo?.scoreSummary || {});
-  const scored = scoreValues.filter((value) => value !== null && value !== undefined);
-  if (scored.length) {
-    const passed = scored.filter((value) => Number(value) >= 1).length;
-    appendInfoRow(procedureStatus, "Label gates", `${passed}/${scored.length} scored pass`);
-  }
+  scoreVerificationRows(demo?.scoreSummary, status).forEach((row) => {
+    appendInfoRow(procedureStatus, row.label, row.value, { tone: row.tone });
+  });
 }
 
 function renderBackendStatusSnapshots(rows = [], selectedIndex = -1) {

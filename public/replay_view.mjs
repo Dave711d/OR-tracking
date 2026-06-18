@@ -25,6 +25,27 @@ const TAVR_STAGE_PROGRESS_LOOKUP = new Map(
 const CORE_STAGE_CONTACT_MIN_SECONDS = 0.4;
 const CORE_STAGE_CONTACT_MIN_FRAMES = 12;
 const MAX_STAGE_ROSTER_BRIEF_PEOPLE = 3;
+const SCORE_VERIFICATION_GROUPS = [
+  {
+    label: "Stage verification",
+    checks: [
+      ["stage_score", "stage"],
+      ["stage_evidence_score", "evidence"],
+      ["procedure_status_score", "status"],
+    ],
+  },
+  {
+    label: "Table person verification",
+    checks: [
+      ["table_person_interval_score", "intervals"],
+      ["table_person_status_score", "status"],
+    ],
+  },
+  {
+    label: "Operator snapshot",
+    checks: [["operator_snapshot_score", "snapshot"]],
+  },
+];
 
 export function normalizeEvaluationPayload(payload, demoMeta = {}) {
   const tavr = payload.tavr || {};
@@ -137,7 +158,37 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
         status.effective_table_canonical_ids,
       ),
     } : null,
+    scoreVerificationRows: scoreVerificationRows(demo.scoreSummary, status),
   };
+}
+
+export function scoreVerificationRows(scoreSummary = {}, status = {}) {
+  const rows = SCORE_VERIFICATION_GROUPS.flatMap((group) => {
+    const parts = group.checks.flatMap(([key, label]) => {
+      const score = numericScore(scoreSummary[key]);
+      return score === null ? [] : [{ label, score }];
+    });
+    if (!parts.length) return [];
+    return [{
+      label: group.label,
+      value: parts.map((part) => `${part.label} ${formatVerificationScore(part.score)}`).join("; "),
+      tone: parts.every((part) => part.score >= 1) ? "current" : "warn",
+    }];
+  });
+
+  const tablePersonScored = [
+    scoreSummary.table_person_interval_score,
+    scoreSummary.table_person_status_score,
+  ].some((score) => numericScore(score) !== null);
+  if (tablePersonScored && noTableStatusVerified(status)) {
+    rows.push({
+      label: "No-table verification",
+      value: "0 current/effective/last/peak staff",
+      tone: "current",
+    });
+  }
+
+  return rows;
 }
 
 export function stageTableBriefRows(
@@ -736,6 +787,56 @@ function formatBriefPersonId(id) {
 
 function isBrowserPersonId(id) {
   return typeof id === "string" && /^P\d+$/i.test(id);
+}
+
+function numericScore(value) {
+  const score = Number(value);
+  return Number.isFinite(score) ? score : null;
+}
+
+function formatVerificationScore(score) {
+  return `${Math.round(score * 100)}%`;
+}
+
+function noTableStatusVerified(status = {}) {
+  const snapshots = [
+    tableStatusCount(
+      status,
+      "current_table_count",
+      "current_table_canonical_ids",
+      "current_table_roster",
+    ),
+    tableStatusCount(
+      status,
+      "effective_table_count",
+      "effective_table_canonical_ids",
+      "effective_table_roster",
+    ),
+    tableStatusCount(
+      status,
+      "last_observed_table_count",
+      "last_observed_table_canonical_ids",
+      "last_observed_table_roster",
+    ),
+    tableStatusCount(
+      status,
+      "peak_table_count",
+      "peak_table_canonical_ids",
+      "peak_table_roster",
+    ),
+  ];
+  return snapshots.some((count) => count !== null) && snapshots.every((count) => count === 0);
+}
+
+function tableStatusCount(status = {}, countField, idsField, rosterField) {
+  const ids = asArray(status[idsField]);
+  const roster = asArray(status[rosterField]);
+  const rawCount = status[countField];
+  if (rawCount === null && ids.length === 0 && roster.length === 0) return null;
+  if (rawCount === undefined && ids.length === 0 && roster.length === 0) return null;
+  const numeric = Number(rawCount);
+  if (Number.isFinite(numeric)) return Math.max(0, numeric, ids.length, roster.length);
+  return Math.max(ids.length, roster.length);
 }
 
 function handoffLabel(handoffType) {

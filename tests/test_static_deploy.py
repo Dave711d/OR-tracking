@@ -586,6 +586,12 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "normalizeEvaluationPayload" in app_js
     assert "export function normalizeEvaluationPayload" in replay_js
     assert "export function replayOperatorProjection" in replay_js
+    assert "scoreVerificationRows" in app_js
+    assert "export function scoreVerificationRows" in replay_js
+    assert "Stage verification" in replay_js
+    assert "Table person verification" in replay_js
+    assert "No-table verification" in replay_js
+    assert "Label gates" not in app_js
     assert "function renderEvaluationReplay" in app_js
     assert "function renderProcedureStatus" in app_js
     assert "function renderBackendStatusSnapshots" in app_js

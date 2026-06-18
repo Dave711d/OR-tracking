@@ -12,6 +12,7 @@ import {
   replaySnapshotAt,
   replaySnapshotIndexForTime,
   replaySnapshotLabel,
+  scoreVerificationRows,
   stageTableBriefHandoffRows,
   stageTableBriefRows,
   stageTableBriefRowsFromSnapshots,
@@ -74,6 +75,47 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.equal(view.effectiveTable.sourceLabel, "recent room-view hold");
   assert.deepEqual(view.effectiveTable.canonicalIds, [8, 10]);
   assert.match(view.effectiveTable.label, /2 staff; recent room-view hold; people Person 8, Person 10/);
+  assert.deepEqual(view.scoreVerificationRows.map((row) => row.label), [
+    "Stage verification",
+    "Table person verification",
+    "Operator snapshot",
+  ]);
+  assert.match(
+    view.scoreVerificationRows.find((row) => row.label === "Stage verification").value,
+    /stage 100%; evidence 100%; status 100%/,
+  );
+  assert.match(
+    view.scoreVerificationRows.find((row) => row.label === "Table person verification").value,
+    /intervals 100%; status 100%/,
+  );
+});
+
+test("replay projection surfaces scored no-table person verification", async () => {
+  const payload = await demoPayload("sentara-900-evaluation.json");
+  const view = replayOperatorProjection(payload, { label: "900s no-table negative" });
+
+  assert.deepEqual(view.currentTable.canonicalIds, []);
+  assert.equal(view.effectiveTable.count, 0);
+  assert.deepEqual(view.effectiveTable.canonicalIds, []);
+  assert.deepEqual(view.tableRosterItems, ["None"]);
+  assert.deepEqual(view.scoreVerificationRows.map((row) => row.label), [
+    "Stage verification",
+    "Table person verification",
+    "Operator snapshot",
+    "No-table verification",
+  ]);
+  assert.match(
+    view.scoreVerificationRows.find((row) => row.label === "Table person verification").value,
+    /intervals 100%; status 100%/,
+  );
+  assert.equal(
+    view.scoreVerificationRows.find((row) => row.label === "No-table verification").value,
+    "0 current/effective/last/peak staff",
+  );
+  assert.equal(
+    scoreVerificationRows(payload.score_summary, payload.tavr.procedure_status_summary[0]).at(-1).tone,
+    "current",
+  );
 });
 
 test("replay projection separates current visible person from current-stage effective roster", async () => {
