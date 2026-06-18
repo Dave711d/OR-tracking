@@ -127,6 +127,8 @@ TAVR video. It fails if scored label sections fall below their configured
 thresholds, including `operator_packet_pass_rate`,
 `operator_snapshot_pass_rate` for timestamped "who plus stage" checks,
 `table_presence_pass_rate` for exact canonical table-person intervals, and
+`table_person_interval_pass_rate` for human-labelled table-person windows that
+detect missed people, extra tracker people, and identity fragmentation, and
 `table_identity_group_pass_rate` when packet, snapshot, or canonical
 table-person expectations are labelled.
 Operator snapshot expectations are scored only against exported

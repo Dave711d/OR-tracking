@@ -45,6 +45,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_identity_groups": 10,
         "min_coverage_rows": 8,
         "min_presence_intervals": 13,
+        "table_person_interval_score": 1.0,
         "min_events": 12,
     },
     {
@@ -103,6 +104,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_identity_groups": 3,
         "min_coverage_rows": 3,
         "min_presence_intervals": 3,
+        "table_person_interval_score": 1.0,
         "min_events": 11,
     },
     {
@@ -326,6 +328,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert payload["timebase"]["timebase"] in {"clip", "source"}
         assert payload["score_summary"]["procedure_status_score"] == 1.0
         assert payload["score_summary"]["stage_evidence_score"] == 1.0
+        if "table_person_interval_score" in demo:
+            assert payload["score_summary"]["table_person_interval_score"] == demo[
+                "table_person_interval_score"
+            ]
         assert tavr["timebase_summary"]
         for key in [
             "timebase_summary",

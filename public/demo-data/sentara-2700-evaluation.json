@@ -1,6 +1,6 @@
 {
   "case": "sentara_2700_room_post",
-  "generated_from": "outputs/tavr_suite_table_presence_identity_verify/sentara_2700_room_post/result.json",
+  "generated_from": "outputs/tavr_suite_person_interval_verify/sentara_2700_room_post/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,

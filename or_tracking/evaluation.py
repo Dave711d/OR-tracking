@@ -655,6 +655,10 @@ def score_tavr_metrics(
             scoring_metrics,
             labels.get("table_presence_expectations", []),
         ),
+        "table_person_interval_score": _table_person_interval_score(
+            scoring_metrics,
+            labels.get("table_person_interval_expectations", []),
+        ),
         "stage_staffing_score": _stage_staffing_score(
             scoring_metrics,
             labels.get("stage_staffing_expectations", []),
@@ -4032,6 +4036,346 @@ def _table_presence_score(
         "expectations": scored_expectations,
         "pass_rate": _ratio(passed, len(expectations)),
     }
+
+
+def _table_person_interval_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    intervals = table_presence_intervals(metrics, min_observed_table_frames=1)
+    passed = 0
+    scored_expectations = []
+    for expectation_index, expectation in enumerate(expectations):
+        role = expectation.get("role") or expectation.get("table_team_role")
+        dominant_role = expectation.get("dominant_role")
+        stage = expectation.get("stage") or expectation.get("dominant_stage")
+        min_observed_table_frames = int(
+            expectation.get("min_observed_table_frames", 1)
+        )
+        window_candidates = [
+            interval
+            for interval in intervals
+            if _interval_overlaps_expectation(interval, expectation)
+            and (stage is None or interval.get("dominant_stage") == stage)
+            and _role_expectation_matches(interval, role, dominant_role)
+            and interval["observed_table_frames"] >= min_observed_table_frames
+        ]
+        persons = _table_person_specs(expectation, expectation_index)
+        person_results = [
+            _score_table_person_spec(
+                person,
+                window_candidates,
+                expectation,
+            )
+            for person in persons
+        ]
+        matched_person_count = sum(
+            1 for person in person_results if person["matched"]
+        )
+        passed_person_count = sum(
+            1 for person in person_results if person["passed"]
+        )
+        candidate_canonical_ids = {
+            int(interval["canonical_table_id"])
+            for interval in window_candidates
+            if interval.get("canonical_table_id") is not None
+        }
+        expected_window_ids = _expected_window_canonical_ids(
+            expectation,
+            person_results,
+        )
+        extra_canonical_ids = (
+            sorted(candidate_canonical_ids - expected_window_ids)
+            if expected_window_ids is not None
+            else []
+        )
+        missing_canonical_ids = (
+            sorted(expected_window_ids - candidate_canonical_ids)
+            if expected_window_ids is not None
+            else []
+        )
+        if "expected_person_count" in expectation:
+            expected_person_count = int(expectation["expected_person_count"])
+        else:
+            expected_person_count = len(persons)
+        min_persons = int(expectation.get("min_persons", expected_person_count))
+        max_persons = expectation.get("max_persons")
+        max_extra_canonical_ids = expectation.get("max_extra_canonical_table_ids")
+        if max_extra_canonical_ids is None and expected_window_ids is not None:
+            max_extra_canonical_ids = 0
+        max_missing_canonical_ids = expectation.get("max_missing_canonical_table_ids")
+        if max_missing_canonical_ids is None and expected_window_ids is not None:
+            max_missing_canonical_ids = 0
+        min_total_canonical_ids = expectation.get("min_total_canonical_table_ids")
+        max_total_canonical_ids = expectation.get("max_total_canonical_table_ids")
+        checks = {
+            "all_persons_passed": passed_person_count == len(person_results),
+            "min_persons": matched_person_count >= min_persons,
+            "max_persons": (
+                max_persons is None or matched_person_count <= int(max_persons)
+            ),
+            "max_extra_canonical_table_ids": (
+                max_extra_canonical_ids is None
+                or len(extra_canonical_ids) <= int(max_extra_canonical_ids)
+            ),
+            "max_missing_canonical_table_ids": (
+                max_missing_canonical_ids is None
+                or len(missing_canonical_ids) <= int(max_missing_canonical_ids)
+            ),
+            "min_total_canonical_table_ids": (
+                min_total_canonical_ids is None
+                or len(candidate_canonical_ids) >= int(min_total_canonical_ids)
+            ),
+            "max_total_canonical_table_ids": (
+                max_total_canonical_ids is None
+                or len(candidate_canonical_ids) <= int(max_total_canonical_ids)
+            ),
+        }
+        expectation_pass = all(checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "window_id": expectation.get("window_id")
+                or expectation.get("id")
+                or f"window_{expectation_index + 1}",
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "stage": stage,
+                "role": role,
+                "dominant_role": dominant_role,
+                "min_observed_table_frames": min_observed_table_frames,
+                "candidate_intervals": window_candidates,
+                "candidate_count": len(window_candidates),
+                "candidate_canonical_table_ids": sorted(candidate_canonical_ids),
+                "expected_canonical_table_ids": (
+                    sorted(expected_window_ids)
+                    if expected_window_ids is not None
+                    else None
+                ),
+                "extra_canonical_table_ids": extra_canonical_ids,
+                "missing_canonical_table_ids": missing_canonical_ids,
+                "persons": person_results,
+                "matched_person_count": matched_person_count,
+                "passed_person_count": passed_person_count,
+                "expected_person_count": expected_person_count,
+                "checks": checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
+def _table_person_specs(
+    expectation: Dict[str, Any],
+    expectation_index: int,
+) -> List[Dict[str, Any]]:
+    persons = expectation.get("persons")
+    if persons is None:
+        person = dict(expectation)
+        person.setdefault(
+            "person_id",
+            expectation.get("person_id")
+            or expectation.get("id")
+            or f"person_{expectation_index + 1}",
+        )
+        return [person]
+    return [dict(person) for person in persons]
+
+
+def _score_table_person_spec(
+    person: Dict[str, Any],
+    window_candidates: Sequence[Dict[str, Any]],
+    window_expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    expected_ids = _expected_int_set(
+        person,
+        "expected_canonical_table_ids",
+        "expected_table_canonical_ids",
+    )
+    required_ids = _expected_int_set(
+        person,
+        "required_canonical_table_ids",
+        "required_table_canonical_ids",
+    ) or set()
+    accepted_ids = _expected_int_set(
+        person,
+        "accepted_canonical_table_ids",
+        "accepted_table_canonical_ids",
+    )
+    matching_ids = accepted_ids or expected_ids or required_ids or None
+    person_role = person.get("role") or person.get("table_team_role")
+    person_dominant_role = person.get("dominant_role")
+    candidates = [
+        interval
+        for interval in window_candidates
+        if _role_expectation_matches(interval, person_role, person_dominant_role)
+        and (
+            matching_ids is None
+            or int(interval.get("canonical_table_id")) in matching_ids
+        )
+    ]
+    matched_canonical_ids = {
+        int(interval["canonical_table_id"])
+        for interval in candidates
+        if interval.get("canonical_table_id") is not None
+    }
+    raw_track_ids = {
+        int(interval["track_id"])
+        for interval in candidates
+        if interval.get("track_id") is not None
+    }
+    merged_track_ids = {
+        int(track_id)
+        for interval in candidates
+        for track_id in interval.get("merged_track_ids", [])
+    }
+    observed_table_frames = sum(
+        int(interval.get("observed_table_frames", 0) or 0)
+        for interval in candidates
+    )
+    overlap_s = round(
+        sum(_interval_overlap_duration_s(interval, window_expectation) for interval in candidates),
+        3,
+    )
+    window_duration_s = _expectation_duration_s(window_expectation)
+    overlap_rate = (
+        round(overlap_s / window_duration_s, 3)
+        if window_duration_s > 0
+        else None
+    )
+    min_intervals = int(
+        person.get(
+            "min_intervals",
+            0 if "max_intervals" in person else 1,
+        )
+    )
+    max_intervals = person.get("max_intervals")
+    min_overlap_s = person.get("min_overlap_s")
+    min_overlap_rate = person.get("min_overlap_rate")
+    min_observed_table_frames = person.get("min_observed_table_frames")
+    max_canonical_ids = person.get("max_canonical_table_ids")
+    if max_canonical_ids is None:
+        max_canonical_ids = person.get("max_fragments")
+    max_raw_track_ids = person.get("max_raw_track_ids")
+    max_merged_track_ids = person.get("max_merged_track_ids")
+    checks = {
+        "min_intervals": len(candidates) >= min_intervals,
+        "max_intervals": (
+            max_intervals is None or len(candidates) <= int(max_intervals)
+        ),
+        "required_canonical_table_ids": required_ids.issubset(
+            matched_canonical_ids
+        ),
+        "expected_canonical_table_ids": (
+            expected_ids is None or matched_canonical_ids == expected_ids
+        ),
+        "accepted_canonical_table_ids": (
+            accepted_ids is None or matched_canonical_ids.issubset(accepted_ids)
+        ),
+        "min_observed_table_frames": (
+            min_observed_table_frames is None
+            or observed_table_frames >= int(min_observed_table_frames)
+        ),
+        "min_overlap_s": (
+            min_overlap_s is None or overlap_s >= float(min_overlap_s)
+        ),
+        "min_overlap_rate": (
+            min_overlap_rate is None
+            or (overlap_rate is not None and overlap_rate >= float(min_overlap_rate))
+        ),
+        "max_canonical_table_ids": (
+            max_canonical_ids is None
+            or len(matched_canonical_ids) <= int(max_canonical_ids)
+        ),
+        "max_raw_track_ids": (
+            max_raw_track_ids is None
+            or len(raw_track_ids) <= int(max_raw_track_ids)
+        ),
+        "max_merged_track_ids": (
+            max_merged_track_ids is None
+            or len(merged_track_ids) <= int(max_merged_track_ids)
+        ),
+    }
+    return {
+        "person_id": str(person.get("person_id") or person.get("id") or "person"),
+        "label": person.get("label"),
+        "role": person_role,
+        "dominant_role": person_dominant_role,
+        "matched": bool(candidates),
+        "matched_intervals": candidates,
+        "matched_interval_count": len(candidates),
+        "canonical_table_ids": sorted(matched_canonical_ids),
+        "expected_canonical_table_ids": (
+            sorted(expected_ids) if expected_ids is not None else None
+        ),
+        "required_canonical_table_ids": sorted(required_ids),
+        "accepted_canonical_table_ids": (
+            sorted(accepted_ids) if accepted_ids is not None else None
+        ),
+        "raw_track_ids": sorted(raw_track_ids),
+        "merged_track_ids": sorted(merged_track_ids),
+        "observed_table_frames": observed_table_frames,
+        "overlap_s": overlap_s,
+        "overlap_rate": overlap_rate,
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _expected_window_canonical_ids(
+    expectation: Dict[str, Any],
+    person_results: Sequence[Dict[str, Any]],
+) -> Optional[set[int]]:
+    explicit_ids = _expected_int_set(
+        expectation,
+        "expected_canonical_table_ids",
+        "expected_table_canonical_ids",
+    )
+    if explicit_ids is not None:
+        return explicit_ids
+
+    expected_ids: set[int] = set()
+    has_expected_ids = False
+    for person in person_results:
+        for key in [
+            "expected_canonical_table_ids",
+            "accepted_canonical_table_ids",
+            "required_canonical_table_ids",
+        ]:
+            ids = person.get(key)
+            if ids is not None:
+                has_expected_ids = True
+                expected_ids.update(int(value) for value in ids)
+    return expected_ids if has_expected_ids else None
+
+
+def _interval_overlap_duration_s(
+    interval: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> float:
+    start_s = max(
+        float(interval.get("start_s", 0.0)),
+        float(expectation.get("start_s", float("-inf"))),
+    )
+    end_s = min(
+        float(interval.get("end_s", 0.0)),
+        float(expectation.get("end_s", float("inf"))),
+    )
+    return max(0.0, end_s - start_s)
+
+
+def _expectation_duration_s(expectation: Dict[str, Any]) -> float:
+    if "start_s" not in expectation or "end_s" not in expectation:
+        return 0.0
+    return max(0.0, float(expectation["end_s"]) - float(expectation["start_s"]))
 
 
 def _stage_staffing_score(

@@ -1,6 +1,6 @@
 {
   "case": "sentara_900_room_to_fluoro_low_motion",
-  "generated_from": "outputs/tavr_suite_table_presence_identity_verify/sentara_900_room_to_fluoro_low_motion/result.json",
+  "generated_from": "outputs/tavr_suite_person_interval_verify/sentara_900_room_to_fluoro_low_motion/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,

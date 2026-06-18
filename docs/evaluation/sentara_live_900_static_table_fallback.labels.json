@@ -41,6 +41,48 @@
       "min_observed_table_frames": 3
     }
   ],
+  "table_person_interval_expectations": [
+    {
+      "window_id": "initial_room_static_table",
+      "annotation_source": "tracker_derived_bootstrap_review",
+      "notes": "Stable person_id labels are the ground-truth handles; canonical IDs document the current tracker mapping for this reviewed bootstrap window.",
+      "start_s": 0.0,
+      "end_s": 4.3,
+      "stage": "access_sheathing",
+      "role": "table_operator",
+      "persons": [
+        {
+          "person_id": "gt_900_static_left_table",
+          "expected_canonical_table_ids": [1],
+          "min_intervals": 1,
+          "min_observed_table_frames": 100,
+          "min_overlap_s": 4.0,
+          "max_canonical_table_ids": 1,
+          "max_merged_track_ids": 1
+        },
+        {
+          "person_id": "gt_900_static_right_table",
+          "expected_canonical_table_ids": [2],
+          "min_intervals": 1,
+          "min_observed_table_frames": 90,
+          "min_overlap_s": 4.0,
+          "max_canonical_table_ids": 1,
+          "max_merged_track_ids": 1
+        },
+        {
+          "person_id": "gt_900_static_late_entrant",
+          "expected_canonical_table_ids": [3],
+          "min_intervals": 1,
+          "min_observed_table_frames": 5,
+          "min_overlap_s": 0.25,
+          "max_canonical_table_ids": 1,
+          "max_merged_track_ids": 1
+        }
+      ],
+      "expected_person_count": 3,
+      "max_extra_canonical_table_ids": 0
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "access_sheathing",

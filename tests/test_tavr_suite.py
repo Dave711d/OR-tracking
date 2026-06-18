@@ -14,6 +14,7 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
         "stage_score": {"accuracy": None},
         "table_count_score": {"pass_rate": 1.0},
         "table_presence_score": {"pass_rate": None},
+        "table_person_interval_score": {"pass_rate": None},
         "stage_staffing_score": {"pass_rate": 0.5},
         "stage_table_coverage_score": {"pass_rate": None},
         "table_transition_score": {"pass_rate": None},
@@ -34,6 +35,7 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
         "stage_accuracy": 1.0,
         "table_count_pass_rate": 1.0,
         "table_presence_pass_rate": 1.0,
+        "table_person_interval_pass_rate": 1.0,
         "stage_staffing_pass_rate": 1.0,
         "stage_table_coverage_pass_rate": 1.0,
         "table_transition_pass_rate": 1.0,
@@ -57,6 +59,7 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
     assert [check["scored"] for check in summary["checks"]] == [
         False,
         True,
+        False,
         False,
         True,
         False,
@@ -82,6 +85,7 @@ def test_score_summary_fails_required_unscored_sections() -> None:
         "stage_score": {"accuracy": None},
         "table_count_score": {"pass_rate": 1.0},
         "table_presence_score": {"pass_rate": None},
+        "table_person_interval_score": {"pass_rate": None},
         "stage_staffing_score": {"pass_rate": None},
         "stage_table_coverage_score": {"pass_rate": None},
         "table_transition_score": {"pass_rate": None},
@@ -102,6 +106,7 @@ def test_score_summary_fails_required_unscored_sections() -> None:
         "stage_accuracy": 1.0,
         "table_count_pass_rate": 1.0,
         "table_presence_pass_rate": 1.0,
+        "table_person_interval_pass_rate": 1.0,
         "stage_staffing_pass_rate": 1.0,
         "stage_table_coverage_pass_rate": 1.0,
         "table_transition_pass_rate": 1.0,
@@ -145,6 +150,7 @@ def test_score_summary_rejects_unknown_required_score_checks() -> None:
         "stage_score": {"accuracy": 1.0},
         "table_count_score": {"pass_rate": None},
         "table_presence_score": {"pass_rate": None},
+        "table_person_interval_score": {"pass_rate": None},
         "stage_staffing_score": {"pass_rate": None},
         "stage_table_coverage_score": {"pass_rate": None},
         "table_transition_score": {"pass_rate": None},
@@ -165,6 +171,7 @@ def test_score_summary_rejects_unknown_required_score_checks() -> None:
         "stage_accuracy": 1.0,
         "table_count_pass_rate": 1.0,
         "table_presence_pass_rate": 1.0,
+        "table_person_interval_pass_rate": 1.0,
         "stage_staffing_pass_rate": 1.0,
         "stage_table_coverage_pass_rate": 1.0,
         "table_transition_pass_rate": 1.0,
@@ -388,6 +395,10 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
         "operator_snapshot_pass_rate",
         "roster_snapshot_pass_rate",
     }
+    person_interval_cases = {
+        "sentara_1800_mixed_room",
+        "sentara_900_static_table_fallback",
+    }
 
     for manifest_path in manifest_paths:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -402,3 +413,5 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
                 assert five_section_required <= required, case["name"]
             if case["name"] in full_procedure_cases:
                 assert full_procedure_required <= required, case["name"]
+            if case["name"] in person_interval_cases:
+                assert "table_person_interval_pass_rate" in required, case["name"]

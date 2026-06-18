@@ -281,6 +281,15 @@ The label file can include:
   including exact or required canonical table-person IDs via
   `expected_canonical_table_ids` / `required_canonical_table_ids`, plus exact or
   required raw track IDs when a fixture should guard the raw tracker surface.
+- `table_person_interval_expectations`: human-labelled table-person windows.
+  Each window can contain a `persons` list with stable `person_id` values and
+  optional tracker mappings such as `expected_canonical_table_ids`,
+  `accepted_canonical_table_ids`, `max_canonical_table_ids`, and
+  `max_merged_track_ids`. The score checks each labelled person and also fails
+  unmatched extra canonical table people in the same window when
+  `max_extra_canonical_table_ids` is set. Use `person_id` as the ground-truth
+  handle; tracker IDs are regression mappings that should be updated after
+  visual review.
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
@@ -419,8 +428,8 @@ table identity groups, table presence intervals, quality flags, and
 low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured
 threshold, including `operator_packet_pass_rate`,
-`table_identity_group_pass_rate`, and `table_transition_pass_rate` when those
-expectations are labelled.
+`table_person_interval_pass_rate`, `table_identity_group_pass_rate`, and
+`table_transition_pass_rate` when those expectations are labelled.
 
 The default suite keeps static fallback off as a conservative baseline. Run the
 opt-in fallback fixture separately when refining low-motion room-view tracking:

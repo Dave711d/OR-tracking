@@ -37,6 +37,50 @@
       "min_observed_table_frames": 3
     }
   ],
+  "table_person_interval_expectations": [
+    {
+      "window_id": "late_deployment_room_return",
+      "annotation_source": "tracker_derived_bootstrap_review",
+      "notes": "Stable person_id labels are the ground-truth handles; canonical IDs document the current tracker mapping for this reviewed bootstrap window.",
+      "start_s": 24.3,
+      "end_s": 26.4,
+      "stage": "valve_deployment",
+      "persons": [
+        {
+          "person_id": "gt_1800_late_table_operator_a",
+          "role": "table_operator",
+          "expected_canonical_table_ids": [8],
+          "min_intervals": 3,
+          "min_observed_table_frames": 30,
+          "min_overlap_s": 0.9,
+          "max_canonical_table_ids": 1,
+          "max_merged_track_ids": 3
+        },
+        {
+          "person_id": "gt_1800_late_anesthesia",
+          "role": "anesthesia",
+          "expected_canonical_table_ids": [9],
+          "min_intervals": 1,
+          "min_observed_table_frames": 16,
+          "min_overlap_s": 0.4,
+          "max_canonical_table_ids": 1,
+          "max_merged_track_ids": 1
+        },
+        {
+          "person_id": "gt_1800_late_table_operator_b",
+          "role": "table_operator",
+          "expected_canonical_table_ids": [10],
+          "min_intervals": 1,
+          "min_observed_table_frames": 18,
+          "min_overlap_s": 0.45,
+          "max_canonical_table_ids": 1,
+          "max_merged_track_ids": 1
+        }
+      ],
+      "expected_person_count": 3,
+      "max_extra_canonical_table_ids": 0
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "valve_deployment",

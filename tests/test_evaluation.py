@@ -2555,6 +2555,110 @@ def test_exact_table_presence_canonical_person_rejects_wrong_interval() -> None:
     assert expectation["checks"]["expected_canonical_table_ids"] is False
 
 
+def test_table_person_interval_score_matches_labeled_people_and_rejects_extras() -> None:
+    clean_metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+        _table_metric(2, 0.2, "valve_deployment", [7, 8]),
+    ]
+    labels = {
+        "table_person_interval_expectations": [
+            {
+                "window_id": "deployment_pair",
+                "start_s": 0.0,
+                "end_s": 0.2,
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "persons": [
+                    {
+                        "person_id": "gt_left_table",
+                        "expected_canonical_table_ids": [1],
+                        "min_observed_table_frames": 3,
+                        "min_overlap_s": 0.1,
+                        "max_canonical_table_ids": 1,
+                    },
+                    {
+                        "person_id": "gt_right_table",
+                        "expected_canonical_table_ids": [2],
+                        "min_observed_table_frames": 3,
+                        "min_overlap_s": 0.1,
+                        "max_canonical_table_ids": 1,
+                    },
+                ],
+                "expected_person_count": 2,
+                "max_extra_canonical_table_ids": 0,
+            }
+        ]
+    }
+
+    clean_score = score_tavr_metrics(clean_metrics, labels)
+
+    expectation = clean_score["table_person_interval_score"]["expectations"][0]
+    assert clean_score["table_person_interval_score"]["pass_rate"] == 1.0
+    assert expectation["candidate_canonical_table_ids"] == [1, 2]
+    assert expectation["extra_canonical_table_ids"] == []
+    assert expectation["persons"][0]["person_id"] == "gt_left_table"
+    assert expectation["persons"][0]["canonical_table_ids"] == [1]
+
+    phantom_metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8, 9]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8, 9]),
+        _table_metric(2, 0.2, "valve_deployment", [7, 8, 9]),
+    ]
+    phantom_score = score_tavr_metrics(phantom_metrics, labels)
+    phantom_expectation = phantom_score["table_person_interval_score"][
+        "expectations"
+    ][0]
+
+    assert phantom_score["table_person_interval_score"]["pass_rate"] == 0.0
+    assert phantom_expectation["candidate_canonical_table_ids"] == [1, 2, 3]
+    assert phantom_expectation["extra_canonical_table_ids"] == [3]
+    assert (
+        phantom_expectation["checks"]["max_extra_canonical_table_ids"] is False
+    )
+
+
+def test_table_person_interval_score_rejects_split_person_identity() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+        _table_metric(30, 3.0, "valve_deployment", [9]),
+        _table_metric(31, 3.1, "valve_deployment", [9]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_person_interval_expectations": [
+                {
+                    "window_id": "split_gt_person",
+                    "start_s": 0.0,
+                    "end_s": 3.1,
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "persons": [
+                        {
+                            "person_id": "gt_same_table_operator",
+                            "accepted_canonical_table_ids": [1, 2],
+                            "min_intervals": 2,
+                            "max_canonical_table_ids": 1,
+                        }
+                    ],
+                    "expected_person_count": 1,
+                    "max_extra_canonical_table_ids": 0,
+                }
+            ]
+        },
+    )
+
+    expectation = score["table_person_interval_score"]["expectations"][0]
+    person = expectation["persons"][0]
+    assert score["table_person_interval_score"]["pass_rate"] == 0.0
+    assert person["canonical_table_ids"] == [1, 2]
+    assert person["checks"]["max_canonical_table_ids"] is False
+    assert expectation["checks"]["all_persons_passed"] is False
+
+
 def test_parse_roi_accepts_normalized_crop() -> None:
     assert parse_roi("0.1,0.2,0.8,0.9") == (0.1, 0.2, 0.8, 0.9)
 
