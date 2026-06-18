@@ -145,7 +145,19 @@
       "max_mean_confidence": 0.25,
       "min_new_tracks": 3,
       "min_within_stage_entry_tracks": 1,
-      "min_within_stage_exit_tracks": 3
+      "min_within_stage_exit_tracks": 3,
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "stage_table_coverage_expectations": [
@@ -189,7 +201,19 @@
       "max_continued_tracks": 0,
       "max_dropped_tracks": 0,
       "min_lead_observed_table_frames": 90,
-      "min_tracking_available_rate": 0.1
+      "min_tracking_available_rate": 0.1,
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "table_transition_expectations": [

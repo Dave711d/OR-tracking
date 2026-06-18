@@ -54,7 +54,11 @@
       "max_active_tracks": 0,
       "max_new_tracks": 0,
       "max_continued_tracks": 0,
-      "max_dropped_tracks": 0
+      "max_dropped_tracks": 0,
+      "expected_active_canonical_table_ids": [],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "table_transition_expectations": [
@@ -92,7 +96,11 @@
       "max_peak_table_count": 0,
       "max_canonical_table_identity_count": 0,
       "max_observable_rate": 0.2,
-      "evidence_level": "weak_visual_support"
+      "evidence_level": "weak_visual_support",
+      "expected_active_canonical_table_ids": [],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "stage_evidence_expectations": [

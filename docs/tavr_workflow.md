@@ -296,15 +296,20 @@ The label file can include:
 - `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
   requiring a deployment-stage `table_roster_started` event, a closure-stage
   `roster_added` event, a lead role, minimum active/new/continued/dropped track
-  counts, minimum lead table frames, or minimum tracking-available rate. `role`
-  and `lead_role` match operator-facing table roles; `dominant_role` and
-  `lead_dominant_role` constrain the raw role when needed.
+  counts, exact active/continued/new/dropped canonical table-person sets,
+  minimum lead table frames, or minimum tracking-available rate. `role` and
+  `lead_role` match operator-facing table roles; `dominant_role` and
+  `lead_dominant_role` constrain the raw role when needed. Use
+  `required_*_canonical_table_ids` for subset checks and
+  `expected_*_canonical_table_ids` for exact checks; a present empty expected
+  list means the stage boundary must have no canonical people in that delta.
 - `stage_roster_expectations`: expected concise per-stage roster summaries,
   combining stage, handoff type, evidence level, active table-facing role
-  counts, peak table count, canonical table-person count, continued/new/dropped
-  IDs, within-stage entry/exit IDs, lead role, observable rate, tracking rate,
-  and mean confidence. Use this when the question is "who was at the table
-  during this procedure stage?" rather than only "what happened at the boundary?"
+  counts, peak table count, canonical table-person count, exact
+  active/continued/new/dropped canonical table-person sets, within-stage
+  entry/exit IDs, lead role, observable rate, tracking rate, and mean
+  confidence. Use this when the question is "who was at the table during this
+  procedure stage?" rather than only "what happened at the boundary?"
 - `stage_evidence_expectations`: expected evidence support for a stage segment,
   such as requiring fluoroscopy-only stages to be `held_non_room`, requiring a
   room-visible deployment stage to have strong support, or requiring a visually

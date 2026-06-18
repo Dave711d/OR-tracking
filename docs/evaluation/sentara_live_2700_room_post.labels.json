@@ -112,7 +112,17 @@
       "min_active_tracks": 1,
       "min_new_tracks": 1,
       "min_lead_observed_table_frames": 20,
-      "min_tracking_available_rate": 0.9
+      "min_tracking_available_rate": 0.9,
+      "expected_active_canonical_table_ids": [
+        1,
+        2
+      ],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [
+        1,
+        2
+      ],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "closure_finish",
@@ -123,7 +133,32 @@
       "min_new_tracks": 4,
       "min_continued_tracks": 1,
       "min_lead_observed_table_frames": 40,
-      "min_tracking_available_rate": 0.45
+      "min_tracking_available_rate": 0.45,
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "expected_continued_canonical_table_ids": [
+        1,
+        2
+      ],
+      "expected_new_canonical_table_ids": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "stage_roster_expectations": [
@@ -137,7 +172,32 @@
       "min_new_tracks": 4,
       "min_continued_tracks": 1,
       "min_tracking_available_rate": 0.4,
-      "evidence_level": "weak_visual_support"
+      "evidence_level": "weak_visual_support",
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "expected_continued_canonical_table_ids": [
+        1,
+        2
+      ],
+      "expected_new_canonical_table_ids": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "event_timeline_expectations": [

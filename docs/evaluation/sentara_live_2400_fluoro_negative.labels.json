@@ -54,7 +54,11 @@
       "max_peak_table_count": 0,
       "max_canonical_table_identity_count": 0,
       "max_observable_rate": 0.0,
-      "evidence_level": "held_non_room"
+      "evidence_level": "held_non_room",
+      "expected_active_canonical_table_ids": [],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [],
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "stage_evidence_expectations": [

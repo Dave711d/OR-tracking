@@ -117,7 +117,11 @@
       "handoff_type": "table_roster_started",
       "lead_role": "access_operator",
       "min_active_tracks": 2,
-      "min_new_tracks": 2
+      "min_new_tracks": 2,
+      "expected_active_canonical_table_ids": [1, 2],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [1, 2],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "angio_alignment_crossing",
@@ -125,14 +129,22 @@
       "lead_role": "table_operator",
       "min_active_tracks": 2,
       "min_new_tracks": 2,
-      "min_dropped_tracks": 2
+      "min_dropped_tracks": 2,
+      "expected_active_canonical_table_ids": [3, 4],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [3, 4],
+      "expected_dropped_canonical_table_ids": [1, 2]
     },
     {
       "stage": "bav_optional",
       "handoff_type": "roster_added",
       "lead_role": "table_operator",
       "min_active_tracks": 4,
-      "min_new_tracks": 2
+      "min_new_tracks": 2,
+      "expected_active_canonical_table_ids": [3, 4, 5, 6],
+      "expected_continued_canonical_table_ids": [3, 4],
+      "expected_new_canonical_table_ids": [5, 6],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "closure_finish",
@@ -140,7 +152,11 @@
       "lead_role": "access_operator",
       "min_active_tracks": 2,
       "min_new_tracks": 2,
-      "min_dropped_tracks": 1
+      "min_dropped_tracks": 1,
+      "expected_active_canonical_table_ids": [9, 10],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [9, 10],
+      "expected_dropped_canonical_table_ids": [8]
     }
   ],
   "stage_roster_expectations": [
@@ -150,7 +166,11 @@
       "max_tracks": 0,
       "max_peak_table_count": 0,
       "max_canonical_table_identity_count": 0,
-      "evidence_level": "moderate_visual_support"
+      "evidence_level": "moderate_visual_support",
+      "expected_active_canonical_table_ids": [],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "access_sheathing",
@@ -160,7 +180,11 @@
       "min_tracks": 2,
       "min_peak_table_count": 2,
       "min_canonical_table_identity_count": 2,
-      "evidence_level": "strong_visual_support"
+      "evidence_level": "strong_visual_support",
+      "expected_active_canonical_table_ids": [1, 2],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [1, 2],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "angio_alignment_crossing",
@@ -170,7 +194,11 @@
       "min_tracks": 2,
       "min_peak_table_count": 2,
       "min_canonical_table_identity_count": 2,
-      "evidence_level": "strong_visual_support"
+      "evidence_level": "strong_visual_support",
+      "expected_active_canonical_table_ids": [3, 4],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [3, 4],
+      "expected_dropped_canonical_table_ids": [1, 2]
     },
     {
       "stage": "bav_optional",
@@ -180,7 +208,11 @@
       "min_tracks": 4,
       "min_peak_table_count": 4,
       "min_canonical_table_identity_count": 4,
-      "evidence_level": "strong_visual_support"
+      "evidence_level": "strong_visual_support",
+      "expected_active_canonical_table_ids": [3, 4, 5, 6],
+      "expected_continued_canonical_table_ids": [3, 4],
+      "expected_new_canonical_table_ids": [5, 6],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "valve_delivery_positioning",
@@ -190,7 +222,11 @@
       "min_tracks": 3,
       "min_peak_table_count": 3,
       "min_canonical_table_identity_count": 3,
-      "evidence_level": "strong_visual_support"
+      "evidence_level": "strong_visual_support",
+      "expected_active_canonical_table_ids": [3, 5, 6],
+      "expected_continued_canonical_table_ids": [3, 5, 6],
+      "expected_new_canonical_table_ids": [],
+      "expected_dropped_canonical_table_ids": [4]
     },
     {
       "stage": "valve_deployment",
@@ -200,7 +236,11 @@
       "min_tracks": 4,
       "min_peak_table_count": 4,
       "min_canonical_table_identity_count": 4,
-      "evidence_level": "strong_visual_support"
+      "evidence_level": "strong_visual_support",
+      "expected_active_canonical_table_ids": [3, 5, 6, 7],
+      "expected_continued_canonical_table_ids": [3, 5, 6],
+      "expected_new_canonical_table_ids": [7],
+      "expected_dropped_canonical_table_ids": []
     },
     {
       "stage": "post_deploy_assessment",
@@ -210,7 +250,11 @@
       "min_tracks": 1,
       "min_peak_table_count": 1,
       "min_canonical_table_identity_count": 1,
-      "evidence_level": "moderate_visual_support"
+      "evidence_level": "moderate_visual_support",
+      "expected_active_canonical_table_ids": [8],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [8],
+      "expected_dropped_canonical_table_ids": [3, 5, 6, 7]
     },
     {
       "stage": "closure_finish",
@@ -220,7 +264,11 @@
       "min_tracks": 2,
       "min_peak_table_count": 2,
       "min_canonical_table_identity_count": 2,
-      "evidence_level": "strong_visual_support"
+      "evidence_level": "strong_visual_support",
+      "expected_active_canonical_table_ids": [9, 10],
+      "expected_continued_canonical_table_ids": [],
+      "expected_new_canonical_table_ids": [9, 10],
+      "expected_dropped_canonical_table_ids": [8]
     }
   ],
   "stage_evidence_expectations": [

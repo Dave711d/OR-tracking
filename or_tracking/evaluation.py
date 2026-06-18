@@ -4289,6 +4289,7 @@ def _stage_handoff_score(
                 max_dropped_tracks=max_dropped_tracks,
                 min_lead_observed_table_frames=min_lead_observed_table_frames,
                 min_tracking_available_rate=min_tracking_available_rate,
+                expectation=expectation,
             )
             for handoff in candidates
         ]
@@ -4964,6 +4965,52 @@ def _expected_int_set(
     return None
 
 
+def _canonical_table_id_expectation(
+    expectation: Dict[str, Any],
+    prefix: str,
+) -> tuple[set[int], Optional[set[int]]]:
+    required_ids = _expected_int_set(
+        expectation,
+        f"required_{prefix}_canonical_table_ids",
+        f"required_{prefix}_table_canonical_ids",
+    )
+    expected_ids = _expected_int_set(
+        expectation,
+        f"expected_{prefix}_canonical_table_ids",
+        f"expected_{prefix}_table_canonical_ids",
+    )
+    return required_ids or set(), expected_ids
+
+
+def _canonical_table_id_score(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+    prefix: str,
+    row_key: str,
+) -> tuple[Dict[str, bool], Dict[str, Any]]:
+    actual_ids = {int(value) for value in row.get(row_key, [])}
+    required_ids, expected_ids = _canonical_table_id_expectation(
+        expectation,
+        prefix,
+    )
+    return (
+        {
+            f"required_{prefix}_canonical_table_ids": required_ids.issubset(
+                actual_ids
+            ),
+            f"expected_{prefix}_canonical_table_ids": (
+                expected_ids is None or actual_ids == expected_ids
+            ),
+        },
+        {
+            row_key: sorted(actual_ids),
+            f"expected_{prefix}_canonical_table_ids": (
+                sorted(expected_ids) if expected_ids is not None else None
+            ),
+        },
+    )
+
+
 def _operator_snapshot_status_expectation(
     expectation: Dict[str, Any],
 ) -> Dict[str, Any]:
@@ -5522,6 +5569,22 @@ def _score_stage_roster_candidate(
         int(track_id) for track_id in expectation.get("required_active_track_ids", [])
     }
     active_track_ids = {int(track_id) for track_id in row["active_table_track_ids"]}
+    canonical_checks: Dict[str, bool] = {}
+    canonical_details: Dict[str, Any] = {}
+    for prefix, row_key in (
+        ("active", "active_table_canonical_ids"),
+        ("continued", "continued_canonical_table_ids"),
+        ("new", "new_canonical_table_ids"),
+        ("dropped", "dropped_canonical_table_ids"),
+    ):
+        checks_for_prefix, details_for_prefix = _canonical_table_id_score(
+            row,
+            expectation,
+            prefix,
+            row_key,
+        )
+        canonical_checks.update(checks_for_prefix)
+        canonical_details.update(details_for_prefix)
     checks = {
         "handoff_type": (
             not expected_handoff_types
@@ -5620,8 +5683,9 @@ def _score_stage_roster_candidate(
         "required_active_track_ids": required_active_track_ids.issubset(
             active_track_ids
         ),
+        **canonical_checks,
     }
-    return {
+    result = {
         "stage_segment_index": row["stage_segment_index"],
         "stage": row["stage"],
         "stage_label": row["stage_label"],
@@ -5647,6 +5711,8 @@ def _score_stage_roster_candidate(
         "checks": checks,
         "passed": all(checks.values()),
     }
+    result.update(canonical_details)
+    return result
 
 
 def _score_procedure_milestone_candidate(
@@ -6671,6 +6737,7 @@ def _score_handoff_candidate(
     max_dropped_tracks: Optional[int],
     min_lead_observed_table_frames: int,
     min_tracking_available_rate: Optional[float],
+    expectation: Dict[str, Any],
 ) -> Dict[str, Any]:
     active_matches = _roster_role_matches(
         handoff["active_table_roster"],
@@ -6688,6 +6755,22 @@ def _score_handoff_candidate(
         role,
         dominant_role,
     )
+    canonical_checks: Dict[str, bool] = {}
+    canonical_details: Dict[str, Any] = {}
+    for prefix, row_key in (
+        ("active", "active_table_canonical_ids"),
+        ("continued", "continued_canonical_table_ids"),
+        ("new", "new_canonical_table_ids"),
+        ("dropped", "dropped_canonical_table_ids"),
+    ):
+        checks_for_prefix, details_for_prefix = _canonical_table_id_score(
+            handoff,
+            expectation,
+            prefix,
+            row_key,
+        )
+        canonical_checks.update(checks_for_prefix)
+        canonical_details.update(details_for_prefix)
     checks = {
         "handoff_type": (
             not expected_handoff_types
@@ -6727,8 +6810,9 @@ def _score_handoff_candidate(
                 >= float(min_tracking_available_rate)
             )
         ),
+        **canonical_checks,
     }
-    return {
+    result = {
         "stage_segment_index": handoff["stage_segment_index"],
         "stage": handoff["stage"],
         "stage_label": handoff["stage_label"],
@@ -6753,6 +6837,8 @@ def _score_handoff_candidate(
         "checks": checks,
         "passed": all(checks.values()),
     }
+    result.update(canonical_details)
+    return result
 
 
 def _roster_role_matches(

@@ -943,6 +943,103 @@ def test_exact_roster_snapshot_canonical_people_rejects_extra_people() -> None:
     assert expectation["expected_canonical_table_ids"] == [actual_ids[0]]
 
 
+def test_exact_stage_handoff_canonical_deltas_reject_wrong_boundary_person() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7, 8]),
+        _table_metric(1, 0.1, "access_sheathing", [7, 8]),
+        _table_metric(2, 0.2, "valve_deployment", [7, 9, 10]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 9, 10]),
+    ]
+    handoff = stage_handoff_summary(metrics)[1]
+    assert handoff["continued_canonical_table_ids"]
+    assert len(handoff["new_canonical_table_ids"]) == 2
+    assert handoff["dropped_canonical_table_ids"]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "stage_handoff_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "handoff_type": handoff["handoff_type"],
+                    "expected_active_canonical_table_ids": handoff[
+                        "active_table_canonical_ids"
+                    ],
+                    "expected_continued_canonical_table_ids": handoff[
+                        "continued_canonical_table_ids"
+                    ],
+                    "required_new_canonical_table_ids": [
+                        handoff["new_canonical_table_ids"][0]
+                    ],
+                    "expected_new_canonical_table_ids": handoff[
+                        "new_canonical_table_ids"
+                    ][:-1],
+                    "expected_dropped_canonical_table_ids": handoff[
+                        "dropped_canonical_table_ids"
+                    ],
+                }
+            ]
+        },
+    )
+
+    candidate = score["stage_handoff_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    assert score["stage_handoff_score"]["pass_rate"] == 0.0
+    assert candidate["checks"]["required_new_canonical_table_ids"] is True
+    assert candidate["checks"]["expected_new_canonical_table_ids"] is False
+    assert candidate["new_canonical_table_ids"] == handoff["new_canonical_table_ids"]
+    assert candidate["expected_new_canonical_table_ids"] == handoff[
+        "new_canonical_table_ids"
+    ][:-1]
+
+
+def test_exact_stage_roster_canonical_deltas_accept_full_boundary_contract() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7, 8]),
+        _table_metric(1, 0.1, "access_sheathing", [7, 8]),
+        _table_metric(2, 0.2, "valve_deployment", [7, 9, 10]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 9, 10]),
+    ]
+    roster = stage_roster_summary(metrics)[1]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "stage_roster_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "handoff_type": roster["handoff_type"],
+                    "expected_active_canonical_table_ids": roster[
+                        "active_table_canonical_ids"
+                    ],
+                    "expected_continued_canonical_table_ids": roster[
+                        "continued_canonical_table_ids"
+                    ],
+                    "expected_new_canonical_table_ids": roster[
+                        "new_canonical_table_ids"
+                    ],
+                    "expected_dropped_canonical_table_ids": roster[
+                        "dropped_canonical_table_ids"
+                    ],
+                }
+            ]
+        },
+    )
+
+    candidate = score["stage_roster_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    assert score["stage_roster_score"]["pass_rate"] == 1.0
+    assert candidate["checks"]["expected_active_canonical_table_ids"] is True
+    assert candidate["checks"]["expected_continued_canonical_table_ids"] is True
+    assert candidate["checks"]["expected_new_canonical_table_ids"] is True
+    assert candidate["checks"]["expected_dropped_canonical_table_ids"] is True
+    assert candidate["active_table_canonical_ids"] == roster[
+        "active_table_canonical_ids"
+    ]
+
+
 def test_operator_status_snapshots_capture_critical_replay_points() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
