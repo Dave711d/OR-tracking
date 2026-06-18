@@ -32,7 +32,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "stage_label": "Valve deployment",
         "evidence": "strong_visual_support",
         "table_source": "recent_room_view_hold",
-        "table_count": 1,
+        "table_count": 2,
         "required_flags": {
             "rapid_stage_progression",
             "low_stage_confidence",
@@ -247,6 +247,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
             "stage_roster_summary",
             "stage_table_coverage",
             "procedure_milestones",
+            "operator_status_snapshots",
             "procedure_event_timeline",
             "table_transition_events",
             "quality_flags",
@@ -254,6 +255,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
             assert key in tavr
 
         status = tavr["procedure_status_summary"][0]
+        status_snapshots = tavr["operator_status_snapshots"]
         packet = tavr["operator_stage_packet"][-1]
         event_count = (
             len(tavr["procedure_event_timeline"])
@@ -272,6 +274,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert "effective_table_canonical_ids" in status
         assert "last_observed_table_canonical_ids" in status
         assert "peak_table_canonical_ids" in status
+        assert status_snapshots
+        assert status_snapshots[-1]["current_stage"] == status["current_stage"]
+        assert "snapshot_reason" in status_snapshots[-1]
+        assert "effective_table_canonical_ids" in status_snapshots[-1]
         assert set(status["quality_flag_codes"]) >= demo["required_flags"]
         assert packet["stage_evidence_status"] == demo["evidence"]
         assert packet["effective_table_source"] == demo["table_source"]
@@ -315,6 +321,16 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     )
     assert stage_start["table_canonical_ids"] == [1, 2]
     assert "Person 1" in stage_start["roster"][0]["label"]
+    fallback_snapshots = fallback_payload["tavr"]["operator_status_snapshots"]
+    view_snapshot = next(
+        row
+        for row in fallback_snapshots
+        if "view_start" in row["snapshot_reason"]
+        and row["current_view"] == "non_room"
+    )
+    assert view_snapshot["current_stage"] == "bav_optional"
+    assert view_snapshot["effective_table_source"] == "last_observed_room_view"
+    assert view_snapshot["effective_table_canonical_ids"] == [1, 2, 3]
 
 
 def test_static_demo_loads_backend_evaluation_replay() -> None:
@@ -330,12 +346,14 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert 'id="evaluationDemoButton"' in index_html
     assert 'id="evaluationDemoSelect"' in index_html
     assert 'id="procedureStatus"' in index_html
+    assert 'id="statusSnapshotList"' in index_html
     assert 'id="tableIdentityList"' in index_html
     assert 'id="milestoneList"' in index_html
     assert 'id="eventTimelineList"' in index_html
     assert 'id="qualityFlagList"' in index_html
     assert "Evaluated demo" in index_html
     assert "Replay" in index_html
+    assert "Status snapshots" in index_html
     assert catalog_block_match is not None
     catalog_block = catalog_block_match.group("body")
     case_ids = re.findall(r'id: "([^"]+)"', catalog_block)
@@ -357,6 +375,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function normalizeEvaluationPayload" in app_js
     assert "function renderEvaluationReplay" in app_js
     assert "function renderProcedureStatus" in app_js
+    assert "function renderBackendStatusSnapshots" in app_js
     assert "function renderBackendOperatorPacket" in app_js
     assert "function renderBackendTableTeam" in app_js
     assert "function renderBackendTableIdentities" in app_js
@@ -383,8 +402,12 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function appendOverflowRow" in app_js
     assert "function syncEmptyStateToVideoSource" in app_js
     assert "function summarizeStageCounts" in app_js
+    assert "function effectiveTableSnapshot" in app_js
     assert "emptyState.hidden = Boolean(video.src)" in app_js
     assert "effective_table_source" in app_js
+    assert "effective_table_count ?? status.current_table_count" in app_js
+    assert "status.current_table_count ?? status.effective_table_count" not in app_js
+    assert "last_observed_age_from_clip_end_s" in app_js
     assert "tracking_available_rate" in app_js
     assert "canonical_table_identity_count" in app_js
     assert "effective_table_canonical_ids" in app_js
@@ -394,6 +417,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function rosterPersonLabel" in app_js
     assert "function formatRosterPeople" in app_js
     assert "function eventTableDetail" in app_js
+    assert "function snapshotReasonLabel" in app_js
     assert "${rosterPersonLabel(row)}" in app_js
     assert "active people" in app_js
     assert "new people" in app_js
@@ -403,6 +427,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "table_identity_groups" in app_js
     assert "merged_track_ids" in app_js
     assert "quality_flag_codes" in app_js
+    assert "operator_status_snapshots" in app_js
     assert "procedure_event_timeline" in app_js
     assert ".procedure-status-list" in styles
     assert ".replay-control" in styles

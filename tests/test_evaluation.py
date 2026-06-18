@@ -8,6 +8,7 @@ import pytest
 from evaluate_tavr import parse_args, parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
+    operator_status_snapshots,
     operator_stage_packet,
     procedure_event_timeline,
     procedure_milestones,
@@ -76,6 +77,7 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["stage_handoff_summary"]
     assert summary["stage_roster_summary"]
     assert summary["operator_stage_packet"]
+    assert summary["operator_status_snapshots"]
     assert summary["stage_evidence_summary"]
     assert summary["procedure_status_summary"]
     assert summary["table_team_summary"]
@@ -585,6 +587,33 @@ def test_procedure_status_holds_recent_room_roster_when_current_frame_is_quiet()
     )
 
 
+def test_procedure_status_uses_stable_recent_room_roster_when_table_drops_out() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8, 9]),
+        _table_metric(1, 0.1, "valve_deployment", [9]),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+    ]
+
+    status = procedure_status_summary(metrics)[0]
+
+    assert status["current_view"] == "non_room"
+    assert status["current_table_count"] == 0
+    assert status["current_table_track_ids"] == []
+    assert status["effective_table_source"] == "last_observed_room_view"
+    assert status["effective_table_count"] == 3
+    assert status["effective_table_track_ids"] == [7, 8, 9]
+    assert status["effective_table_canonical_ids"] == [1, 2, 3]
+    assert status["last_observed_table_count"] == 3
+    assert status["last_observed_table_track_ids"] == [7, 8, 9]
+    assert status["last_observed_table_canonical_ids"] == [1, 2, 3]
+
+
 def test_operator_status_uses_canonical_table_people_for_fragmented_tracks() -> None:
     metrics = [
         _table_metric(
@@ -706,6 +735,46 @@ def test_operator_snapshot_score_combines_stage_table_and_canonical_people() -> 
     assert candidate["checks"]["required_current_canonical_table_ids"] is True
 
 
+def test_operator_status_snapshots_capture_critical_replay_points() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [],
+            alert_flags=["non_room_view"],
+        ),
+    ]
+
+    snapshots = operator_status_snapshots(metrics)
+
+    assert [row["frame_index"] for row in snapshots] == [0, 1, 2, 3]
+    by_frame = {row["frame_index"]: row for row in snapshots}
+    assert by_frame[0]["snapshot_reason"] == ["clip_start", "stage_start", "view_start"]
+    assert by_frame[1]["snapshot_reason"] == [
+        "last_observed_table",
+        "peak_table",
+        "stage_end",
+        "view_end",
+    ]
+    assert by_frame[2]["snapshot_reason"] == ["stage_start", "view_start"]
+    assert by_frame[2]["current_stage"] == "valve_deployment"
+    assert by_frame[2]["current_view"] == "non_room"
+    assert by_frame[2]["effective_table_source"] == "last_observed_room_view"
+    assert by_frame[2]["effective_table_canonical_ids"] == [1]
+    assert by_frame[3]["snapshot_reason"] == ["clip_end", "stage_end", "view_end"]
+    assert by_frame[3]["effective_table_age_from_clip_end_s"] == 0.2
+
+
 def test_operator_snapshot_score_enforces_timestamp_tolerance() -> None:
     metrics = [
         _table_metric(0, 0.0, "valve_deployment", [7]),
@@ -773,10 +842,13 @@ def test_table_team_summary_reports_active_recent_and_historical_members() -> No
     assert room_by_id[9]["is_current_table_member"] is True
     assert room_by_id[9]["is_effective_table_member"] is True
     assert room_by_id[9]["age_from_clip_end_s"] == 0.0
-    assert room_by_id[8]["team_status"] == "historical_seen"
+    assert room_by_id[8]["team_status"] == "recent_last_observed"
+    assert room_by_id[8]["is_current_table_member"] is False
+    assert room_by_id[8]["is_effective_table_member"] is False
+    assert room_by_id[8]["is_last_observed_table_member"] is True
     assert room_by_id[8]["is_peak_table_member"] is True
     assert room_by_id[8]["dominant_stage"] == "access_sheathing"
-    assert "historical seen" in room_by_id[8]["label"]
+    assert "recent last observed" in room_by_id[8]["label"]
 
 
 def test_table_team_role_promotes_table_facing_role_over_raw_dominant() -> None:
@@ -1308,6 +1380,7 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
         "stage_handoff_summary",
         "stage_roster_summary",
         "operator_stage_packet",
+        "operator_status_snapshots",
         "stage_evidence_summary",
         "procedure_status_summary",
         "table_team_summary",
@@ -1323,6 +1396,9 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     handoff_csv = Path(paths["stage_handoff_summary"]).read_text(encoding="utf-8")
     roster_csv = Path(paths["stage_roster_summary"]).read_text(encoding="utf-8")
     packet_csv = Path(paths["operator_stage_packet"]).read_text(encoding="utf-8")
+    status_snapshots_csv = Path(paths["operator_status_snapshots"]).read_text(
+        encoding="utf-8"
+    )
     evidence_csv = Path(paths["stage_evidence_summary"]).read_text(encoding="utf-8")
     status_csv = Path(paths["procedure_status_summary"]).read_text(encoding="utf-8")
     team_csv = Path(paths["table_team_summary"]).read_text(encoding="utf-8")
@@ -1351,6 +1427,9 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "Current stage: Valve deployment" in packet_csv
     assert "active people Person 1, Person 2 (raw IDs 7, 8)" in packet_csv
     assert "effective_table_canonical_ids" in packet_csv
+    assert "snapshot_reason" in status_snapshots_csv
+    assert "clip_end" in status_snapshots_csv
+    assert "effective_table_canonical_ids" in status_snapshots_csv
     assert "evidence_level" in evidence_csv
     assert "strong_visual_support" in evidence_csv
     assert "operator_summary" in status_csv
@@ -1571,13 +1650,15 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "max_last_seen_age_from_clip_end_s": 0.0,
             },
             {
-                "status": "historical_seen",
+                "status": "recent_last_observed",
                 "role": "table_operator",
                 "table_team_role": "table_operator",
                 "min_tracks": 1,
                 "require_in_current_table_roster": False,
+                "require_in_last_table_roster": True,
                 "require_in_peak_table_roster": True,
                 "min_observed_table_frames": 2,
+                "max_last_seen_age_from_clip_end_s": 0.1,
             },
         ],
         "table_identity_group_expectations": [
@@ -1676,7 +1757,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["event_timeline_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["expectations"][0]["matched_count"] == 1
     assert score["roster_snapshot_score"]["pass_rate"] == 1.0
-    assert score["roster_snapshot_score"]["expectations"][0]["matched_count"] == 1
+    assert score["roster_snapshot_score"]["expectations"][0]["matched_count"] == 2
     assert score["quality_flag_score"]["pass_rate"] == 1.0
 
 

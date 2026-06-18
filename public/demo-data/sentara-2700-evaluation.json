@@ -116,6 +116,11 @@
             "frames_seen": 25,
             "table_presence_ratio": 0.92,
             "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
             "canonical_table_id": 9,
             "merged_track_ids": [
               13
@@ -146,6 +151,11 @@
             "frames_seen": 25,
             "table_presence_ratio": 0.92,
             "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
             "canonical_table_id": 9,
             "merged_track_ids": [
               13
@@ -245,6 +255,1807 @@
           "non_room_view"
         ],
         "operator_summary": "Current weakly supported stage: Closure / finish (weak visual support, confidence 0.29, observable 46%); tracking not available; at table now: none; table status: last observed room view Person 9: ID 13 table_operator table=92%; last observed table: Person 9: ID 13 table_operator table=92%; next: procedure end; quality flags: rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+      }
+    ],
+    "operator_status_snapshots": [
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 80919,
+        "source_start_s": 2699.997,
+        "source_end_s": 2699.997,
+        "clip_start_frame": 0,
+        "clip_end_frame": 0,
+        "clip_start_s": 0.0,
+        "clip_end_s": 0.0,
+        "source_offset_s": 2699.997,
+        "current_stage": "post_deploy_assessment",
+        "current_stage_label": "Post-deploy assessment",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "weak_visual_support",
+        "current_stage_evidence_label": "weak visual support",
+        "next_stage": "closure_finish",
+        "next_stage_label": "Closure / finish",
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.2,
+        "current_view": "room",
+        "tracking_available": true,
+        "current_table_count": 0,
+        "current_table_track_ids": [],
+        "current_table_canonical_ids": [],
+        "current_table_roster": [],
+        "effective_table_source": "current_room_view_empty",
+        "effective_table_s": 2699.997,
+        "effective_table_clip_s": 0.0,
+        "effective_table_age_from_clip_end_s": 0.0,
+        "effective_table_stage": "post_deploy_assessment",
+        "effective_table_stage_label": "Post-deploy assessment",
+        "effective_table_count": 0,
+        "effective_table_track_ids": [],
+        "effective_table_canonical_ids": [],
+        "effective_table_roster": [],
+        "last_observed_table_s": null,
+        "last_observed_clip_s": null,
+        "last_observed_age_from_clip_end_s": null,
+        "last_observed_stage": null,
+        "last_observed_stage_label": null,
+        "last_observed_table_count": 0,
+        "last_observed_table_track_ids": [],
+        "last_observed_table_canonical_ids": [],
+        "last_observed_table_roster": [],
+        "peak_table_s": 2699.997,
+        "peak_table_clip_s": 0.0,
+        "peak_table_stage": "post_deploy_assessment",
+        "peak_table_stage_label": "Post-deploy assessment",
+        "peak_table_count": 0,
+        "peak_table_track_ids": [],
+        "peak_table_canonical_ids": [],
+        "peak_table_roster": [],
+        "quality_flag_codes": [
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current weakly supported stage: Post-deploy assessment (weak visual support, confidence 0.20, observable 100%); tracking available; at table now: none; table status: current room view empty none; last observed table: none; next: Closure / finish; quality flags: low_stage_confidence",
+        "snapshot_index": 0,
+        "snapshot_reason": [
+          "clip_start",
+          "stage_start",
+          "view_start"
+        ],
+        "frame_index": 80919,
+        "timestamp_s": 2699.997,
+        "clip_timestamp_s": 0.0
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 80995,
+        "source_start_s": 2699.997,
+        "source_end_s": 2702.533,
+        "clip_start_frame": 0,
+        "clip_end_frame": 76,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.536,
+        "source_offset_s": 2699.997,
+        "current_stage": "post_deploy_assessment",
+        "current_stage_label": "Post-deploy assessment",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "weak_visual_support",
+        "current_stage_evidence_label": "weak visual support",
+        "next_stage": "closure_finish",
+        "next_stage_label": "Closure / finish",
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.278,
+        "current_view": "room",
+        "tracking_available": true,
+        "current_table_count": 1,
+        "current_table_track_ids": [
+          1
+        ],
+        "current_table_canonical_ids": [
+          1
+        ],
+        "current_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 31,
+            "table_presence_ratio": 0.903,
+            "label": "Person 1: ID 1 table_operator table=90%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=90%",
+            "canonical_table_label": "Person 1"
+          }
+        ],
+        "effective_table_source": "current_room_view",
+        "effective_table_s": 2702.533,
+        "effective_table_clip_s": 2.536,
+        "effective_table_age_from_clip_end_s": 0.0,
+        "effective_table_stage": "post_deploy_assessment",
+        "effective_table_stage_label": "Post-deploy assessment",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          1
+        ],
+        "effective_table_canonical_ids": [
+          1
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 31,
+            "table_presence_ratio": 0.903,
+            "label": "Person 1: ID 1 table_operator table=90%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=90%",
+            "canonical_table_label": "Person 1"
+          }
+        ],
+        "last_observed_table_s": 2702.533,
+        "last_observed_clip_s": 2.536,
+        "last_observed_age_from_clip_end_s": 0.0,
+        "last_observed_stage": "post_deploy_assessment",
+        "last_observed_stage_label": "Post-deploy assessment",
+        "last_observed_table_count": 2,
+        "last_observed_table_track_ids": [
+          1,
+          2
+        ],
+        "last_observed_table_canonical_ids": [
+          1,
+          2
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 31,
+            "table_presence_ratio": 0.903,
+            "label": "Person 1: ID 1 table_operator table=90%",
+            "observed_table_frames": 28,
+            "first_observed_frame": 80968,
+            "last_observed_frame": 80995,
+            "first_observed_s": 2701.632,
+            "last_observed_s": 2702.533,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=90%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 20,
+            "table_presence_ratio": 0.05,
+            "label": "Person 2: ID 2 device_prep table=5%",
+            "observed_table_frames": 1,
+            "first_observed_frame": 80993,
+            "last_observed_frame": 80993,
+            "first_observed_s": 2702.466,
+            "last_observed_s": 2702.466,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 device_prep table=5%",
+            "canonical_table_label": "Person 2"
+          }
+        ],
+        "peak_table_s": 2702.466,
+        "peak_table_clip_s": 2.469,
+        "peak_table_stage": "post_deploy_assessment",
+        "peak_table_stage_label": "Post-deploy assessment",
+        "peak_table_count": 2,
+        "peak_table_track_ids": [
+          1,
+          2
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          2
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 29,
+            "table_presence_ratio": 0.897,
+            "label": "Person 1: ID 1 table_operator table=90%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=90%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 20,
+            "table_presence_ratio": 0.05,
+            "label": "Person 2: ID 2 device_prep table=5%",
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 device_prep table=5%",
+            "canonical_table_label": "Person 2"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current weakly supported stage: Post-deploy assessment (weak visual support, confidence 0.28, observable 100%); tracking available; at table now: Person 1: ID 1 table_operator table=90%; table status: current room view Person 1: ID 1 table_operator table=90%; last observed table: Person 1: ID 1 table_operator table=90%; Person 2: ID 2 device_prep table=5%; next: Closure / finish; quality flags: rapid_stage_progression, low_stage_confidence",
+        "snapshot_index": 1,
+        "snapshot_reason": [
+          "stage_end"
+        ],
+        "frame_index": 80995,
+        "timestamp_s": 2702.533,
+        "clip_timestamp_s": 2.536
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 80996,
+        "source_start_s": 2699.997,
+        "source_end_s": 2702.567,
+        "clip_start_frame": 0,
+        "clip_end_frame": 77,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.569,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "strong_visual_support",
+        "current_stage_evidence_label": "strong visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "strong_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.521,
+        "current_view": "room",
+        "tracking_available": true,
+        "current_table_count": 2,
+        "current_table_track_ids": [
+          1,
+          3
+        ],
+        "current_table_canonical_ids": [
+          1,
+          3
+        ],
+        "current_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 32,
+            "table_presence_ratio": 0.906,
+            "label": "Person 1: ID 1 table_operator table=91%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=91%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "unassigned",
+            "table_team_role": "unassigned",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 7,
+            "table_presence_ratio": 0.143,
+            "label": "Person 3: ID 3 unassigned table=14%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 unassigned table=14%",
+            "canonical_table_label": "Person 3"
+          }
+        ],
+        "effective_table_source": "current_room_view",
+        "effective_table_s": 2702.567,
+        "effective_table_clip_s": 2.569,
+        "effective_table_age_from_clip_end_s": 0.0,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 2,
+        "effective_table_track_ids": [
+          1,
+          3
+        ],
+        "effective_table_canonical_ids": [
+          1,
+          3
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 32,
+            "table_presence_ratio": 0.906,
+            "label": "Person 1: ID 1 table_operator table=91%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=91%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "unassigned",
+            "table_team_role": "unassigned",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 7,
+            "table_presence_ratio": 0.143,
+            "label": "Person 3: ID 3 unassigned table=14%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 unassigned table=14%",
+            "canonical_table_label": "Person 3"
+          }
+        ],
+        "last_observed_table_s": 2702.567,
+        "last_observed_clip_s": 2.569,
+        "last_observed_age_from_clip_end_s": 0.0,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 3,
+        "last_observed_table_track_ids": [
+          1,
+          2,
+          3
+        ],
+        "last_observed_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 32,
+            "table_presence_ratio": 0.906,
+            "label": "Person 1: ID 1 table_operator table=91%",
+            "observed_table_frames": 29,
+            "first_observed_frame": 80968,
+            "last_observed_frame": 80996,
+            "first_observed_s": 2701.632,
+            "last_observed_s": 2702.567,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=91%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 20,
+            "table_presence_ratio": 0.05,
+            "label": "Person 2: ID 2 device_prep table=5%",
+            "observed_table_frames": 1,
+            "first_observed_frame": 80993,
+            "last_observed_frame": 80993,
+            "first_observed_s": 2702.466,
+            "last_observed_s": 2702.466,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 device_prep table=5%",
+            "canonical_table_label": "Person 2"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "unassigned",
+            "table_team_role": "unassigned",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 7,
+            "table_presence_ratio": 0.143,
+            "label": "Person 3: ID 3 unassigned table=14%",
+            "observed_table_frames": 1,
+            "first_observed_frame": 80996,
+            "last_observed_frame": 80996,
+            "first_observed_s": 2702.567,
+            "last_observed_s": 2702.567,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 unassigned table=14%",
+            "canonical_table_label": "Person 3"
+          }
+        ],
+        "peak_table_s": 2702.567,
+        "peak_table_clip_s": 2.569,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 2,
+        "peak_table_track_ids": [
+          1,
+          3
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          3
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 32,
+            "table_presence_ratio": 0.906,
+            "label": "Person 1: ID 1 table_operator table=91%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=91%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "unassigned",
+            "table_team_role": "unassigned",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 7,
+            "table_presence_ratio": 0.143,
+            "label": "Person 3: ID 3 unassigned table=14%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 unassigned table=14%",
+            "canonical_table_label": "Person 3"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current observed stage: Closure / finish (strong visual support, confidence 0.52, observable 100%); tracking available; at table now: Person 1: ID 1 table_operator table=91%; Person 3: ID 3 unassigned table=14%; table status: current room view Person 1: ID 1 table_operator table=91%; Person 3: ID 3 unassigned table=14%; last observed table: Person 1: ID 1 table_operator table=91%; Person 2: ID 2 device_prep table=5%; Person 3: ID 3 unassigned table=14%; next: procedure end; quality flags: rapid_stage_progression, low_stage_confidence",
+        "snapshot_index": 2,
+        "snapshot_reason": [
+          "stage_start"
+        ],
+        "frame_index": 80996,
+        "timestamp_s": 2702.567,
+        "clip_timestamp_s": 2.569
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 81038,
+        "source_start_s": 2699.997,
+        "source_end_s": 2703.968,
+        "clip_start_frame": 0,
+        "clip_end_frame": 119,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.971,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "moderate_visual_support",
+        "current_stage_evidence_label": "moderate visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.406,
+        "current_view": "room",
+        "tracking_available": true,
+        "current_table_count": 4,
+        "current_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "current_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "current_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "effective_table_source": "current_room_view",
+        "effective_table_s": 2703.968,
+        "effective_table_clip_s": 3.971,
+        "effective_table_age_from_clip_end_s": 0.0,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 4,
+        "effective_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "effective_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "last_observed_table_s": 2703.968,
+        "last_observed_clip_s": 3.971,
+        "last_observed_age_from_clip_end_s": 0.0,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 6,
+        "last_observed_table_track_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "last_observed_table_canonical_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "observed_table_frames": 71,
+            "first_observed_frame": 80968,
+            "last_observed_frame": 81038,
+            "first_observed_s": 2701.632,
+            "last_observed_s": 2703.968,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.24,
+            "label": "Person 2: ID 2 device_prep table=24%",
+            "observed_table_frames": 6,
+            "first_observed_frame": 80993,
+            "last_observed_frame": 81002,
+            "first_observed_s": 2702.466,
+            "last_observed_s": 2702.767,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 device_prep table=24%",
+            "canonical_table_label": "Person 2"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "observed_table_frames": 36,
+            "first_observed_frame": 80996,
+            "last_observed_frame": 81038,
+            "first_observed_s": 2702.567,
+            "last_observed_s": 2703.968,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 16,
+            "table_presence_ratio": 0.188,
+            "label": "Person 4: ID 4 table_operator (dominant imaging) table=19%",
+            "observed_table_frames": 3,
+            "first_observed_frame": 81028,
+            "last_observed_frame": 81030,
+            "first_observed_s": 2703.634,
+            "last_observed_s": 2703.701,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "raw_track_id": 4,
+            "raw_track_label": "ID 4 table_operator (dominant imaging) table=19%",
+            "canonical_table_label": "Person 4"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "observed_table_frames": 7,
+            "first_observed_frame": 81028,
+            "last_observed_frame": 81038,
+            "first_observed_s": 2703.634,
+            "last_observed_s": 2703.968,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "observed_table_frames": 6,
+            "first_observed_frame": 81033,
+            "last_observed_frame": 81038,
+            "first_observed_s": 2703.801,
+            "last_observed_s": 2703.968,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "peak_table_s": 2703.968,
+        "peak_table_clip_s": 3.971,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 4,
+        "peak_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current observed stage: Closure / finish (moderate visual support, confidence 0.41, observable 100%); tracking available; at table now: Person 1: ID 1 table_operator table=96%; Person 3: ID 3 access_operator table=86%; Person 5: ID 5 table_operator (dominant imaging) table=32%; Person 6: ID 6 table_operator table=100%; table status: current room view Person 1: ID 1 table_operator table=96%; Person 3: ID 3 access_operator table=86%; Person 5: ID 5 table_operator (dominant imaging) table=32%; Person 6: ID 6 table_operator table=100%; last observed table: Person 1: ID 1 table_operator table=96%; Person 2: ID 2 device_prep table=24%; Person 3: ID 3 access_operator table=86%; Person 4: ID 4 table_operator (dominant imaging) table=19%; Person 5: ID 5 table_operator (dominant imaging) table=32%; Person 6: ID 6 table_operator table=100%; next: procedure end; quality flags: rapid_stage_progression, low_stage_confidence",
+        "snapshot_index": 3,
+        "snapshot_reason": [
+          "peak_table"
+        ],
+        "frame_index": 81038,
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 81306,
+        "source_start_s": 2699.997,
+        "source_end_s": 2712.91,
+        "clip_start_frame": 0,
+        "clip_end_frame": 387,
+        "clip_start_s": 0.0,
+        "clip_end_s": 12.913,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "moderate_visual_support",
+        "current_stage_evidence_label": "moderate visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.385,
+        "current_view": "room",
+        "tracking_available": true,
+        "current_table_count": 1,
+        "current_table_track_ids": [
+          13
+        ],
+        "current_table_canonical_ids": [
+          9
+        ],
+        "current_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "effective_table_source": "current_room_view",
+        "effective_table_s": 2712.91,
+        "effective_table_clip_s": 12.913,
+        "effective_table_age_from_clip_end_s": 0.0,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          13
+        ],
+        "effective_table_canonical_ids": [
+          9
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "last_observed_table_s": 2712.91,
+        "last_observed_clip_s": 12.913,
+        "last_observed_age_from_clip_end_s": 0.0,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 3,
+        "last_observed_table_track_ids": [
+          11,
+          12,
+          13
+        ],
+        "last_observed_table_canonical_ids": [
+          7,
+          8,
+          9
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 11,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 24,
+            "table_presence_ratio": 1.0,
+            "label": "Person 7: ID 11 device_prep table=100%",
+            "observed_table_frames": 24,
+            "first_observed_frame": 81170,
+            "last_observed_frame": 81200,
+            "first_observed_s": 2708.372,
+            "last_observed_s": 2709.373,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "raw_track_id": 11,
+            "raw_track_label": "ID 11 device_prep table=100%",
+            "canonical_table_label": "Person 7"
+          },
+          {
+            "track_id": 12,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 1,
+            "table_presence_ratio": 1.0,
+            "label": "Person 8: ID 12 table_operator table=100%",
+            "observed_table_frames": 1,
+            "first_observed_frame": 81204,
+            "last_observed_frame": 81204,
+            "first_observed_s": 2709.507,
+            "last_observed_s": 2709.507,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "raw_track_id": 12,
+            "raw_track_label": "ID 12 table_operator table=100%",
+            "canonical_table_label": "Person 8"
+          },
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "peak_table_s": 2703.968,
+        "peak_table_clip_s": 3.971,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 4,
+        "peak_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current observed stage: Closure / finish (moderate visual support, confidence 0.39, observable 100%); tracking available; at table now: Person 9: ID 13 table_operator table=92%; table status: current room view Person 9: ID 13 table_operator table=92%; last observed table: Person 7: ID 11 device_prep table=100%; Person 8: ID 12 table_operator table=100%; Person 9: ID 13 table_operator table=92%; next: procedure end; quality flags: rapid_stage_progression, early_terminal_stage, low_stage_confidence",
+        "snapshot_index": 4,
+        "snapshot_reason": [
+          "last_observed_table"
+        ],
+        "frame_index": 81306,
+        "timestamp_s": 2712.91,
+        "clip_timestamp_s": 12.913
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 81376,
+        "source_start_s": 2699.997,
+        "source_end_s": 2715.246,
+        "clip_start_frame": 0,
+        "clip_end_frame": 457,
+        "clip_start_s": 0.0,
+        "clip_end_s": 15.249,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "moderate_visual_support",
+        "current_stage_evidence_label": "moderate visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.391,
+        "current_view": "room",
+        "tracking_available": true,
+        "current_table_count": 0,
+        "current_table_track_ids": [],
+        "current_table_canonical_ids": [],
+        "current_table_roster": [],
+        "effective_table_source": "recent_room_view_hold",
+        "effective_table_s": 2712.91,
+        "effective_table_clip_s": 12.913,
+        "effective_table_age_from_clip_end_s": 2.336,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          13
+        ],
+        "effective_table_canonical_ids": [
+          9
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "last_observed_table_s": 2712.91,
+        "last_observed_clip_s": 12.913,
+        "last_observed_age_from_clip_end_s": 2.336,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 1,
+        "last_observed_table_track_ids": [
+          13
+        ],
+        "last_observed_table_canonical_ids": [
+          9
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "peak_table_s": 2703.968,
+        "peak_table_clip_s": 3.971,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 4,
+        "peak_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current observed stage: Closure / finish (moderate visual support, confidence 0.39, observable 100%); tracking available; at table now: none; table status: recent room view hold Person 9: ID 13 table_operator table=92%; last observed table: Person 9: ID 13 table_operator table=92%; next: procedure end; quality flags: rapid_stage_progression, early_terminal_stage, low_stage_confidence",
+        "snapshot_index": 5,
+        "snapshot_reason": [
+          "view_end"
+        ],
+        "frame_index": 81376,
+        "timestamp_s": 2715.246,
+        "clip_timestamp_s": 15.249
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 81377,
+        "source_start_s": 2699.997,
+        "source_end_s": 2715.279,
+        "clip_start_frame": 0,
+        "clip_end_frame": 458,
+        "clip_start_s": 0.0,
+        "clip_end_s": 15.282,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "moderate_visual_support",
+        "current_stage_evidence_label": "moderate visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 0.997,
+        "mean_confidence": 0.391,
+        "current_view": "non_room",
+        "tracking_available": false,
+        "current_table_count": 0,
+        "current_table_track_ids": [],
+        "current_table_canonical_ids": [],
+        "current_table_roster": [],
+        "effective_table_source": "last_observed_room_view",
+        "effective_table_s": 2712.91,
+        "effective_table_clip_s": 12.913,
+        "effective_table_age_from_clip_end_s": 2.369,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          13
+        ],
+        "effective_table_canonical_ids": [
+          9
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "last_observed_table_s": 2712.91,
+        "last_observed_clip_s": 12.913,
+        "last_observed_age_from_clip_end_s": 2.369,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 1,
+        "last_observed_table_track_ids": [
+          13
+        ],
+        "last_observed_table_canonical_ids": [
+          9
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "peak_table_s": 2703.968,
+        "peak_table_clip_s": 3.971,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 4,
+        "peak_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence"
+        ],
+        "operator_summary": "Current observed stage: Closure / finish (moderate visual support, confidence 0.39, observable 100%); tracking not available; at table now: none; table status: last observed room view Person 9: ID 13 table_operator table=92%; last observed table: Person 9: ID 13 table_operator table=92%; next: procedure end; quality flags: rapid_stage_progression, early_terminal_stage, low_stage_confidence",
+        "snapshot_index": 6,
+        "snapshot_reason": [
+          "view_start"
+        ],
+        "frame_index": 81377,
+        "timestamp_s": 2715.279,
+        "clip_timestamp_s": 15.282
+      },
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 81817,
+        "source_start_s": 2699.997,
+        "source_end_s": 2729.961,
+        "clip_start_frame": 0,
+        "clip_end_frame": 898,
+        "clip_start_s": 0.0,
+        "clip_end_s": 29.963,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "weak_visual_support",
+        "current_stage_evidence_label": "weak visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.464,
+        "mean_confidence": 0.289,
+        "current_view": "non_room",
+        "tracking_available": false,
+        "current_table_count": 0,
+        "current_table_track_ids": [],
+        "current_table_canonical_ids": [],
+        "current_table_roster": [],
+        "effective_table_source": "last_observed_room_view",
+        "effective_table_s": 2712.91,
+        "effective_table_clip_s": 12.913,
+        "effective_table_age_from_clip_end_s": 17.05,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          13
+        ],
+        "effective_table_canonical_ids": [
+          9
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "last_observed_table_s": 2712.91,
+        "last_observed_clip_s": 12.913,
+        "last_observed_age_from_clip_end_s": 17.05,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 1,
+        "last_observed_table_track_ids": [
+          13
+        ],
+        "last_observed_table_canonical_ids": [
+          9
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "Person 9: ID 13 table_operator table=92%",
+            "observed_table_frames": 23,
+            "first_observed_frame": 81280,
+            "last_observed_frame": 81306,
+            "first_observed_s": 2712.043,
+            "last_observed_s": 2712.91,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "raw_track_id": 13,
+            "raw_track_label": "ID 13 table_operator table=92%",
+            "canonical_table_label": "Person 9"
+          }
+        ],
+        "peak_table_s": 2703.968,
+        "peak_table_clip_s": 3.971,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 4,
+        "peak_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_canonical_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "Person 1: ID 1 table_operator table=96%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=96%",
+            "canonical_table_label": "Person 1"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "Person 3: ID 3 access_operator table=86%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "raw_track_id": 3,
+            "raw_track_label": "ID 3 access_operator table=86%",
+            "canonical_table_label": "Person 3"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "Person 5: ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "raw_track_id": 5,
+            "raw_track_label": "ID 5 table_operator (dominant imaging) table=32%",
+            "canonical_table_label": "Person 5"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "Person 6: ID 6 table_operator table=100%",
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "raw_track_id": 6,
+            "raw_track_label": "ID 6 table_operator table=100%",
+            "canonical_table_label": "Person 6"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_summary": "Current weakly supported stage: Closure / finish (weak visual support, confidence 0.29, observable 46%); tracking not available; at table now: none; table status: last observed room view Person 9: ID 13 table_operator table=92%; last observed table: Person 9: ID 13 table_operator table=92%; next: procedure end; quality flags: rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view",
+        "snapshot_index": 7,
+        "snapshot_reason": [
+          "clip_end",
+          "stage_end",
+          "view_end"
+        ],
+        "frame_index": 81817,
+        "timestamp_s": 2729.961,
+        "clip_timestamp_s": 29.963
       }
     ],
     "operator_stage_packet": [
@@ -1362,7 +3173,12 @@
           "table_team_role_confidence": 0.565,
           "frames_seen": 25,
           "table_presence_ratio": 0.92,
-          "label": "ID 13 table_operator table=92%"
+          "label": "ID 13 table_operator table=92%",
+          "observed_table_frames": 23,
+          "first_observed_frame": 81280,
+          "last_observed_frame": 81306,
+          "first_observed_s": 2712.043,
+          "last_observed_s": 2712.91
         }
       ]
     },

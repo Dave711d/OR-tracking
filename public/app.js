@@ -17,6 +17,7 @@ const tableSideMetric = document.querySelector("#tableSideMetric");
 const tableRoster = document.querySelector("#tableRoster");
 const operatorPacket = document.querySelector("#operatorPacket");
 const procedureStatus = document.querySelector("#procedureStatus");
+const statusSnapshotList = document.querySelector("#statusSnapshotList");
 const tableTeamList = document.querySelector("#tableTeamList");
 const tableIdentityList = document.querySelector("#tableIdentityList");
 const stageCoverageList = document.querySelector("#stageCoverageList");
@@ -321,6 +322,7 @@ function normalizeEvaluationPayload(payload, demoMeta = {}) {
     scoreSummary: payload.score_summary || {},
     timebase: payload.timebase || asArray(tavr.timebase_summary)[0] || null,
     status: asArray(tavr.procedure_status_summary)[0] || null,
+    statusSnapshots: asArray(tavr.operator_status_snapshots),
     packets: asArray(tavr.operator_stage_packet),
     team: asArray(tavr.table_team_summary),
     identities: asArray(tavr.table_identity_groups),
@@ -336,7 +338,8 @@ function renderEvaluationReplay(demo) {
   const status = demo.status || {};
   const latestPacket = latestOperatorPacket(demo.packets);
   const stageLabel = status.current_stage_label || latestPacket?.stage_label || demo.caseName;
-  const tableCount = status.current_table_count ?? status.effective_table_count ?? 0;
+  const tableSnapshot = effectiveTableSnapshot(status);
+  const tableCount = tableSnapshot.count;
   const teamCount = demo.team.length || tableCount;
 
   clearCanvas();
@@ -351,6 +354,7 @@ function renderEvaluationReplay(demo) {
 
   renderBackendTableRoster(status);
   renderProcedureStatus(status, demo);
+  renderBackendStatusSnapshots(demo.statusSnapshots);
   renderBackendOperatorPacket(demo.packets, status);
   renderBackendTableTeam(demo.team);
   renderBackendTableIdentities(demo.identities);
@@ -1358,6 +1362,35 @@ function renderProcedureStatus(status = null, demo = null) {
   }
 }
 
+function renderBackendStatusSnapshots(rows = []) {
+  statusSnapshotList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(statusSnapshotList, "None yet", "");
+    return;
+  }
+
+  const visibleRows = rows.slice(0, 10);
+  visibleRows.forEach((row) => {
+    appendInfoRow(
+      statusSnapshotList,
+      `${formatClockPoint(row)} ${snapshotReasonLabel(row.snapshot_reason)}`,
+      [
+        row.current_stage_label || "stage n/a",
+        stageEvidenceLabel(row.current_stage_evidence_status || row.evidence_level),
+        `${row.effective_table_count ?? 0} staff`,
+        tableSourceLabel(row.effective_table_source),
+        formatPersonIds(row.effective_table_canonical_ids),
+      ].join("; "),
+      {
+        tone: asArray(row.snapshot_reason).includes("clip_end")
+          ? "current"
+          : undefined,
+      },
+    );
+  });
+  appendOverflowRow(statusSnapshotList, rows.length, visibleRows.length, "snapshots");
+}
+
 function renderBackendOperatorPacket(packets = [], status = null) {
   operatorPacket.replaceChildren();
   const packet = latestOperatorPacket(packets);
@@ -1409,21 +1442,22 @@ function renderBackendOperatorPacket(packets = [], status = null) {
 
 function renderBackendTableRoster(status = {}) {
   tableRoster.replaceChildren();
-  const current = asArray(status.current_table_roster);
-  const effective = asArray(status.effective_table_roster);
-  const last = asArray(status.last_observed_table_roster);
-  const rows = current.length ? current : (effective.length ? effective : last);
+  const tableSnapshot = effectiveTableSnapshot(status);
+  const rows = tableSnapshot.rows;
 
-  if (!current.length) {
+  if (!rows.length) {
     const item = document.createElement("li");
-    item.textContent = rows.length ? "Current: none" : "None";
+    item.textContent = "None";
     tableRoster.append(item);
+    return;
   }
   const visibleRows = rows.slice(0, 5);
+  const ageSuffix = tableSnapshot.ageFromClipEndS === null || tableSnapshot.ageFromClipEndS === undefined
+    ? ""
+    : `; age ${formatSeconds(tableSnapshot.ageFromClipEndS)}`;
   visibleRows.forEach((row) => {
     const item = document.createElement("li");
-    const prefix = current.length ? "" : "Last: ";
-    item.textContent = `${prefix}${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`;
+    item.textContent = `${tableSnapshot.sourceLabel}: ${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}${ageSuffix}`;
     tableRoster.append(item);
   });
   appendOverflowListItem(tableRoster, rows.length, visibleRows.length, "people");
@@ -1696,6 +1730,12 @@ function handoffLabel(handoffType) {
   return handoffType.replaceAll("_", " ");
 }
 
+function snapshotReasonLabel(reason) {
+  const reasons = asArray(reason);
+  if (!reasons.length) return "status snapshot";
+  return reasons.map((item) => handoffLabel(String(item))).join(" + ");
+}
+
 function tableSourceLabel(source) {
   if (!source) return "source n/a";
   const labels = {
@@ -1778,6 +1818,29 @@ function appendOverflowListItem(container, totalCount, visibleCount, itemLabel) 
 
 function latestOperatorPacket(packets) {
   return packets.find((packet) => packet.is_current_stage) || packets[packets.length - 1] || null;
+}
+
+function effectiveTableSnapshot(status = {}) {
+  const currentRows = asArray(status.current_table_roster);
+  const effectiveRows = asArray(status.effective_table_roster);
+  const lastRows = asArray(status.last_observed_table_roster);
+  const source = status.effective_table_source || (
+    currentRows.length ? "current_room_view" : "no_room_table_evidence"
+  );
+  const rows = effectiveRows.length
+    ? effectiveRows
+    : (currentRows.length ? currentRows : lastRows);
+
+  return {
+    count: status.effective_table_count ?? status.current_table_count ?? rows.length,
+    rows,
+    source,
+    sourceLabel: tableSourceLabel(source),
+    ageFromClipEndS: (
+      status.effective_table_age_from_clip_end_s ??
+      status.last_observed_age_from_clip_end_s
+    ),
+  };
 }
 
 function asArray(value) {
@@ -1927,6 +1990,7 @@ function resetMetrics(options = {}) {
   renderStageCoverage();
   renderStageRosterSummary();
   renderProcedureStatus();
+  renderBackendStatusSnapshots();
   renderOperatorPacket();
   renderBackendTableIdentities();
   renderProcedureMilestones();

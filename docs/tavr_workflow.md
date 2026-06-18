@@ -129,6 +129,12 @@ The JSON output includes:
   fluoroscopy frames from implying a false empty table when the room is not
   visible, and keeps a recently observed table roster visible when the latest
   room-view frame is motion-quiet rather than confidently empty.
+- `operator_status_snapshots`: timestamped procedure-status rows at critical
+  replay points, including clip start/end, stage boundaries, view switches,
+  peak table, and last-observed table. These rows reuse
+  `procedure_status_summary` semantics so the public replay can answer "what
+  stage are we at, and who is effectively at the table?" throughout the clip,
+  not only at the final frame.
 - `operator_stage_packet`: one row per observed stage segment designed as a
   compact handover packet. Each row combines current/prior stage status,
   stage evidence status, timing, evidence level, observable rate, mean
@@ -142,9 +148,10 @@ The JSON output includes:
   colorfulness, dominant stage, and whether table tracking is available.
 - `track_role_report`: latest role dwell for every track ID seen in the clip.
 - `current_table_roster`: the most recent table-side roster.
-- `last_observed_table_roster`: the latest room-view frame with table-side
-  presence, useful when the clip ends in fluoroscopy or after the table-side
-  staff have stepped away.
+- `last_observed_table_roster`: a stable roster from the latest recent
+  room-view window with table-side presence, useful when the clip ends in
+  fluoroscopy or after the table-side staff have stepped away without letting a
+  single sparse terminal frame undercount the table team.
 - `peak_table_roster`: roster from the frame with the highest table-side count.
 - `table_roster_snapshots`: row-oriented current, last-observed, and peak roster
   snapshots for CSV export.
@@ -368,8 +375,8 @@ opt-in low-motion room-view review. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
 status summaries, table-team summaries, procedure milestones, stage staffing,
-operator stage packets, stage table coverage, stage handoff summaries, stage
-roster summaries, stage evidence summaries,
+operator status snapshots, operator stage packets, stage table coverage, stage
+handoff summaries, stage roster summaries, stage evidence summaries,
 procedure event timelines, table roster snapshots, table transition events,
 table identity groups, table presence intervals, quality flags, and
 low-confidence segments. The

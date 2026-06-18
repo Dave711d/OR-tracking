@@ -89,6 +89,42 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "quality_flag_codes",
         "operator_summary",
     ],
+    "operator_status_snapshots": [
+        "snapshot_index",
+        "snapshot_reason",
+        "frame_index",
+        "timestamp_s",
+        "clip_timestamp_s",
+        "current_stage",
+        "current_stage_label",
+        "current_stage_status",
+        "current_stage_evidence_status",
+        "current_stage_evidence_label",
+        "next_stage",
+        "next_stage_label",
+        "evidence_level",
+        "observable_rate",
+        "mean_confidence",
+        "current_view",
+        "tracking_available",
+        "current_table_count",
+        "current_table_track_ids",
+        "current_table_canonical_ids",
+        "effective_table_source",
+        "effective_table_age_from_clip_end_s",
+        "effective_table_stage",
+        "effective_table_stage_label",
+        "effective_table_count",
+        "effective_table_track_ids",
+        "effective_table_canonical_ids",
+        "last_observed_table_count",
+        "last_observed_table_canonical_ids",
+        "last_observed_age_from_clip_end_s",
+        "peak_table_count",
+        "peak_table_canonical_ids",
+        "quality_flag_codes",
+        "operator_summary",
+    ],
     "operator_stage_packet": [
         "packet_index",
         "stage_segment_index",
@@ -528,6 +564,7 @@ def summarize_tavr_metrics(
     return {
         "timebase_summary": timebase_summary(tavr_metrics),
         "procedure_status_summary": procedure_status_summary(tavr_metrics),
+        "operator_status_snapshots": operator_status_snapshots(tavr_metrics),
         "operator_stage_packet": operator_stage_packet(tavr_metrics),
         "table_team_summary": table_team_summary(tavr_metrics),
         "table_identity_groups": table_identity_groups(tavr_metrics),
@@ -841,6 +878,34 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     return [row]
 
 
+def operator_status_snapshots(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return operator status rows at critical replay points in the clip."""
+
+    if not metrics:
+        return []
+
+    rows: List[Dict[str, Any]] = []
+    for snapshot_index, (index, reasons) in enumerate(
+        _operator_status_snapshot_indices(metrics)
+    ):
+        status_rows = procedure_status_summary(metrics[: index + 1])
+        if not status_rows:
+            continue
+        metric = metrics[index]
+        row = dict(status_rows[0])
+        row.update(
+            {
+                "snapshot_index": snapshot_index,
+                "snapshot_reason": reasons,
+                "frame_index": metric.frame_index,
+                "timestamp_s": round(float(metric.timestamp_s), 3),
+                "clip_timestamp_s": round(float(metric.clip_timestamp_s), 3),
+            }
+        )
+        rows.append(row)
+    return rows
+
+
 def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
     """Return concise per-stage rows for operator review and handover."""
 
@@ -1019,9 +1084,93 @@ def current_table_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]
 
 
 def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
-    """Return the latest room-view frame with table-side presence."""
+    """Return the latest stable room-view table roster."""
 
-    default = {
+    if not metrics:
+        return _empty_table_snapshot()
+
+    return stable_table_roster_snapshot(metrics)
+
+
+def stable_table_roster_snapshot(
+    metrics: Sequence[FrameMetrics],
+    recent_window_s: float = 5.0,
+    min_observed_table_frames: int = 1,
+) -> Dict[str, Any]:
+    """Aggregate the latest room-view table roster over a short recent window."""
+
+    if not metrics:
+        return _empty_table_snapshot()
+
+    segment = _latest_room_segment(metrics)
+    if segment is None:
+        return _empty_table_snapshot()
+
+    start_index, end_index = segment
+    segment_metrics = metrics[start_index : end_index + 1]
+    if not segment_metrics:
+        return _empty_table_snapshot()
+
+    segment_end_clip_s = float(segment_metrics[-1].clip_timestamp_s)
+    window_start_clip_s = max(
+        float(segment_metrics[0].clip_timestamp_s),
+        segment_end_clip_s - recent_window_s,
+    )
+    window_metrics = [
+        metric
+        for metric in segment_metrics
+        if float(metric.clip_timestamp_s) >= window_start_clip_s
+    ]
+
+    observations: Dict[int, List[tuple[FrameMetrics, Dict[str, Any]]]] = {}
+    for metric in window_metrics:
+        state = _tavr_state(metric)
+        for roster_item in _roster_from_state(state):
+            observations.setdefault(int(roster_item["track_id"]), []).append(
+                (metric, roster_item)
+            )
+
+    roster: List[Dict[str, Any]] = []
+    latest_positive_metric: Optional[FrameMetrics] = None
+    for track_id, track_observations in observations.items():
+        if len(track_observations) < min_observed_table_frames:
+            continue
+        metric, item = track_observations[-1]
+        latest_positive_metric = _latest_metric(latest_positive_metric, metric)
+        stable_item = dict(item)
+        stable_item["observed_table_frames"] = len(track_observations)
+        stable_item["first_observed_frame"] = track_observations[0][0].frame_index
+        stable_item["last_observed_frame"] = metric.frame_index
+        stable_item["first_observed_s"] = round(
+            float(track_observations[0][0].timestamp_s),
+            3,
+        )
+        stable_item["last_observed_s"] = round(float(metric.timestamp_s), 3)
+        roster.append(stable_item)
+
+    if not roster or latest_positive_metric is None:
+        return _empty_table_snapshot()
+
+    roster.sort(key=lambda item: int(item["track_id"]))
+    clip_end_local_s = float(metrics[-1].clip_timestamp_s)
+    state = _tavr_state(latest_positive_metric)
+    return {
+        "frame_index": latest_positive_metric.frame_index,
+        "timestamp_s": round(float(latest_positive_metric.timestamp_s), 3),
+        "clip_timestamp_s": round(float(latest_positive_metric.clip_timestamp_s), 3),
+        "age_from_clip_end_s": round(
+            max(0.0, clip_end_local_s - float(latest_positive_metric.clip_timestamp_s)),
+            3,
+        ),
+        "stage": state.stage,
+        "stage_label": state.stage_label,
+        "table_count": len(roster),
+        "roster": roster,
+    }
+
+
+def _empty_table_snapshot() -> Dict[str, Any]:
+    return {
         "frame_index": None,
         "timestamp_s": None,
         "clip_timestamp_s": None,
@@ -1031,47 +1180,46 @@ def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any
         "table_count": 0,
         "roster": [],
     }
-    if not metrics:
-        return default
 
-    clip_end_s = metrics[-1].timestamp_s
-    clip_end_local_s = float(metrics[-1].clip_timestamp_s)
-    for metric in reversed(metrics):
-        if _view_label(metric) != "room":
+
+def _latest_room_segment(
+    metrics: Sequence[FrameMetrics],
+) -> Optional[tuple[int, int]]:
+    index_by_frame = {
+        metric.frame_index: index
+        for index, metric in enumerate(metrics)
+    }
+    for segment in reversed(view_segments(metrics)):
+        if not segment.get("is_room_view"):
             continue
-        state = _tavr_state(metric)
-        if state.table_count <= 0:
-            continue
-        return {
-            "frame_index": metric.frame_index,
-            "timestamp_s": round(float(metric.timestamp_s), 3),
-            "clip_timestamp_s": round(float(metric.clip_timestamp_s), 3),
-            "age_from_clip_end_s": round(
-                max(0.0, clip_end_local_s - float(metric.clip_timestamp_s)),
-                3,
-            ),
-            "stage": state.stage,
-            "stage_label": state.stage_label,
-            "table_count": state.table_count,
-            "roster": _roster_from_state(state),
-        }
-    return default
+        start_index = index_by_frame.get(segment.get("start_frame"))
+        end_index = index_by_frame.get(segment.get("end_frame"))
+        if start_index is not None and end_index is not None:
+            return start_index, end_index
+    return None
+
+
+def _latest_metric(
+    first: Optional[FrameMetrics],
+    second: FrameMetrics,
+) -> FrameMetrics:
+    if first is None:
+        return second
+    if float(second.timestamp_s) > float(first.timestamp_s):
+        return second
+    if (
+        float(second.timestamp_s) == float(first.timestamp_s)
+        and second.frame_index > first.frame_index
+    ):
+        return second
+    return first
 
 
 def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
     """Return the roster from the frame with the largest table-side count."""
 
     if not metrics:
-        return {
-            "frame_index": None,
-            "timestamp_s": None,
-            "clip_timestamp_s": None,
-            "age_from_clip_end_s": None,
-            "stage": None,
-            "stage_label": None,
-            "table_count": 0,
-            "roster": [],
-        }
+        return _empty_table_snapshot()
 
     clip_end_s = float(metrics[-1].clip_timestamp_s)
     peak_metric = max(
@@ -2024,10 +2172,13 @@ def _enrich_table_snapshot_identities(
     identity_map: Dict[int, Dict[str, Any]],
 ) -> Dict[str, Any]:
     enriched = dict(snapshot)
-    enriched["roster"] = _enrich_roster_identities(
-        snapshot.get("roster", []),
-        identity_map,
+    enriched["roster"] = _dedupe_enriched_roster_identities(
+        _enrich_roster_identities(
+            snapshot.get("roster", []),
+            identity_map,
+        )
     )
+    enriched["table_count"] = len(enriched["roster"])
     return enriched
 
 
@@ -2083,6 +2234,35 @@ def _canonical_table_ids_from_roster(
             for item in roster
         }
     )
+
+
+def _dedupe_enriched_roster_identities(
+    roster: Sequence[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    by_canonical_id: Dict[int, Dict[str, Any]] = {}
+    for item in roster:
+        canonical_id = int(item.get("canonical_table_id", item["track_id"]))
+        existing = by_canonical_id.get(canonical_id)
+        if existing is None or _roster_dedupe_rank(item) > _roster_dedupe_rank(existing):
+            by_canonical_id[canonical_id] = dict(item)
+
+    return [
+        by_canonical_id[canonical_id]
+        for canonical_id in sorted(by_canonical_id)
+    ]
+
+
+def _roster_dedupe_rank(item: Dict[str, Any]) -> tuple[int, int, int]:
+    latest_frame = int(
+        item.get(
+            "last_observed_frame",
+            item.get("last_frame", item.get("track_id", 0)),
+        )
+        or 0
+    )
+    observed_frames = int(item.get("observed_table_frames", 0) or 0)
+    track_id = int(item.get("track_id", 0) or 0)
+    return latest_frame, observed_frames, track_id
 
 
 def low_confidence_segments(
@@ -4637,6 +4817,48 @@ def _operator_snapshot_candidate_indices(
         ]
 
     return [len(metrics) - 1]
+
+
+def _operator_status_snapshot_indices(
+    metrics: Sequence[FrameMetrics],
+) -> List[tuple[int, List[str]]]:
+    reasons_by_index: Dict[int, set[str]] = {}
+    index_by_frame = {
+        metric.frame_index: index
+        for index, metric in enumerate(metrics)
+    }
+
+    def add_reason(index: Optional[int], reason: str) -> None:
+        if index is None or index < 0 or index >= len(metrics):
+            return
+        reasons_by_index.setdefault(index, set()).add(reason)
+
+    add_reason(0, "clip_start")
+    add_reason(len(metrics) - 1, "clip_end")
+
+    for segment_metrics in _stage_metric_segments(metrics):
+        if not segment_metrics:
+            continue
+        add_reason(index_by_frame.get(segment_metrics[0].frame_index), "stage_start")
+        add_reason(index_by_frame.get(segment_metrics[-1].frame_index), "stage_end")
+
+    for segment in view_segments(metrics):
+        add_reason(index_by_frame.get(segment.get("start_frame")), "view_start")
+        add_reason(index_by_frame.get(segment.get("end_frame")), "view_end")
+
+    peak = peak_table_roster(metrics)
+    add_reason(index_by_frame.get(peak.get("frame_index")), "peak_table")
+
+    last_observed = last_observed_table_roster(metrics)
+    add_reason(
+        index_by_frame.get(last_observed.get("frame_index")),
+        "last_observed_table",
+    )
+
+    return [
+        (index, sorted(reasons))
+        for index, reasons in sorted(reasons_by_index.items())
+    ]
 
 
 def _stage_evidence_matches_expectation(
