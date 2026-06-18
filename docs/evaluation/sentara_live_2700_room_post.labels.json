@@ -269,8 +269,11 @@
   ],
   "operator_snapshot_expectations": [
     {
-      "timestamp_s": 3.8,
+      "timestamp_s": 3.971,
       "tolerance_s": 0.12,
+      "required_snapshot_reasons": [
+        "peak_table"
+      ],
       "stage": "closure_finish",
       "current_stage_status": "current_observed",
       "stage_evidence_status": "moderate_visual_support",
@@ -278,18 +281,20 @@
       "current_view": "room",
       "tracking_available": true,
       "effective_table_source": "current_stage_recent_room_window",
-      "min_table_count": 3,
+      "min_table_count": 4,
       "min_effective_table_count": 6,
       "max_effective_table_count": 6,
       "min_peak_table_count": 4,
       "required_current_canonical_table_ids": [
         1,
         3,
+        5,
         6
       ],
       "expected_current_canonical_table_ids": [
         1,
         3,
+        5,
         6
       ],
       "required_effective_canonical_table_ids": [
@@ -311,14 +316,14 @@
       "required_peak_canonical_table_ids": [
         1,
         3,
-        4,
-        5
+        5,
+        6
       ],
       "expected_peak_canonical_table_ids": [
         1,
         3,
-        4,
-        5
+        5,
+        6
       ]
     },
     {

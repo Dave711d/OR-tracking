@@ -128,6 +128,10 @@ thresholds, including `operator_packet_pass_rate`,
 `operator_snapshot_pass_rate` for timestamped "who plus stage" checks, and
 `table_identity_group_pass_rate` when packet, snapshot, or canonical
 table-person expectations are labelled.
+Operator snapshot expectations are scored only against exported
+`operator_status_snapshots` replay rows, so a passing timestamp can be selected
+and audited in the public replay instead of existing only as an intermediate raw
+frame.
 Each public suite case also declares `required_score_checks`; a required section
 that is missing labels now fails the suite instead of being treated as an
 unscored optional gap.

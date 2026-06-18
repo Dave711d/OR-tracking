@@ -234,23 +234,30 @@
   ],
   "operator_snapshot_expectations": [
     {
-      "timestamp_s": 25.0,
+      "timestamp_s": 24.758,
       "tolerance_s": 0.12,
+      "required_snapshot_reasons": [
+        "peak_table"
+      ],
       "stage": "valve_deployment",
       "current_stage_status": "current_observed",
       "stage_evidence_status": "strong_visual_support",
       "next_stage": "post_deploy_assessment",
       "current_view": "room",
       "tracking_available": true,
-      "effective_table_source": "current_stage_recent_room_window",
-      "min_table_count": 1,
+      "effective_table_source": "current_room_view",
+      "min_table_count": 3,
       "min_effective_table_count": 3,
       "max_effective_table_count": 3,
       "min_peak_table_count": 3,
       "required_current_canonical_table_ids": [
+        8,
+        9,
         10
       ],
       "expected_current_canonical_table_ids": [
+        8,
+        9,
         10
       ],
       "required_effective_canonical_table_ids": [

@@ -779,9 +779,73 @@ def test_operator_snapshot_score_combines_stage_table_and_canonical_people() -> 
         "matched_candidates"
     ][0]
     assert candidate["current_stage"] == "valve_deployment"
+    assert candidate["candidate_source"] == "operator_status_snapshots"
+    assert "clip_end" in candidate["snapshot_reason"]
     assert candidate["current_table_canonical_ids"] == [1]
     assert candidate["effective_table_canonical_ids"] == [1]
     assert candidate["checks"]["required_current_canonical_table_ids"] is True
+
+
+def test_operator_snapshot_score_rejects_unexported_middle_frame() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+    ]
+    assert [row["frame_index"] for row in operator_status_snapshots(metrics)] == [0, 2]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "operator_snapshot_expectations": [
+                {
+                    "timestamp_s": 0.1,
+                    "tolerance_s": 0.01,
+                    "stage": "valve_deployment",
+                    "current_view": "room",
+                    "tracking_available": True,
+                    "min_table_count": 1,
+                }
+            ]
+        },
+    )
+
+    expectation = score["operator_snapshot_score"]["expectations"][0]
+    assert score["operator_snapshot_score"]["pass_rate"] == 0.0
+    assert expectation["matched_count"] == 0
+    assert expectation["matched_candidates"] == []
+    assert expectation["passed"] is False
+
+
+def test_operator_snapshot_score_can_require_snapshot_reason() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "operator_snapshot_expectations": [
+                {
+                    "timestamp_s": 0.2,
+                    "tolerance_s": 0.01,
+                    "stage": "valve_deployment",
+                    "current_view": "room",
+                    "tracking_available": True,
+                    "min_table_count": 1,
+                    "required_snapshot_reasons": ["clip_end", "last_observed_table"],
+                }
+            ]
+        },
+    )
+
+    candidate = score["operator_snapshot_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    assert score["operator_snapshot_score"]["pass_rate"] == 1.0
+    assert candidate["checks"]["required_snapshot_reasons"] is True
 
 
 def test_exact_procedure_status_canonical_people_rejects_extra_people() -> None:

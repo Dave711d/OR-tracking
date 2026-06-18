@@ -4414,20 +4414,28 @@ def _operator_snapshot_score(
     for expectation in expectations:
         status_expectation = _operator_snapshot_status_expectation(expectation)
         scored_candidates = []
-        for index in _operator_snapshot_candidate_indices(metrics, expectation):
-            status_rows = procedure_status_summary(metrics[: index + 1])
-            if not status_rows:
-                continue
-            metric = metrics[index]
+        required_reasons = _operator_snapshot_required_reasons(expectation)
+        for snapshot in _operator_snapshot_candidate_rows(metrics, expectation):
             scored = _score_procedure_status_candidate(
-                status_rows[0],
+                snapshot,
                 status_expectation,
             )
+            snapshot_reasons = set(snapshot.get("snapshot_reason", []))
+            if required_reasons:
+                scored["checks"]["required_snapshot_reasons"] = (
+                    required_reasons.issubset(snapshot_reasons)
+                )
+                scored["passed"] = scored["passed"] and scored["checks"][
+                    "required_snapshot_reasons"
+                ]
             scored_candidates.append(
                 {
-                    "frame_index": metric.frame_index,
-                    "timestamp_s": round(float(metric.timestamp_s), 3),
-                    "clip_timestamp_s": round(float(metric.clip_timestamp_s), 3),
+                    "candidate_source": "operator_status_snapshots",
+                    "snapshot_index": snapshot.get("snapshot_index"),
+                    "snapshot_reason": snapshot.get("snapshot_reason", []),
+                    "frame_index": snapshot.get("frame_index"),
+                    "timestamp_s": snapshot.get("timestamp_s"),
+                    "clip_timestamp_s": snapshot.get("clip_timestamp_s"),
                     **scored,
                 }
             )
@@ -4443,6 +4451,7 @@ def _operator_snapshot_score(
                 "timestamp_s": expectation.get("timestamp_s", expectation.get("at_s")),
                 "start_s": expectation.get("start_s"),
                 "end_s": expectation.get("end_s"),
+                "required_snapshot_reasons": sorted(required_reasons),
                 "matched_candidates": scored_candidates,
                 "matched_count": len(scored_candidates),
                 "passed_candidate_count": sum(
@@ -4884,21 +4893,25 @@ def _operator_snapshot_status_expectation(
     return status_expectation
 
 
-def _operator_snapshot_candidate_indices(
+def _operator_snapshot_candidate_rows(
     metrics: Sequence[FrameMetrics],
     expectation: Dict[str, Any],
-) -> List[int]:
+) -> List[Dict[str, Any]]:
     if not metrics:
         return []
 
+    snapshots = operator_status_snapshots(metrics)
     timestamp = expectation.get("timestamp_s", expectation.get("at_s"))
     tolerance_s = float(expectation.get("tolerance_s", 0.25))
     if timestamp is not None:
         target = float(timestamp)
         return [
-            index
-            for index, metric in enumerate(metrics)
-            if abs(float(metric.timestamp_s) - target) <= tolerance_s
+            row
+            for row in snapshots
+            if any(
+                abs(value - target) <= tolerance_s
+                for value in _operator_snapshot_time_values(row)
+            )
         ]
 
     has_window = "start_s" in expectation or "end_s" in expectation
@@ -4906,12 +4919,39 @@ def _operator_snapshot_candidate_indices(
         start_s = float(expectation.get("start_s", float("-inf")))
         end_s = float(expectation.get("end_s", float("inf")))
         return [
-            index
-            for index, metric in enumerate(metrics)
-            if start_s <= float(metric.timestamp_s) <= end_s
+            row
+            for row in snapshots
+            if any(
+                start_s <= value <= end_s
+                for value in _operator_snapshot_time_values(row)
+            )
         ]
 
-    return [len(metrics) - 1]
+    return snapshots[-1:] if snapshots else []
+
+
+def _operator_snapshot_time_values(row: Dict[str, Any]) -> List[float]:
+    values = []
+    for key in ("clip_timestamp_s", "timestamp_s"):
+        value = row.get(key)
+        if value is None:
+            continue
+        number = float(value)
+        if number not in values:
+            values.append(number)
+    return values
+
+
+def _operator_snapshot_required_reasons(expectation: Dict[str, Any]) -> set[str]:
+    reasons = expectation.get(
+        "required_snapshot_reasons",
+        expectation.get("snapshot_reason"),
+    )
+    if reasons is None:
+        return set()
+    if isinstance(reasons, str):
+        return {reasons}
+    return {str(reason) for reason in reasons}
 
 
 def _operator_status_snapshot_indices(

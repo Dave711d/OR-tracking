@@ -214,7 +214,9 @@ def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
     assert ": (staticTableUsed ? \"static_table_fallback\" : null)" in app_js
     assert "viewColorfulness," in app_js
     assert "const tableSnapshot = updateBrowserTableSnapshot(summary, elapsedSeconds, stage)" in app_js
-    assert "renderTableRoster(tableSnapshot)" in app_js
+    assert "const currentTable = currentBrowserTableSnapshot(summary, elapsedSeconds)" in app_js
+    assert "tableSideMetric.textContent = String(currentTable.count)" in app_js
+    assert "renderTableRoster(currentTable, tableSnapshot)" in app_js
     assert "renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot)" in app_js
     assert "estimateUploadedTavrStage(boxes, activity, video.currentTime, {" in app_js
     assert "function estimateUploadedTavrStage" in app_js
@@ -268,6 +270,8 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
     assert "function operatorEvidenceLevel" in app_js
     assert "function operatorQualityFlags" in app_js
     assert "function updateBrowserTableSnapshot" in app_js
+    assert "function currentBrowserTableSnapshot" in app_js
+    assert "function hasDistinctBrowserTable" in app_js
     assert "lastObservedTableSnapshot" in app_js
     assert "BROWSER_RECENT_TABLE_HOLD_SECONDS" in app_js
     assert "label: \"Effective table\"" in app_js
