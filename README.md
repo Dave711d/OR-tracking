@@ -149,6 +149,9 @@ otherwise absent, leaves fluoroscopy/non-room suppression in place, and treats
 those silhouettes as roster evidence rather than procedure-stage evidence.
 The browser uploader also holds the seeded stage and suppresses table boxes on
 low-colorfulness fluoroscopy/non-room frames.
+When uploaded footage drops from room view into fluoroscopy, the browser packet
+keeps a separate effective table roster from the last trustworthy room frame so
+operators can distinguish current visible detections from held table context.
 The app shows a `Procedure status` summary, `Table team summary`, the latest
 table roster, last observed table roster, `Table identity groups`, and `View segments`,
 `Procedure event timeline`,

@@ -189,6 +189,9 @@ def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
     assert "? \"non_room_view\"" in app_js
     assert ": (staticTableUsed ? \"static_table_fallback\" : null)" in app_js
     assert "viewColorfulness," in app_js
+    assert "const tableSnapshot = updateBrowserTableSnapshot(summary, elapsedSeconds, stage)" in app_js
+    assert "renderTableRoster(tableSnapshot)" in app_js
+    assert "renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot)" in app_js
     assert "estimateUploadedTavrStage(boxes, activity, video.currentTime, {" in app_js
     assert "function estimateUploadedTavrStage" in app_js
     assert "function scoreTavrStages" in app_js
@@ -222,10 +225,16 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
 
     assert 'id="operatorPacket"' in index_html
     assert "Operator packet" in index_html
-    assert "renderOperatorPacket(stage, summary, elapsedSeconds)" in app_js
+    assert "renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot)" in app_js
     assert "function renderOperatorPacket" in app_js
     assert "function operatorEvidenceLevel" in app_js
     assert "function operatorQualityFlags" in app_js
+    assert "function updateBrowserTableSnapshot" in app_js
+    assert "lastObservedTableSnapshot" in app_js
+    assert "BROWSER_RECENT_TABLE_HOLD_SECONDS" in app_js
+    assert "label: \"Effective table\"" in app_js
+    assert "table_roster_held_from_room_view" in app_js
+    assert "tableSnapshot?.rows?.some(({ staticFallback }) => staticFallback)" in app_js
     assert "currentStageRosterSegment" in app_js
     assert "nextTavrStage(stage.key)" in app_js
     assert "static_table_fallback" in app_js

@@ -178,6 +178,7 @@ const BROWSER_STAGE_MIN_SECONDS = 1.0;
 const BROWSER_STAGE_MIN_CONFIDENCE = 0.42;
 const BROWSER_STAGE_ADVANCE_MARGIN = 0.06;
 const BROWSER_NON_ROOM_COLORFULNESS_THRESHOLD = 8.0;
+const BROWSER_RECENT_TABLE_HOLD_SECONDS = 5.0;
 const EVALUATION_DEMOS = [
   {
     id: "sentara_900_room_to_fluoro_low_motion",
@@ -215,6 +216,7 @@ let stageRosterSegments = [];
 let currentStageRosterSegment = null;
 let milestoneProgress = new Map();
 let currentMilestoneKey = null;
+let lastObservedTableSnapshot = null;
 let uploadedStageIndex = 0;
 let uploadedStageStartedAt = 0;
 let rafId = null;
@@ -962,18 +964,19 @@ function drawSparkline(activity) {
 function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded review") {
   const stage = normalizeStage(stageInput);
   const summary = summarizeBoxes(boxes);
+  const tableSnapshot = updateBrowserTableSnapshot(summary, elapsedSeconds, stage);
   stageMetric.textContent = stage.confidence === undefined
     ? stage.label
     : `${stage.label} (${stage.confidence.toFixed(2)})`;
   countMetric.textContent = String(boxes.length);
-  tableSideMetric.textContent = String(summary.tableSide);
+  tableSideMetric.textContent = String(tableSnapshot.count);
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
-  renderTableRoster(summary.tableRoster);
+  renderTableRoster(tableSnapshot);
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
   updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
-  renderOperatorPacket(stage, summary, elapsedSeconds);
+  renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
@@ -1047,6 +1050,70 @@ function summarizeBoxes(boxes) {
   });
 
   return summary;
+}
+
+function updateBrowserTableSnapshot(summary, elapsedSeconds, stage) {
+  if (summary.tableRoster.length) {
+    const rows = copyBrowserRoster(summary.tableRoster);
+    const snapshot = {
+      rows,
+      count: rows.length,
+      source: "current_room_view",
+      observedAt: elapsedSeconds,
+      ageSeconds: 0,
+    };
+    lastObservedTableSnapshot = snapshot;
+    return snapshot;
+  }
+
+  const heldRows = copyBrowserRoster(lastObservedTableSnapshot?.rows || []);
+  const heldAge = lastObservedTableSnapshot
+    ? Math.max(0, elapsedSeconds - lastObservedTableSnapshot.observedAt)
+    : null;
+
+  if (stage.stageHoldReason === "non_room_view") {
+    return heldRows.length
+      ? {
+        rows: heldRows,
+        count: heldRows.length,
+        source: "last_observed_room_view",
+        observedAt: lastObservedTableSnapshot.observedAt,
+        ageSeconds: heldAge,
+      }
+      : {
+        rows: [],
+        count: 0,
+        source: "no_room_table_evidence",
+        observedAt: null,
+        ageSeconds: null,
+      };
+  }
+
+  if (heldRows.length && heldAge !== null && heldAge <= BROWSER_RECENT_TABLE_HOLD_SECONDS) {
+    return {
+      rows: heldRows,
+      count: heldRows.length,
+      source: "recent_room_view_hold",
+      observedAt: lastObservedTableSnapshot.observedAt,
+      ageSeconds: heldAge,
+    };
+  }
+
+  return {
+    rows: [],
+    count: 0,
+    source: "current_room_view_empty",
+    observedAt: elapsedSeconds,
+    ageSeconds: 0,
+  };
+}
+
+function copyBrowserRoster(roster) {
+  return roster.map(({ id, role, staticFallback }) => ({
+    id,
+    role,
+    staticFallback: Boolean(staticFallback),
+  }));
 }
 
 function getZoneKeys(box) {
@@ -1302,7 +1369,7 @@ function renderStageRosterSummary() {
   });
 }
 
-function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0) {
+function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0, tableSnapshot = null) {
   operatorPacket.replaceChildren();
   if (!stage || !summary) {
     const row = document.createElement("div");
@@ -1315,10 +1382,15 @@ function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0) 
 
   const segment = currentStageRosterSegment;
   const activeIds = compactIdList(summary.tableRoster.map(({ id }) => id), 6);
-  const lead = summary.tableRoster[0];
+  const effectiveRows = tableSnapshot?.rows || summary.tableRoster;
+  const effectiveIds = compactIdList(effectiveRows.map(({ id }) => id), 6);
+  const lead = summary.tableRoster[0] || effectiveRows[0];
   const leadLabel = lead ? `${lead.id} ${ROLE_LABELS[lead.role] || lead.role}` : "none";
   const nextStage = nextTavrStage(stage.key);
-  const flags = operatorQualityFlags(stage, summary);
+  const flags = operatorQualityFlags(stage, summary, tableSnapshot);
+  const effectiveAge = tableSnapshot?.ageSeconds === null || tableSnapshot?.ageSeconds === undefined
+    ? ""
+    : `; age ${formatSeconds(tableSnapshot.ageSeconds)}`;
   const rows = [
     {
       label: "Current stage",
@@ -1337,6 +1409,10 @@ function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0) 
     {
       label: "Active table",
       value: `${summary.tableSide} staff; IDs ${activeIds}`,
+    },
+    {
+      label: "Effective table",
+      value: `${tableSnapshot?.count ?? summary.tableSide} staff; ${tableSourceLabel(tableSnapshot?.source)}; IDs ${effectiveIds}${effectiveAge}`,
     },
     {
       label: "Lead / next",
@@ -1667,15 +1743,23 @@ function operatorConfidence(stage) {
   return stage.confidence === undefined ? "demo" : stage.confidence.toFixed(2);
 }
 
-function operatorQualityFlags(stage, summary) {
+function operatorQualityFlags(stage, summary, tableSnapshot = null) {
   const flags = [];
   if (stage.confidence !== undefined && stage.confidence < BROWSER_STAGE_MIN_CONFIDENCE) {
     flags.push("low_stage_confidence");
   }
   if (!summary.tableRoster.length) {
-    flags.push("no_table_roster_evidence");
+    if (tableSnapshot?.rows?.length) {
+      flags.push("no_current_table_roster_evidence");
+      flags.push("table_roster_held_from_room_view");
+    } else {
+      flags.push("no_table_roster_evidence");
+    }
   }
-  if (summary.tableRoster.some(({ staticFallback }) => staticFallback)) {
+  if (
+    summary.tableRoster.some(({ staticFallback }) => staticFallback) ||
+    tableSnapshot?.rows?.some(({ staticFallback }) => staticFallback)
+  ) {
     flags.push("static_table_fallback");
   }
   if (stage.stageHoldReason === "non_room_view") {
@@ -1751,18 +1835,24 @@ function getMilestoneStatus(stageKey, stageIndex, currentIndex, observed) {
   return { key: "observed", label: "observed" };
 }
 
-function renderTableRoster(roster) {
+function renderTableRoster(tableSnapshot) {
   tableRoster.replaceChildren();
+  const roster = Array.isArray(tableSnapshot) ? tableSnapshot : (tableSnapshot?.rows || []);
   if (!roster.length) {
     const item = document.createElement("li");
     item.textContent = "None";
     tableRoster.append(item);
     return;
   }
+  const source = Array.isArray(tableSnapshot) ? "current_room_view" : tableSnapshot.source;
+  const sourceLabel = tableSourceLabel(source);
+  const ageSuffix = tableSnapshot?.ageSeconds === null || tableSnapshot?.ageSeconds === undefined
+    ? ""
+    : `; age ${formatSeconds(tableSnapshot.ageSeconds)}`;
   roster.forEach(({ id, role }) => {
     const item = document.createElement("li");
     const roleLabel = ROLE_LABELS[role] || role;
-    item.textContent = `${id} - ${roleLabel}`;
+    item.textContent = `${sourceLabel}: ${id} - ${roleLabel}${ageSuffix}`;
     tableRoster.append(item);
   });
 }
@@ -2038,6 +2128,7 @@ function resetMetrics(options = {}) {
   currentStageRosterSegment = null;
   milestoneProgress = new Map();
   currentMilestoneKey = null;
+  lastObservedTableSnapshot = null;
   uploadedStageIndex = selectedInitialStageIndex();
   uploadedStageStartedAt = video.currentTime || 0;
   stageMetric.textContent = "Idle";
