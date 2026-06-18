@@ -441,14 +441,21 @@ function analyzeFrame() {
   const sensitivity = Number(sensitivityInput.value);
   const cells = collectMotionCells(image, previousFrame, cellSize, sensitivity);
   let boxes = clusterCells(cells, cellSize, work.width, work.height);
+  let staticTableUsed = false;
   if (staticFallbackInput.checked && !hasTableSideBox(boxes)) {
-    boxes = dedupeBoxes([...boxes, ...collectStaticTableBoxes(image)]).slice(0, 12);
+    const staticBoxes = collectStaticTableBoxes(image);
+    if (staticBoxes.length) {
+      boxes = dedupeBoxes([...boxes, ...staticBoxes]).slice(0, 12);
+      staticTableUsed = boxes.some((box) => box.staticFallback);
+    }
   }
   const activity = cells.length;
   previousFrame = image;
   activityHistory.push(activity);
   if (activityHistory.length > 80) activityHistory.shift();
-  const stage = estimateUploadedTavrStage(boxes, activity, video.currentTime);
+  const stage = estimateUploadedTavrStage(boxes, activity, video.currentTime, {
+    stageHoldReason: staticTableUsed ? "static_table_fallback" : null,
+  });
 
   drawOverlay(boxes, activity, stage);
   updateMetrics(boxes, activity, video.currentTime, stage);
@@ -476,7 +483,7 @@ function getTavrStage(elapsed) {
   return { ...TAVR_STAGES[0], progress: 0 };
 }
 
-function estimateUploadedTavrStage(boxes, activity, elapsedSeconds) {
+function estimateUploadedTavrStage(boxes, activity, elapsedSeconds, options = {}) {
   if (elapsedSeconds < uploadedStageStartedAt) {
     uploadedStageIndex = selectedInitialStageIndex();
     uploadedStageStartedAt = elapsedSeconds;
@@ -484,14 +491,20 @@ function estimateUploadedTavrStage(boxes, activity, elapsedSeconds) {
   const summary = summarizeBoxes(boxes);
   const signals = tavrStageSignals(summary, boxes.length, activity);
   const scores = scoreTavrStages(signals, elapsedSeconds);
+  const stageHoldReason = options.stageHoldReason || null;
+  const stageObservable = !stageHoldReason;
   const previousIndex = uploadedStageIndex;
-  uploadedStageIndex = chooseTavrStageIndex(scores, elapsedSeconds);
-  if (uploadedStageIndex !== previousIndex) {
-    uploadedStageStartedAt = elapsedSeconds;
+  if (stageObservable) {
+    uploadedStageIndex = chooseTavrStageIndex(scores, elapsedSeconds);
+    if (uploadedStageIndex !== previousIndex) {
+      uploadedStageStartedAt = elapsedSeconds;
+    }
   }
 
   const stage = TAVR_STAGES[uploadedStageIndex];
-  const confidence = Math.min(0.95, Math.max(...Object.values(scores)));
+  const confidence = stageObservable
+    ? Math.min(0.95, Math.max(...Object.values(scores)))
+    : 0.2;
   const progress = Math.min(
     1,
     Math.max(0, (elapsedSeconds - uploadedStageStartedAt) / Math.max(stage.duration, 1)),
@@ -500,6 +513,8 @@ function estimateUploadedTavrStage(boxes, activity, elapsedSeconds) {
     ...stage,
     confidence,
     progress,
+    stageObservable,
+    stageHoldReason,
   };
 }
 
@@ -1600,6 +1615,9 @@ function renderBackendQualityFlags(rows = []) {
 
 function operatorEvidenceLevel(stage, summary) {
   const confidence = stage.confidence;
+  if (stage.stageHoldReason === "static_table_fallback") {
+    return "held static roster evidence";
+  }
   if (summary.tableSide === 0 && confidence !== undefined && confidence < 0.25) {
     return "held/no table evidence";
   }
@@ -1625,6 +1643,9 @@ function operatorQualityFlags(stage, summary) {
   }
   if (summary.tableRoster.some(({ staticFallback }) => staticFallback)) {
     flags.push("static_table_fallback");
+  }
+  if (stage.stageHoldReason === "static_table_fallback") {
+    flags.push("stage_hold_static_table_fallback");
   }
   return flags;
 }

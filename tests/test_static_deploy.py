@@ -180,10 +180,15 @@ def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
     assert "populateInitialStageOptions" in app_js
     assert "selectedInitialStageIndex" in app_js
     assert analyze_frame_match is not None
-    assert "estimateUploadedTavrStage(boxes, activity, video.currentTime)" in app_js
+    assert "let staticTableUsed = false" in app_js
+    assert "stageHoldReason: staticTableUsed ? \"static_table_fallback\" : null" in app_js
+    assert "estimateUploadedTavrStage(boxes, activity, video.currentTime, {" in app_js
     assert "function estimateUploadedTavrStage" in app_js
     assert "function scoreTavrStages" in app_js
     assert "function chooseTavrStageIndex" in app_js
+    assert "const stageObservable = !stageHoldReason" in app_js
+    assert "if (stageObservable) {" in app_js
+    assert "stage_hold_static_table_fallback" in app_js
     assert "Uploaded review" not in analyze_frame_match.group("body")
 
 

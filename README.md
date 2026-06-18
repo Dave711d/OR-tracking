@@ -145,7 +145,8 @@ sample` / `Use TAVR sample`. Use the sidebar `Initial TAVR stage` selector for
 targeted clips and `Crop to ROI` for broadcast videos with a room-camera inset.
 `Static table fallback` is an opt-in low-motion review mode for room-view clips:
 it adds conservative table-zone silhouette candidates when table motion is
-otherwise absent, and leaves fluoroscopy/non-room suppression in place.
+otherwise absent, leaves fluoroscopy/non-room suppression in place, and treats
+those silhouettes as roster evidence rather than procedure-stage evidence.
 The app shows a `Procedure status` summary, `Table team summary`, the latest
 table roster, last observed table roster, `Table identity groups`, and `View segments`,
 `Procedure event timeline`,
