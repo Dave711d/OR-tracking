@@ -183,7 +183,11 @@ def _run_case(
             **suite_thresholds,
             **case.get("thresholds", {}),
         }
-        score_summary = _score_summary(label_score, thresholds)
+        score_summary = _score_summary(
+            label_score,
+            thresholds,
+            required_checks=case.get("required_score_checks", []),
+        )
         return {
             "name": name,
             "passed": score_summary["passed"],
@@ -208,7 +212,9 @@ def _run_case(
 def _score_summary(
     label_score: Dict[str, Any],
     thresholds: Dict[str, Any],
+    required_checks: Optional[list[str]] = None,
 ) -> Dict[str, Any]:
+    required_check_names = set(required_checks or [])
     checks = [
         _threshold_check(
             "stage_accuracy",
@@ -301,9 +307,26 @@ def _score_summary(
             thresholds["quality_flag_pass_rate"],
         ),
     ]
+    check_names = {check["name"] for check in checks}
+    unknown_required = sorted(required_check_names - check_names)
+    if unknown_required:
+        raise ValueError(
+            "Unknown required score check(s): " + ", ".join(unknown_required)
+        )
+    for check in checks:
+        required = check["name"] in required_check_names
+        check["required"] = required
+        if required and not check["scored"]:
+            check["passed"] = False
+            check["failure_reason"] = "required_check_unscored"
     scored = [check for check in checks if check["scored"]]
+    required = [check for check in checks if check["required"]]
     return {
-        "passed": bool(scored) and all(check["passed"] for check in scored),
+        "passed": (
+            bool(scored)
+            and all(check["passed"] for check in scored)
+            and all(check["passed"] for check in required)
+        ),
         "checks": checks,
     }
 

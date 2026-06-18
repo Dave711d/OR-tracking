@@ -23,13 +23,35 @@
       "video_path": "samples/live_tavr_slices/live_tavr_900_30s.mp4",
       "labels_path": "docs/evaluation/sentara_live_900_static_table_fallback.labels.json",
       "config": {
-        "roi": [0.0, 0.46, 0.31, 0.89],
+        "roi": [
+          0.0,
+          0.46,
+          0.31,
+          0.89
+        ],
         "initial_stage": "access_sheathing",
         "min_area": 300,
         "max_frames": 900,
         "source_start_s": 900.0,
         "static_table_fallback": true
-      }
+      },
+      "required_score_checks": [
+        "stage_accuracy",
+        "table_count_pass_rate",
+        "stage_table_coverage_pass_rate",
+        "table_transition_pass_rate",
+        "stage_roster_pass_rate",
+        "stage_evidence_pass_rate",
+        "procedure_milestone_pass_rate",
+        "procedure_status_pass_rate",
+        "operator_snapshot_pass_rate",
+        "operator_packet_pass_rate",
+        "table_team_pass_rate",
+        "table_identity_group_pass_rate",
+        "event_timeline_pass_rate",
+        "roster_snapshot_pass_rate",
+        "quality_flag_pass_rate"
+      ]
     }
   ]
 }

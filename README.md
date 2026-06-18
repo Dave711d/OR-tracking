@@ -110,6 +110,9 @@ thresholds, including `operator_packet_pass_rate`,
 `operator_snapshot_pass_rate` for timestamped "who plus stage" checks, and
 `table_identity_group_pass_rate` when packet, snapshot, or canonical
 table-person expectations are labelled.
+Each public suite case also declares `required_score_checks`; a required section
+that is missing labels now fails the suite instead of being treated as an
+unscored optional gap.
 
 For long cases, evaluate targeted slices while preserving source timestamps:
 

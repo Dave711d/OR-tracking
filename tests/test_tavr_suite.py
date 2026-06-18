@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
-from evaluate_tavr_suite import _score_summary, run_suite
+import pytest
+
+from evaluate_tavr_suite import DEFAULT_THRESHOLDS, _score_summary, run_suite
 from or_tracking.synthetic import generate_synthetic_tavr_video
 
 
@@ -70,6 +72,120 @@ def test_score_summary_ignores_unscored_sections_and_fails_bad_scores() -> None:
         False,
         False,
     ]
+    assert all(check["required"] is False for check in summary["checks"])
+
+
+def test_score_summary_fails_required_unscored_sections() -> None:
+    label_score = {
+        "stage_score": {"accuracy": None},
+        "table_count_score": {"pass_rate": 1.0},
+        "table_presence_score": {"pass_rate": None},
+        "stage_staffing_score": {"pass_rate": None},
+        "stage_table_coverage_score": {"pass_rate": None},
+        "table_transition_score": {"pass_rate": None},
+        "stage_handoff_score": {"pass_rate": None},
+        "stage_roster_score": {"pass_rate": None},
+        "stage_evidence_score": {"pass_rate": None},
+        "procedure_milestone_score": {"pass_rate": None},
+        "procedure_status_score": {"pass_rate": None},
+        "operator_snapshot_score": {"pass_rate": None},
+        "operator_packet_score": {"pass_rate": None},
+        "table_team_score": {"pass_rate": None},
+        "table_identity_group_score": {"pass_rate": None},
+        "event_timeline_score": {"pass_rate": None},
+        "roster_snapshot_score": {"pass_rate": None},
+        "quality_flag_score": {"pass_rate": None},
+    }
+    thresholds = {
+        "stage_accuracy": 1.0,
+        "table_count_pass_rate": 1.0,
+        "table_presence_pass_rate": 1.0,
+        "stage_staffing_pass_rate": 1.0,
+        "stage_table_coverage_pass_rate": 1.0,
+        "table_transition_pass_rate": 1.0,
+        "stage_handoff_pass_rate": 1.0,
+        "stage_roster_pass_rate": 1.0,
+        "stage_evidence_pass_rate": 1.0,
+        "procedure_milestone_pass_rate": 1.0,
+        "procedure_status_pass_rate": 1.0,
+        "operator_snapshot_pass_rate": 1.0,
+        "operator_packet_pass_rate": 1.0,
+        "table_team_pass_rate": 1.0,
+        "table_identity_group_pass_rate": 1.0,
+        "event_timeline_pass_rate": 1.0,
+        "roster_snapshot_pass_rate": 1.0,
+        "quality_flag_pass_rate": 1.0,
+    }
+
+    summary = _score_summary(
+        label_score,
+        thresholds,
+        required_checks=["stage_accuracy", "table_count_pass_rate"],
+    )
+
+    stage_check = next(
+        check for check in summary["checks"] if check["name"] == "stage_accuracy"
+    )
+    table_check = next(
+        check for check in summary["checks"] if check["name"] == "table_count_pass_rate"
+    )
+    assert summary["passed"] is False
+    assert stage_check["required"] is True
+    assert stage_check["scored"] is False
+    assert stage_check["passed"] is False
+    assert stage_check["failure_reason"] == "required_check_unscored"
+    assert table_check["required"] is True
+    assert table_check["passed"] is True
+
+
+def test_score_summary_rejects_unknown_required_score_checks() -> None:
+    label_score = {
+        "stage_score": {"accuracy": 1.0},
+        "table_count_score": {"pass_rate": None},
+        "table_presence_score": {"pass_rate": None},
+        "stage_staffing_score": {"pass_rate": None},
+        "stage_table_coverage_score": {"pass_rate": None},
+        "table_transition_score": {"pass_rate": None},
+        "stage_handoff_score": {"pass_rate": None},
+        "stage_roster_score": {"pass_rate": None},
+        "stage_evidence_score": {"pass_rate": None},
+        "procedure_milestone_score": {"pass_rate": None},
+        "procedure_status_score": {"pass_rate": None},
+        "operator_snapshot_score": {"pass_rate": None},
+        "operator_packet_score": {"pass_rate": None},
+        "table_team_score": {"pass_rate": None},
+        "table_identity_group_score": {"pass_rate": None},
+        "event_timeline_score": {"pass_rate": None},
+        "roster_snapshot_score": {"pass_rate": None},
+        "quality_flag_score": {"pass_rate": None},
+    }
+    thresholds = {
+        "stage_accuracy": 1.0,
+        "table_count_pass_rate": 1.0,
+        "table_presence_pass_rate": 1.0,
+        "stage_staffing_pass_rate": 1.0,
+        "stage_table_coverage_pass_rate": 1.0,
+        "table_transition_pass_rate": 1.0,
+        "stage_handoff_pass_rate": 1.0,
+        "stage_roster_pass_rate": 1.0,
+        "stage_evidence_pass_rate": 1.0,
+        "procedure_milestone_pass_rate": 1.0,
+        "procedure_status_pass_rate": 1.0,
+        "operator_snapshot_pass_rate": 1.0,
+        "operator_packet_pass_rate": 1.0,
+        "table_team_pass_rate": 1.0,
+        "table_identity_group_pass_rate": 1.0,
+        "event_timeline_pass_rate": 1.0,
+        "roster_snapshot_pass_rate": 1.0,
+        "quality_flag_pass_rate": 1.0,
+    }
+
+    with pytest.raises(ValueError, match="not_a_real_check"):
+        _score_summary(
+            label_score,
+            thresholds,
+            required_checks=["not_a_real_check"],
+        )
 
 
 def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
@@ -143,3 +259,50 @@ def test_static_table_fallback_suite_manifest_is_explicitly_opt_in() -> None:
     assert labels["procedure_status_expectations"][0]["effective_table_source"] == (
         "last_observed_room_view"
     )
+
+
+def test_public_tavr_manifests_declare_required_score_checks() -> None:
+    manifest_paths = [
+        Path("docs/evaluation/tavr_suite.json"),
+        Path("docs/evaluation/tavr_static_table_fallback_suite.json"),
+    ]
+    core_required = {
+        "table_count_pass_rate",
+        "stage_table_coverage_pass_rate",
+        "table_transition_pass_rate",
+        "stage_roster_pass_rate",
+        "stage_evidence_pass_rate",
+        "procedure_milestone_pass_rate",
+        "procedure_status_pass_rate",
+        "operator_packet_pass_rate",
+        "table_team_pass_rate",
+        "table_identity_group_pass_rate",
+        "event_timeline_pass_rate",
+        "quality_flag_pass_rate",
+    }
+    full_room_cases = {"sentara_1800_mixed_room", "sentara_2700_room_post"}
+    full_room_required = {
+        "table_presence_pass_rate",
+        "stage_staffing_pass_rate",
+        "stage_handoff_pass_rate",
+        "operator_snapshot_pass_rate",
+        "roster_snapshot_pass_rate",
+    }
+    stage_labelled_cases = {
+        "sentara_900_room_to_fluoro_low_motion",
+        "sentara_1800_mixed_room",
+        "sentara_2700_room_post",
+        "sentara_900_static_table_fallback",
+    }
+
+    for manifest_path in manifest_paths:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assert manifest["cases"]
+        for case in manifest["cases"]:
+            required = set(case.get("required_score_checks", []))
+            assert core_required <= required, case["name"]
+            assert required <= set(DEFAULT_THRESHOLDS), case["name"]
+            if case["name"] in stage_labelled_cases:
+                assert "stage_accuracy" in required, case["name"]
+            if case["name"] in full_room_cases:
+                assert full_room_required <= required, case["name"]
