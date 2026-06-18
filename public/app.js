@@ -1009,6 +1009,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   tableSideMetric.textContent = String(currentTable.count);
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
+  updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
   renderStageTableBrief(stageTableBriefRowsFromSnapshots({
     stageLabel: stage.label,
     evidenceLabel: stage.stageHoldReason
@@ -1017,12 +1018,12 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
     timeLabel: `${formatSeconds(elapsedSeconds)}`,
     currentTable,
     effectiveTable: tableSnapshot,
+    handoff: browserStageHandoffBrief(currentStageRosterSegment),
   }));
   renderTableRoster(currentTable, tableSnapshot);
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
   renderBrowserTableIdentities();
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
-  updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
   renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
@@ -1464,6 +1465,17 @@ function renderStageRosterSummary() {
     row.append(label, value);
     stageRosterList.append(row);
   });
+}
+
+function browserStageHandoffBrief(segment = null) {
+  if (!segment) return null;
+  return {
+    handoffType: segment.handoffType,
+    activeIds: segment.activeIds,
+    continuedIds: segment.continuedIds,
+    newIds: segment.newIds,
+    droppedIds: segment.droppedIds,
+  };
 }
 
 function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0, tableSnapshot = null) {

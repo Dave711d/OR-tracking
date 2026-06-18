@@ -307,6 +307,10 @@ select {
   color: var(--warn);
 }
 
+.stage-table-brief div[data-kind="handoff"] b {
+  color: var(--blue);
+}
+
 .stage-table-brief div[data-context="empty"] b {
   color: var(--muted);
 }

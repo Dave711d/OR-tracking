@@ -516,6 +516,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "requestId !== evaluationReplayRequestId" in app_js
     assert "eventTimeSeconds" in app_js
     assert "export function eventTimeSeconds" in replay_js
+    assert "export function statusTimeSeconds" in replay_js
     assert "event.clip_timestamp_s" in replay_js
     assert "event.clip_start_s" in replay_js
     assert "Sentara TAVR backend artifact" not in app_js
@@ -528,6 +529,10 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "export function stageTableBriefRows" in replay_js
     assert "stageTableBriefRowsFromSnapshots" in app_js
     assert "export function stageTableBriefRowsFromSnapshots" in replay_js
+    assert "Stage handoff" in replay_js
+    assert "export function stageTableBriefHandoffRows" in replay_js
+    assert "function browserStageHandoffBrief" in app_js
+    assert "handoff: browserStageHandoffBrief(currentStageRosterSegment)" in app_js
     assert "function renderStageTableBrief" in app_js
     assert ".stage-table-brief" in styles
     assert "position: sticky" in styles

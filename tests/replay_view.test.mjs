@@ -12,6 +12,8 @@ import {
   replaySnapshotIndexForTime,
   replaySnapshotLabel,
   stageTableBriefRows,
+  stageTableBriefRowsFromSnapshots,
+  statusTimeSeconds,
   tableSourceLabel,
 } from "../public/replay_view.mjs";
 
@@ -27,16 +29,22 @@ test("replay projection keeps current table empty when only held evidence exists
 
   assert.equal(view.stageMetric, "Valve deployment (strong_visual_support)");
   assert.equal(view.tableSideMetric, "0");
-  assert.deepEqual(view.stageTableBriefRows.slice(0, 5).map((row) => row.label), [
+  assert.deepEqual(view.stageTableBriefRows.slice(0, 6).map((row) => row.label), [
     "Stage",
+    "Stage handoff",
     "Now visible",
     "Effective for stage",
     "Person 8 (ID 21)",
     "Person 10 (ID 20)",
   ]);
-  assert.equal(view.stageTableBriefRows[1].value, "0 at table");
-  assert.equal(view.stageTableBriefRows[2].value, "2 effective");
-  assert.match(view.stageTableBriefRows[3].value, /held; Table op/);
+  assert.equal(view.stageTableBriefRows[1].value, "table roster started");
+  assert.match(view.stageTableBriefRows[0].detail, /clip 30\.0s/);
+  assert.match(view.stageTableBriefRows[1].detail, /new Person 1/);
+  assert.match(view.stageTableBriefRows[1].detail, /new .*Person 10/);
+  assert.match(view.stageTableBriefRows[1].detail, /dropped none/);
+  assert.equal(view.stageTableBriefRows[2].value, "0 at table");
+  assert.equal(view.stageTableBriefRows[3].value, "2 effective");
+  assert.match(view.stageTableBriefRows[4].value, /held; Table op/);
   assert.deepEqual(view.tableRosterItems, ["None"]);
   assert.deepEqual(view.tablePresenceRows.map((row) => row.label), [
     "Current room view",
@@ -123,6 +131,7 @@ test("evaluation replay normalization sorts events by clip-relative fallback tim
   );
   assert.equal(eventTimeSeconds({ clip_start_s: 2.5 }), 2.5);
   assert.equal(eventTimeSeconds({ timestamp_s: 1801, clip_timestamp_s: 1 }), 1);
+  assert.equal(statusTimeSeconds({ clip_start_s: 0, clip_end_s: 29.963 }), 29.963);
 });
 
 test("replay snapshots select matching operator packets by stage and time", async () => {
@@ -158,4 +167,41 @@ test("table source labels cover effective table continuity states", () => {
     "current-stage recent room window",
   );
   assert.equal(tableSourceLabel("recent_room_view_hold"), "recent room-view hold");
+});
+
+test("stage table brief formats browser handoff people without double person labels", () => {
+  const rows = stageTableBriefRowsFromSnapshots({
+    stageLabel: "Uploaded review",
+    evidenceLabel: "confidence 0.8",
+    timeLabel: "1.0s",
+    currentTable: {
+      count: 2,
+      rows: [
+        { id: "P1", role: "table_operator" },
+        { id: "P2", role: "access_operator" },
+      ],
+      source: "current_room_view",
+    },
+    effectiveTable: {
+      count: 2,
+      rows: [
+        { id: "P1", role: "table_operator" },
+        { id: "P2", role: "access_operator" },
+      ],
+      source: "current_room_view",
+    },
+    handoff: {
+      handoffType: "roster_added",
+      activeIds: ["P1", "P2"],
+      continuedIds: ["P1"],
+      newIds: ["P2"],
+      droppedIds: [],
+    },
+  });
+  const handoff = rows.find((row) => row.kind === "handoff");
+
+  assert.equal(handoff.value, "roster added");
+  assert.equal(handoff.detail, "continued P1; new P2; dropped none");
+  assert.match(rows.map((row) => row.detail).join(" "), /people P1, P2/);
+  assert.doesNotMatch(rows.map((row) => row.detail).join(" "), /Person P/);
 });

@@ -118,13 +118,20 @@ export function stageTableBriefRows(status = {}, packet = null) {
   const stageLabel = status.current_stage_label || packet?.stage_label || "Stage n/a";
   const evidence = status.current_stage_evidence_status || status.evidence_level ||
     packet?.stage_evidence_status || packet?.evidence_level || "evidence n/a";
-  const time = eventTimeSeconds(status);
+  const time = statusTimeSeconds(status);
   return stageTableBriefRowsFromSnapshots({
     stageLabel,
     evidenceLabel: String(evidence).replaceAll("_", " "),
     timeLabel: Number.isFinite(time) ? `clip ${formatSeconds(time)}` : "",
     currentTable: currentTableSnapshot(status),
     effectiveTable: effectiveTableSnapshot(status),
+    handoff: packet ? {
+      handoffType: packet.handoff_type,
+      activeIds: packet.active_table_canonical_ids,
+      continuedIds: packet.continued_canonical_table_ids,
+      newIds: packet.new_canonical_table_ids,
+      droppedIds: packet.dropped_canonical_table_ids,
+    } : null,
   });
 }
 
@@ -134,6 +141,7 @@ export function stageTableBriefRowsFromSnapshots({
   timeLabel = "",
   currentTable = {},
   effectiveTable = null,
+  handoff = null,
 } = {}) {
   const current = normalizedTableSnapshot(currentTable);
   const effective = normalizedTableSnapshot(effectiveTable || current);
@@ -145,6 +153,7 @@ export function stageTableBriefRowsFromSnapshots({
       detail: [evidenceLabel, timeLabel].filter(Boolean).join("; "),
       context: "current",
     },
+    ...stageTableBriefHandoffRows(handoff),
     {
       kind: "current",
       label: "Now visible",
@@ -163,6 +172,30 @@ export function stageTableBriefRowsFromSnapshots({
   return rows.concat(stageTableBriefPersonRows(current, effective));
 }
 
+export function stageTableBriefHandoffRows(handoff = null) {
+  if (!handoff) return [];
+  const handoffType = handoff.handoffType || handoff.handoff_type || "unknown";
+  const activeIds = asArray(handoff.activeIds ?? handoff.active_table_canonical_ids);
+  const continuedIds = asArray(
+    handoff.continuedIds ?? handoff.continued_canonical_table_ids,
+  );
+  const newIds = asArray(handoff.newIds ?? handoff.new_canonical_table_ids);
+  const droppedIds = asArray(handoff.droppedIds ?? handoff.dropped_canonical_table_ids);
+  const hasAnyPeople = activeIds.length || continuedIds.length ||
+    newIds.length || droppedIds.length;
+  return [{
+    kind: "handoff",
+    label: "Stage handoff",
+    value: handoffLabel(handoffType),
+    detail: [
+      formatBriefPersonIds(continuedIds, "continued"),
+      formatBriefPersonIds(newIds, "new"),
+      formatBriefPersonIds(droppedIds, "dropped"),
+    ].join("; "),
+    context: hasAnyPeople ? "handoff" : "empty",
+  }];
+}
+
 export function eventTimeSeconds(event) {
   return Number(
     event.clip_timestamp_s ??
@@ -170,6 +203,19 @@ export function eventTimeSeconds(event) {
     event.timestamp_s ??
     event.source_timestamp_s ??
     event.source_start_s ??
+    0,
+  );
+}
+
+export function statusTimeSeconds(status = {}) {
+  return Number(
+    status.clip_timestamp_s ??
+    status.clip_end_s ??
+    status.clip_start_s ??
+    status.timestamp_s ??
+    status.source_timestamp_s ??
+    status.source_end_s ??
+    status.source_start_s ??
     0,
   );
 }
@@ -183,7 +229,7 @@ export function packetForStatus(packets, status = {}) {
   const rows = asArray(packets);
   if (!rows.length) return null;
   const stage = status.current_stage;
-  const time = eventTimeSeconds(status);
+  const time = statusTimeSeconds(status);
   const inTime = (packet) => {
     const start = packet.clip_start_s ?? packet.start_s ?? packet.timestamp_s;
     const end = packet.clip_end_s ?? packet.end_s ?? packet.timestamp_s;
@@ -304,7 +350,8 @@ export function formatPersonIds(canonicalIds, prefix = "people") {
 export function formatPersonId(canonicalId) {
   return canonicalId === null || canonicalId === undefined
     ? "none"
-    : `Person ${canonicalId}`;
+    : (isBrowserPersonId(canonicalId) ? String(canonicalId)
+      : `Person ${canonicalId}`);
 }
 
 export function rosterPersonLabel(row = {}) {
@@ -411,6 +458,25 @@ function snapshotRowKey(row = {}) {
 function tableBriefRoleLabel(row = {}) {
   const role = row.table_team_role || row.role;
   return ROLE_LABELS[role] || role || "role n/a";
+}
+
+function formatBriefPersonIds(ids, prefix) {
+  const values = asArray(ids);
+  return values.length
+    ? `${prefix} ${values.map(formatBriefPersonId).join(", ")}`
+    : `${prefix} none`;
+}
+
+function formatBriefPersonId(id) {
+  return isBrowserPersonId(id) ? String(id) : formatPersonId(id);
+}
+
+function isBrowserPersonId(id) {
+  return typeof id === "string" && /^P\d+$/i.test(id);
+}
+
+function handoffLabel(handoffType) {
+  return String(handoffType || "unknown").replaceAll("_", " ");
 }
 
 function formatSeconds(value) {
