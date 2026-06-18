@@ -779,6 +779,10 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         last_observed_table_roster(metrics),
         identity_map,
     )
+    current_stage_stable = _enrich_table_snapshot_identities(
+        current_stage_table_roster(metrics),
+        identity_map,
+    )
     peak = _enrich_table_snapshot_identities(
         peak_table_roster(metrics),
         identity_map,
@@ -802,6 +806,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         latest_state=latest_state,
         current_roster=current_roster,
         last_observed=last_observed,
+        current_stage_stable=current_stage_stable,
     )
 
     row = {
@@ -1090,6 +1095,18 @@ def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any
         return _empty_table_snapshot()
 
     return stable_table_roster_snapshot(metrics)
+
+
+def current_stage_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
+    """Return a recent stable table roster within the current stage only."""
+
+    if not metrics:
+        return _empty_table_snapshot()
+
+    segments = _stage_metric_segments(metrics)
+    if not segments:
+        return _empty_table_snapshot()
+    return stable_table_roster_snapshot(segments[-1])
 
 
 def stable_table_roster_snapshot(
@@ -2866,29 +2883,37 @@ def _effective_table_status(
     latest_state: TAVRFrameState,
     current_roster: Sequence[Dict[str, Any]],
     last_observed: Dict[str, Any],
+    current_stage_stable: Optional[Dict[str, Any]] = None,
     recent_hold_s: float = 5.0,
 ) -> Dict[str, Any]:
+    stage_stable = current_stage_stable or _empty_table_snapshot()
+    stage_stable_roster = stage_stable.get("roster", [])
+    stage_stable_age_s = stage_stable.get("age_from_clip_end_s")
+    stage_stable_is_recent = (
+        bool(stage_stable_roster)
+        and stage_stable_age_s is not None
+        and float(stage_stable_age_s) <= recent_hold_s
+    )
+
     if _view_label(latest_metric) == "room":
-        last_roster = last_observed.get("roster", [])
-        last_age_s = last_observed.get("age_from_clip_end_s")
+        current_canonical_ids = set(_canonical_table_ids_from_roster(current_roster))
+        stage_stable_canonical_ids = set(
+            _canonical_table_ids_from_roster(stage_stable_roster)
+        )
         if (
-            not current_roster
-            and last_roster
-            and last_age_s is not None
-            and float(last_age_s) <= recent_hold_s
+            stage_stable_is_recent
+            and not current_roster
         ):
-            return {
-                "source": "recent_room_view_hold",
-                "timestamp_s": last_observed.get("timestamp_s"),
-                "clip_timestamp_s": last_observed.get("clip_timestamp_s"),
-                "age_from_clip_end_s": last_age_s,
-                "stage": last_observed.get("stage"),
-                "stage_label": last_observed.get("stage_label"),
-                "table_count": last_observed.get("table_count", 0),
-                "track_ids": [item["track_id"] for item in last_roster],
-                "canonical_ids": _canonical_table_ids_from_roster(last_roster),
-                "roster": list(last_roster),
-            }
+            return _table_snapshot_status("recent_room_view_hold", stage_stable)
+        if (
+            stage_stable_is_recent
+            and stage_stable_canonical_ids
+            and not stage_stable_canonical_ids.issubset(current_canonical_ids)
+        ):
+            return _table_snapshot_status(
+                "current_stage_recent_room_window",
+                stage_stable,
+            )
         source = (
             "current_room_view"
             if current_roster
@@ -2908,19 +2933,10 @@ def _effective_table_status(
         }
 
     last_roster = last_observed.get("roster", [])
+    if stage_stable_roster:
+        return _table_snapshot_status("last_observed_room_view", stage_stable)
     if last_roster:
-        return {
-            "source": "last_observed_room_view",
-            "timestamp_s": last_observed.get("timestamp_s"),
-            "clip_timestamp_s": last_observed.get("clip_timestamp_s"),
-            "age_from_clip_end_s": last_observed.get("age_from_clip_end_s"),
-            "stage": last_observed.get("stage"),
-            "stage_label": last_observed.get("stage_label"),
-            "table_count": last_observed.get("table_count", 0),
-            "track_ids": [item["track_id"] for item in last_roster],
-            "canonical_ids": _canonical_table_ids_from_roster(last_roster),
-            "roster": list(last_roster),
-        }
+        return _table_snapshot_status("last_observed_room_view", last_observed)
 
     return {
         "source": "no_room_table_evidence",
@@ -2933,6 +2949,22 @@ def _effective_table_status(
         "track_ids": [],
         "canonical_ids": [],
         "roster": [],
+    }
+
+
+def _table_snapshot_status(source: str, snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    roster = list(snapshot.get("roster", []))
+    return {
+        "source": source,
+        "timestamp_s": snapshot.get("timestamp_s"),
+        "clip_timestamp_s": snapshot.get("clip_timestamp_s"),
+        "age_from_clip_end_s": snapshot.get("age_from_clip_end_s"),
+        "stage": snapshot.get("stage"),
+        "stage_label": snapshot.get("stage_label"),
+        "table_count": snapshot.get("table_count", 0),
+        "track_ids": [item["track_id"] for item in roster],
+        "canonical_ids": _canonical_table_ids_from_roster(roster),
+        "roster": roster,
     }
 
 

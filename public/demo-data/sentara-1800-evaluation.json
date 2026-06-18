@@ -1025,18 +1025,22 @@
             "canonical_table_label": "Person 8"
           }
         ],
-        "effective_table_source": "current_room_view",
+        "effective_table_source": "current_stage_recent_room_window",
         "effective_table_s": 1826.324,
         "effective_table_clip_s": 26.326,
         "effective_table_age_from_clip_end_s": 0.0,
         "effective_table_stage": "valve_deployment",
         "effective_table_stage_label": "Valve deployment",
-        "effective_table_count": 1,
+        "effective_table_count": 3,
         "effective_table_track_ids": [
-          21
+          21,
+          16,
+          20
         ],
         "effective_table_canonical_ids": [
-          8
+          8,
+          9,
+          10
         ],
         "effective_table_roster": [
           {
@@ -1047,6 +1051,11 @@
             "frames_seen": 19,
             "table_presence_ratio": 1.0,
             "label": "Person 8: ID 21 table_operator table=100%",
+            "observed_table_frames": 19,
+            "first_observed_frame": 54696,
+            "last_observed_frame": 54735,
+            "first_observed_s": 1825.023,
+            "last_observed_s": 1826.324,
             "canonical_table_id": 8,
             "merged_track_ids": [
               18,
@@ -1056,6 +1065,48 @@
             "raw_track_id": 21,
             "raw_track_label": "ID 21 table_operator table=100%",
             "canonical_table_label": "Person 8"
+          },
+          {
+            "track_id": 16,
+            "dominant_role": "imaging",
+            "table_team_role": "imaging",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 37,
+            "table_presence_ratio": 0.432,
+            "label": "Person 9: ID 16 imaging table=43%",
+            "observed_table_frames": 16,
+            "first_observed_frame": 54676,
+            "last_observed_frame": 54691,
+            "first_observed_s": 1824.356,
+            "last_observed_s": 1824.856,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              16
+            ],
+            "raw_track_id": 16,
+            "raw_track_label": "ID 16 imaging table=43%",
+            "canonical_table_label": "Person 9"
+          },
+          {
+            "track_id": 20,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.944,
+            "frames_seen": 18,
+            "table_presence_ratio": 1.0,
+            "label": "Person 10: ID 20 table_operator table=100%",
+            "observed_table_frames": 18,
+            "first_observed_frame": 54681,
+            "last_observed_frame": 54698,
+            "first_observed_s": 1824.523,
+            "last_observed_s": 1825.09,
+            "canonical_table_id": 10,
+            "merged_track_ids": [
+              20
+            ],
+            "raw_track_id": 20,
+            "raw_track_label": "ID 20 table_operator table=100%",
+            "canonical_table_label": "Person 10"
           }
         ],
         "last_observed_table_s": 1826.324,
@@ -1213,7 +1264,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_summary": "Current observed stage: Valve deployment (strong visual support, confidence 0.51, observable 100%); tracking available; at table now: Person 8: ID 21 table_operator table=100%; table status: current room view Person 8: ID 21 table_operator table=100%; last observed table: Person 8: ID 21 table_operator table=100%; Person 9: ID 16 imaging table=43%; Person 10: ID 20 table_operator table=100%; next: Post-deploy assessment; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view",
+        "operator_summary": "Current observed stage: Valve deployment (strong visual support, confidence 0.51, observable 100%); tracking available; at table now: Person 8: ID 21 table_operator table=100%; table status: current stage recent room window Person 8: ID 21 table_operator table=100%; Person 9: ID 16 imaging table=43%; Person 10: ID 20 table_operator table=100%; last observed table: Person 8: ID 21 table_operator table=100%; Person 9: ID 16 imaging table=43%; Person 10: ID 20 table_operator table=100%; next: Post-deploy assessment; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view",
         "snapshot_index": 4,
         "snapshot_reason": [
           "last_observed_table"

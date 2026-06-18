@@ -66,7 +66,10 @@ operator stage packets, a unified procedure event timeline, and low-confidence
 segments to inspect before changing heuristics.
 The status row includes an `effective_table_source` so fluoro/non-room frames
 can distinguish live room rosters from the last trustworthy room-view table
-observation or from no usable table evidence.
+observation, a current-stage recent room-window roster, or from no usable table
+evidence. Current table fields remain current-frame truth; effective table
+fields are the operator-facing continuity layer for brief same-stage detection
+dropouts and held/non-room views.
 The table-team rows classify each meaningful table-side track as
 `active_current`, `recent_last_observed`, or `historical_seen`, with explicit
 current/effective/last/peak roster membership flags. They keep both the raw

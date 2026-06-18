@@ -132,11 +132,15 @@ The JSON output includes:
   availability, current table roster, effective table roster source, last
   observed table roster, peak table roster, quality flag codes, and a concise
   `operator_summary` sentence. `effective_table_source` is
-  `current_room_view`, `current_room_view_empty`, `recent_room_view_hold`,
-  `last_observed_room_view`, or `no_room_table_evidence`. This keeps
-  fluoroscopy frames from implying a false empty table when the room is not
-  visible, and keeps a recently observed table roster visible when the latest
-  room-view frame is motion-quiet rather than confidently empty.
+  `current_room_view`, `current_room_view_empty`,
+  `current_stage_recent_room_window`, `recent_room_view_hold`,
+  `last_observed_room_view`, or `no_room_table_evidence`.
+  `current_table_*` stays literal current-frame truth; the current-stage recent
+  room window is used only for effective table status when a same-stage roster
+  member briefly drops out of the latest frame. This keeps fluoroscopy frames
+  from implying a false empty table when the room is not visible, and keeps a
+  recently observed table roster visible when the latest room-view frame is
+  motion-quiet rather than confidently empty.
 - `operator_status_snapshots`: timestamped procedure-status rows at critical
   replay points, including clip start/end, stage boundaries, view switches,
   peak table, and last-observed table. These rows reuse

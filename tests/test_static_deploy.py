@@ -15,6 +15,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "evidence": "weak_visual_support",
         "table_source": "no_room_table_evidence",
         "table_count": 0,
+        "current_table_count": 0,
         "required_flags": {
             "low_stage_confidence",
             "non_room_view",
@@ -33,6 +34,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "evidence": "strong_visual_support",
         "table_source": "recent_room_view_hold",
         "table_count": 2,
+        "current_table_count": 0,
         "required_flags": {
             "rapid_stage_progression",
             "low_stage_confidence",
@@ -51,6 +53,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "evidence": "held_non_room_context",
         "table_source": "no_room_table_evidence",
         "table_count": 0,
+        "current_table_count": 0,
         "required_flags": {"low_stage_confidence", "non_room_view"},
         "min_team_rows": 0,
         "min_identity_groups": 0,
@@ -65,6 +68,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "evidence": "weak_visual_support",
         "table_source": "last_observed_room_view",
         "table_count": 1,
+        "current_table_count": 0,
         "required_flags": {
             "rapid_stage_progression",
             "early_terminal_stage",
@@ -84,6 +88,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "evidence": "weak_visual_support",
         "table_source": "last_observed_room_view",
         "table_count": 3,
+        "current_table_count": 0,
         "required_flags": {
             "low_stage_confidence",
             "non_room_view",
@@ -99,8 +104,9 @@ PUBLIC_EVALUATION_DEMOS = [
         "stage": "closure_finish",
         "stage_label": "Closure / finish",
         "evidence": "strong_visual_support",
-        "table_source": "current_room_view",
-        "table_count": 1,
+        "table_source": "current_stage_recent_room_window",
+        "table_count": 2,
+        "current_table_count": 1,
         "required_flags": {"rapid_stage_progression"},
         "min_team_rows": 10,
         "min_identity_groups": 10,
@@ -321,6 +327,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert status["current_stage"] == demo["stage"]
         assert status["current_stage_label"] == demo["stage_label"]
         assert status["current_stage_evidence_status"] == demo["evidence"]
+        assert status["current_table_count"] == demo["current_table_count"]
         assert status["effective_table_source"] == demo["table_source"]
         assert status["effective_table_count"] == demo["table_count"]
         assert "effective_table_canonical_ids" in status
@@ -416,6 +423,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert 'id="qualityFlagList"' in index_html
     assert "Evaluated demo" in index_html
     assert "Replay" in index_html
+    assert "At table now" in index_html
+    assert "Table-side count" not in index_html
     assert "Status snapshots" in index_html
     assert catalog_block_match is not None
     catalog_block = catalog_block_match.group("body")
@@ -465,10 +474,12 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function appendOverflowRow" in app_js
     assert "function syncEmptyStateToVideoSource" in app_js
     assert "function summarizeStageCounts" in app_js
-    assert "function effectiveTableSnapshot" in app_js
+    assert "function currentTableSnapshot" in app_js
+    assert "const tableSnapshot = currentTableSnapshot(status);" in app_js
+    assert "const tableSnapshot = effectiveTableSnapshot(status);" not in app_js
     assert "emptyState.hidden = Boolean(video.src)" in app_js
     assert "effective_table_source" in app_js
-    assert "effective_table_count ?? status.current_table_count" in app_js
+    assert "current_table_count ?? rows.length" in app_js
     assert "status.current_table_count ?? status.effective_table_count" not in app_js
     assert "last_observed_age_from_clip_end_s" in app_js
     assert "tracking_available_rate" in app_js

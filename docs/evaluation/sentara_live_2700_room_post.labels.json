@@ -277,9 +277,10 @@
       "next_stage": null,
       "current_view": "room",
       "tracking_available": true,
-      "effective_table_source": "current_room_view",
+      "effective_table_source": "current_stage_recent_room_window",
       "min_table_count": 3,
-      "min_effective_table_count": 3,
+      "min_effective_table_count": 6,
+      "max_effective_table_count": 6,
       "min_peak_table_count": 4,
       "required_current_canonical_table_ids": [
         1,
@@ -293,12 +294,18 @@
       ],
       "required_effective_canonical_table_ids": [
         1,
+        2,
         3,
+        4,
+        5,
         6
       ],
       "expected_effective_canonical_table_ids": [
         1,
+        2,
         3,
+        4,
+        5,
         6
       ],
       "required_peak_canonical_table_ids": [

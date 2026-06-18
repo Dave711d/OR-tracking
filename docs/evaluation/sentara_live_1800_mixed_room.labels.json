@@ -242,9 +242,10 @@
       "next_stage": "post_deploy_assessment",
       "current_view": "room",
       "tracking_available": true,
-      "effective_table_source": "current_room_view",
+      "effective_table_source": "current_stage_recent_room_window",
       "min_table_count": 1,
-      "min_effective_table_count": 1,
+      "min_effective_table_count": 3,
+      "max_effective_table_count": 3,
       "min_peak_table_count": 3,
       "required_current_canonical_table_ids": [
         10
@@ -253,9 +254,13 @@
         10
       ],
       "required_effective_canonical_table_ids": [
+        8,
+        9,
         10
       ],
       "expected_effective_canonical_table_ids": [
+        8,
+        9,
         10
       ],
       "required_peak_canonical_table_ids": [

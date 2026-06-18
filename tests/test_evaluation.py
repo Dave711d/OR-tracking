@@ -615,6 +615,48 @@ def test_procedure_status_uses_stable_recent_room_roster_when_table_drops_out() 
     assert status["last_observed_table_canonical_ids"] == [1, 2, 3]
 
 
+def test_effective_table_uses_current_stage_recent_window_for_partial_frame() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "post_deploy_assessment", [7, 8]),
+        _table_metric(1, 1.0, "closure_finish", [9, 10]),
+        _table_metric(2, 2.0, "closure_finish", [9]),
+    ]
+
+    status = procedure_status_summary(metrics)[0]
+    packet = operator_stage_packet(metrics)[-1]
+
+    assert status["current_stage"] == "closure_finish"
+    assert status["current_table_count"] == 1
+    assert status["current_table_track_ids"] == [9]
+    assert status["effective_table_source"] == "current_stage_recent_room_window"
+    assert status["effective_table_count"] == 2
+    assert status["effective_table_track_ids"] == [9, 10]
+    assert len(status["effective_table_canonical_ids"]) == 2
+    assert {
+        item["track_id"] for item in status["effective_table_roster"]
+    } == {9, 10}
+    assert packet["effective_table_source"] == "current_stage_recent_room_window"
+    assert packet["effective_table_track_ids"] == [9, 10]
+
+
+def test_effective_table_window_does_not_pull_people_from_previous_stage() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "post_deploy_assessment", [7, 8]),
+        _table_metric(1, 1.0, "closure_finish", [9]),
+    ]
+
+    status = procedure_status_summary(metrics)[0]
+
+    assert status["current_stage"] == "closure_finish"
+    assert status["current_table_track_ids"] == [9]
+    assert status["effective_table_source"] == "current_room_view"
+    assert status["effective_table_count"] == 1
+    assert status["effective_table_track_ids"] == [9]
+    assert {
+        item["track_id"] for item in status["effective_table_roster"]
+    } == {9}
+
+
 def test_operator_status_uses_canonical_table_people_for_fragmented_tracks() -> None:
     metrics = [
         _table_metric(

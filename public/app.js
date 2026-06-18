@@ -349,7 +349,7 @@ function renderEvaluationReplay(demo) {
   const status = demo.status || {};
   const latestPacket = latestOperatorPacket(demo.packets);
   const stageLabel = status.current_stage_label || latestPacket?.stage_label || demo.caseName;
-  const tableSnapshot = effectiveTableSnapshot(status);
+  const tableSnapshot = currentTableSnapshot(status);
   const tableCount = tableSnapshot.count;
   const teamCount = demo.team.length || tableCount;
 
@@ -1612,7 +1612,7 @@ function renderBackendOperatorPacket(packets = [], status = null) {
 
 function renderBackendTableRoster(status = {}) {
   tableRoster.replaceChildren();
-  const tableSnapshot = effectiveTableSnapshot(status);
+  const tableSnapshot = currentTableSnapshot(status);
   const rows = tableSnapshot.rows;
 
   if (!rows.length) {
@@ -1939,6 +1939,7 @@ function tableSourceLabel(source) {
   const labels = {
     current_room_view: "current room view",
     current_room_view_empty: "current room view empty",
+    current_stage_recent_room_window: "current-stage recent room window",
     recent_room_view_hold: "recent room-view hold",
     last_observed_room_view: "last observed room view",
     no_room_table_evidence: "no room table evidence",
@@ -2018,26 +2019,15 @@ function latestOperatorPacket(packets) {
   return packets.find((packet) => packet.is_current_stage) || packets[packets.length - 1] || null;
 }
 
-function effectiveTableSnapshot(status = {}) {
-  const currentRows = asArray(status.current_table_roster);
-  const effectiveRows = asArray(status.effective_table_roster);
-  const lastRows = asArray(status.last_observed_table_roster);
-  const source = status.effective_table_source || (
-    currentRows.length ? "current_room_view" : "no_room_table_evidence"
-  );
-  const rows = effectiveRows.length
-    ? effectiveRows
-    : (currentRows.length ? currentRows : lastRows);
-
+function currentTableSnapshot(status = {}) {
+  const rows = asArray(status.current_table_roster);
+  const source = rows.length ? "current_room_view" : "current_room_view_empty";
   return {
-    count: status.effective_table_count ?? status.current_table_count ?? rows.length,
+    count: status.current_table_count ?? rows.length,
     rows,
     source,
     sourceLabel: tableSourceLabel(source),
-    ageFromClipEndS: (
-      status.effective_table_age_from_clip_end_s ??
-      status.last_observed_age_from_clip_end_s
-    ),
+    ageFromClipEndS: 0,
   };
 }
 
