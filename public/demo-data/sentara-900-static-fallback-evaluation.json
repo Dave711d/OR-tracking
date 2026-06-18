@@ -36,6 +36,7 @@
     "stage_evidence_score": 1.0,
     "procedure_milestone_score": 1.0,
     "procedure_status_score": 1.0,
+    "operator_snapshot_score": 1.0,
     "operator_packet_score": 1.0,
     "table_team_score": 1.0,
     "table_identity_group_score": 1.0,
@@ -89,6 +90,7 @@
         "tracking_available": false,
         "current_table_count": 0,
         "current_table_track_ids": [],
+        "current_table_canonical_ids": [],
         "current_table_roster": [],
         "effective_table_source": "last_observed_room_view",
         "effective_table_s": 904.17,
@@ -102,6 +104,11 @@
           2,
           4
         ],
+        "effective_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "effective_table_roster": [
           {
             "track_id": 1,
@@ -110,7 +117,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 105,
             "table_presence_ratio": 1.0,
-            "label": "ID 1 table_operator table=100%"
+            "label": "Person 1: ID 1 table_operator table=100%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=100%",
+            "canonical_table_label": "Person 1"
           },
           {
             "track_id": 2,
@@ -119,7 +133,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 98,
             "table_presence_ratio": 1.0,
-            "label": "ID 2 table_operator table=100%"
+            "label": "Person 2: ID 2 table_operator table=100%",
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 table_operator table=100%",
+            "canonical_table_label": "Person 2"
           },
           {
             "track_id": 4,
@@ -128,7 +149,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 5,
             "table_presence_ratio": 1.0,
-            "label": "ID 4 table_operator table=100%"
+            "label": "Person 3: ID 4 table_operator table=100%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "raw_track_id": 4,
+            "raw_track_label": "ID 4 table_operator table=100%",
+            "canonical_table_label": "Person 3"
           }
         ],
         "last_observed_table_s": 904.17,
@@ -142,6 +170,11 @@
           2,
           4
         ],
+        "last_observed_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "last_observed_table_roster": [
           {
             "track_id": 1,
@@ -150,7 +183,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 105,
             "table_presence_ratio": 1.0,
-            "label": "ID 1 table_operator table=100%"
+            "label": "Person 1: ID 1 table_operator table=100%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=100%",
+            "canonical_table_label": "Person 1"
           },
           {
             "track_id": 2,
@@ -159,7 +199,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 98,
             "table_presence_ratio": 1.0,
-            "label": "ID 2 table_operator table=100%"
+            "label": "Person 2: ID 2 table_operator table=100%",
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 table_operator table=100%",
+            "canonical_table_label": "Person 2"
           },
           {
             "track_id": 4,
@@ -168,7 +215,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 5,
             "table_presence_ratio": 1.0,
-            "label": "ID 4 table_operator table=100%"
+            "label": "Person 3: ID 4 table_operator table=100%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "raw_track_id": 4,
+            "raw_track_label": "ID 4 table_operator table=100%",
+            "canonical_table_label": "Person 3"
           }
         ],
         "peak_table_s": 904.17,
@@ -181,6 +235,11 @@
           2,
           4
         ],
+        "peak_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "peak_table_roster": [
           {
             "track_id": 1,
@@ -189,7 +248,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 105,
             "table_presence_ratio": 1.0,
-            "label": "ID 1 table_operator table=100%"
+            "label": "Person 1: ID 1 table_operator table=100%",
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "raw_track_id": 1,
+            "raw_track_label": "ID 1 table_operator table=100%",
+            "canonical_table_label": "Person 1"
           },
           {
             "track_id": 2,
@@ -198,7 +264,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 98,
             "table_presence_ratio": 1.0,
-            "label": "ID 2 table_operator table=100%"
+            "label": "Person 2: ID 2 table_operator table=100%",
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "raw_track_id": 2,
+            "raw_track_label": "ID 2 table_operator table=100%",
+            "canonical_table_label": "Person 2"
           },
           {
             "track_id": 4,
@@ -207,7 +280,14 @@
             "table_team_role_confidence": 1.0,
             "frames_seen": 5,
             "table_presence_ratio": 1.0,
-            "label": "ID 4 table_operator table=100%"
+            "label": "Person 3: ID 4 table_operator table=100%",
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "raw_track_id": 4,
+            "raw_track_label": "ID 4 table_operator table=100%",
+            "canonical_table_label": "Person 3"
           }
         ],
         "quality_flag_codes": [
@@ -215,7 +295,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_summary": "Current weakly supported stage: Balloon valvuloplasty (weak visual support, confidence 0.20, observable 1%); tracking not available; at table now: none; table status: last observed room view ID 1 table_operator table=100%; ID 2 table_operator table=100%; ID 4 table_operator table=100%; last observed table: ID 1 table_operator table=100%; ID 2 table_operator table=100%; ID 4 table_operator table=100%; next: Valve delivery / positioning; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_summary": "Current weakly supported stage: Balloon valvuloplasty (weak visual support, confidence 0.20, observable 1%); tracking not available; at table now: none; table status: last observed room view Person 1: ID 1 table_operator table=100%; Person 2: ID 2 table_operator table=100%; Person 3: ID 4 table_operator table=100%; last observed table: Person 1: ID 1 table_operator table=100%; Person 2: ID 2 table_operator table=100%; Person 3: ID 4 table_operator table=100%; next: Valve delivery / positioning; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view"
       }
     ],
     "operator_stage_packet": [
@@ -244,27 +324,39 @@
         "active_table_track_count": 2,
         "canonical_table_identity_count": 2,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
           1,
           2
         ],
+        "active_table_canonical_ids": [
+          1,
+          2
+        ],
         "continued_track_ids": [],
+        "continued_canonical_table_ids": [],
         "new_track_ids": [
           1,
           2
         ],
+        "new_canonical_table_ids": [
+          1,
+          2
+        ],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "effective_table_source": null,
         "effective_table_count": null,
         "effective_table_track_ids": [],
-        "roster_summary": "ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s",
+        "effective_table_canonical_ids": [],
+        "roster_summary": "Person 1: ID 1 table_operator 76 frames 0.0-3.0s; Person 2: ID 2 table_operator 72 frames 0.0-3.0s",
         "quality_flag_codes": [
           "rapid_stage_progression",
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Observed stage: Access / sheathing 899.999s-903.002s; evidence moderate visual support, confidence 0.39, observable 100%; handoff initial table roster; peak table 2; active IDs 1, 2; new IDs 1, 2; dropped IDs none; roster ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_packet": "Observed stage: Access / sheathing 899.999s-903.002s; evidence moderate visual support, confidence 0.39, observable 100%; handoff initial table roster; peak table 2; active people Person 1, Person 2 (raw IDs 1, 2); new people Person 1, Person 2 (raw IDs 1, 2); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 76 frames 0.0-3.0s; Person 2: ID 2 table_operator 72 frames 0.0-3.0s; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
       },
       {
         "packet_index": 1,
@@ -291,30 +383,45 @@
         "active_table_track_count": 3,
         "canonical_table_identity_count": 3,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
           1,
           2,
           4
         ],
+        "active_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "continued_track_ids": [
+          1,
+          2
+        ],
+        "continued_canonical_table_ids": [
           1,
           2
         ],
         "new_track_ids": [
           4
         ],
+        "new_canonical_table_ids": [
+          3
+        ],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "effective_table_source": null,
         "effective_table_count": null,
         "effective_table_track_ids": [],
-        "roster_summary": "ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s",
+        "effective_table_canonical_ids": [],
+        "roster_summary": "Person 1: ID 1 table_operator 24 frames 3.0-3.8s; Person 2: ID 2 table_operator 21 frames 3.0-3.8s; Person 3: ID 4 table_operator 2 frames 3.8-3.9s",
         "quality_flag_codes": [
           "rapid_stage_progression",
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Observed stage: Angio alignment / crossing 903.035s-904.003s; evidence moderate visual support, confidence 0.36, observable 100%; handoff roster added; peak table 3; active IDs 1, 2, 4; new IDs 4; dropped IDs none; roster ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_packet": "Observed stage: Angio alignment / crossing 903.035s-904.003s; evidence moderate visual support, confidence 0.36, observable 100%; handoff roster added; peak table 3; active people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); new people Person 3 (raw IDs 4); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 24 frames 3.0-3.8s; Person 2: ID 2 table_operator 21 frames 3.0-3.8s; Person 3: ID 4 table_operator 2 frames 3.8-3.9s; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
       },
       {
         "packet_index": 2,
@@ -341,19 +448,32 @@
         "active_table_track_count": 3,
         "canonical_table_identity_count": 3,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
           1,
           2,
           4
         ],
+        "active_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "continued_track_ids": [
           1,
           2,
           4
         ],
+        "continued_canonical_table_ids": [
+          1,
+          2,
+          3
+        ],
         "new_track_ids": [],
+        "new_canonical_table_ids": [],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "effective_table_source": "last_observed_room_view",
         "effective_table_count": 3,
         "effective_table_track_ids": [
@@ -361,13 +481,18 @@
           2,
           4
         ],
-        "roster_summary": "ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s",
+        "effective_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
+        "roster_summary": "Person 1: ID 1 table_operator 5 frames 4.0-4.2s; Person 2: ID 2 table_operator 5 frames 4.0-4.2s; Person 3: ID 4 table_operator 3 frames 4.1-4.2s",
         "quality_flag_codes": [
           "rapid_stage_progression",
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Balloon valvuloplasty 904.036s-929.962s; evidence weak visual support, confidence 0.20, observable 1%; handoff roster continued; peak table 3; active IDs 1, 2, 4; new IDs none; dropped IDs none; roster ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s; latest table status last observed room view 3 IDs 1, 2, 4; next Valve delivery / positioning; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Balloon valvuloplasty 904.036s-929.962s; evidence weak visual support, confidence 0.20, observable 1%; handoff roster continued; peak table 3; active people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); new people none (raw IDs none); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 5 frames 4.0-4.2s; Person 2: ID 2 table_operator 5 frames 4.0-4.2s; Person 3: ID 4 table_operator 3 frames 4.1-4.2s; latest table status last observed room view 3 people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); next Valve delivery / positioning; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [
@@ -974,12 +1099,16 @@
         "stage_label": "Balloon valvuloplasty",
         "table_count": 3,
         "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
         "dominant_role": "table_operator",
         "table_team_role": "table_operator",
         "table_team_role_confidence": 1.0,
         "frames_seen": 105,
         "table_presence_ratio": 1.0,
-        "label": "ID 1 table_operator table=100%"
+        "label": "Person 1: ID 1 table_operator table=100%"
       },
       {
         "snapshot_type": "last_observed",
@@ -991,12 +1120,16 @@
         "stage_label": "Balloon valvuloplasty",
         "table_count": 3,
         "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
         "dominant_role": "table_operator",
         "table_team_role": "table_operator",
         "table_team_role_confidence": 1.0,
         "frames_seen": 98,
         "table_presence_ratio": 1.0,
-        "label": "ID 2 table_operator table=100%"
+        "label": "Person 2: ID 2 table_operator table=100%"
       },
       {
         "snapshot_type": "last_observed",
@@ -1008,12 +1141,16 @@
         "stage_label": "Balloon valvuloplasty",
         "table_count": 3,
         "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
         "dominant_role": "table_operator",
         "table_team_role": "table_operator",
         "table_team_role_confidence": 1.0,
         "frames_seen": 5,
         "table_presence_ratio": 1.0,
-        "label": "ID 4 table_operator table=100%"
+        "label": "Person 3: ID 4 table_operator table=100%"
       },
       {
         "snapshot_type": "peak",
@@ -1025,12 +1162,16 @@
         "stage_label": "Balloon valvuloplasty",
         "table_count": 3,
         "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
         "dominant_role": "table_operator",
         "table_team_role": "table_operator",
         "table_team_role_confidence": 1.0,
         "frames_seen": 105,
         "table_presence_ratio": 1.0,
-        "label": "ID 1 table_operator table=100%"
+        "label": "Person 1: ID 1 table_operator table=100%"
       },
       {
         "snapshot_type": "peak",
@@ -1042,12 +1183,16 @@
         "stage_label": "Balloon valvuloplasty",
         "table_count": 3,
         "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
         "dominant_role": "table_operator",
         "table_team_role": "table_operator",
         "table_team_role_confidence": 1.0,
         "frames_seen": 98,
         "table_presence_ratio": 1.0,
-        "label": "ID 2 table_operator table=100%"
+        "label": "Person 2: ID 2 table_operator table=100%"
       },
       {
         "snapshot_type": "peak",
@@ -1059,12 +1204,16 @@
         "stage_label": "Balloon valvuloplasty",
         "table_count": 3,
         "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
         "dominant_role": "table_operator",
         "table_team_role": "table_operator",
         "table_team_role_confidence": 1.0,
         "frames_seen": 5,
         "table_presence_ratio": 1.0,
-        "label": "ID 4 table_operator table=100%"
+        "label": "Person 3: ID 4 table_operator table=100%"
       }
     ],
     "table_presence_roster": [
@@ -1887,17 +2036,28 @@
         "tracking_available_rate": 1.0,
         "active_table_track_count": 2,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_role": "table_operator",
         "lead_dominant_role": "table_operator",
         "lead_table_team_role": "table_operator",
         "lead_table_team_role_confidence": 1.0,
         "lead_observed_table_frames": 76,
+        "active_table_canonical_ids": [
+          1,
+          2
+        ],
         "continued_track_ids": [],
+        "continued_canonical_table_ids": [],
         "new_track_ids": [
           1,
           2
         ],
+        "new_canonical_table_ids": [
+          1,
+          2
+        ],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "within_stage_entry_track_ids": [],
         "within_stage_exit_track_ids": [],
         "handoff_type": "initial_table_roster",
@@ -1918,7 +2078,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+            "label": "Person 1: ID 1 table_operator 76 frames 0.0-3.0s"
           },
           {
             "track_id": 2,
@@ -1936,7 +2096,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+            "label": "Person 2: ID 2 table_operator 72 frames 0.0-3.0s"
           }
         ],
         "continued_table_roster": [],
@@ -1957,7 +2117,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+            "label": "Person 1: ID 1 table_operator 76 frames 0.0-3.0s"
           },
           {
             "track_id": 2,
@@ -1975,7 +2135,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+            "label": "Person 2: ID 2 table_operator 72 frames 0.0-3.0s"
           }
         ],
         "dropped_table_roster": [],
@@ -1999,19 +2159,33 @@
         "tracking_available_rate": 1.0,
         "active_table_track_count": 3,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_role": "table_operator",
         "lead_dominant_role": "table_operator",
         "lead_table_team_role": "table_operator",
         "lead_table_team_role_confidence": 1.0,
         "lead_observed_table_frames": 24,
+        "active_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "continued_track_ids": [
+          1,
+          2
+        ],
+        "continued_canonical_table_ids": [
           1,
           2
         ],
         "new_track_ids": [
           4
         ],
+        "new_canonical_table_ids": [
+          3
+        ],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "within_stage_entry_track_ids": [
           4
         ],
@@ -2038,7 +2212,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+            "label": "Person 1: ID 1 table_operator 24 frames 3.0-3.8s"
           },
           {
             "track_id": 2,
@@ -2056,7 +2230,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+            "label": "Person 2: ID 2 table_operator 21 frames 3.0-3.8s"
           },
           {
             "track_id": 4,
@@ -2074,7 +2248,7 @@
             "last_seen_s": 903.87,
             "first_seen_clip_s": 3.837,
             "last_seen_clip_s": 3.871,
-            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+            "label": "Person 3: ID 4 table_operator 2 frames 3.8-3.9s"
           }
         ],
         "continued_table_roster": [
@@ -2094,7 +2268,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+            "label": "Person 1: ID 1 table_operator 24 frames 3.0-3.8s"
           },
           {
             "track_id": 2,
@@ -2112,7 +2286,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+            "label": "Person 2: ID 2 table_operator 21 frames 3.0-3.8s"
           }
         ],
         "new_table_roster": [
@@ -2132,7 +2306,7 @@
             "last_seen_s": 903.87,
             "first_seen_clip_s": 3.837,
             "last_seen_clip_s": 3.871,
-            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+            "label": "Person 3: ID 4 table_operator 2 frames 3.8-3.9s"
           }
         ],
         "dropped_table_roster": [],
@@ -2156,18 +2330,31 @@
         "tracking_available_rate": 0.006,
         "active_table_track_count": 3,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_role": "table_operator",
         "lead_dominant_role": "table_operator",
         "lead_table_team_role": "table_operator",
         "lead_table_team_role_confidence": 1.0,
         "lead_observed_table_frames": 5,
+        "active_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "continued_track_ids": [
           1,
           2,
           4
         ],
+        "continued_canonical_table_ids": [
+          1,
+          2,
+          3
+        ],
         "new_track_ids": [],
+        "new_canonical_table_ids": [],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "within_stage_entry_track_ids": [
           4
         ],
@@ -2194,7 +2381,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 1: ID 1 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 2,
@@ -2212,7 +2399,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 2: ID 2 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 4,
@@ -2230,7 +2417,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.104,
             "last_seen_clip_s": 4.171,
-            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+            "label": "Person 3: ID 4 table_operator 3 frames 4.1-4.2s"
           }
         ],
         "continued_table_roster": [
@@ -2250,7 +2437,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 1: ID 1 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 2,
@@ -2268,7 +2455,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 2: ID 2 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 4,
@@ -2286,7 +2473,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.104,
             "last_seen_clip_s": 4.171,
-            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+            "label": "Person 3: ID 4 table_operator 3 frames 4.1-4.2s"
           }
         ],
         "new_table_roster": [],
@@ -2312,17 +2499,28 @@
         "active_table_track_count": 2,
         "canonical_table_identity_count": 2,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
           1,
           2
         ],
+        "active_table_canonical_ids": [
+          1,
+          2
+        ],
         "continued_track_ids": [],
+        "continued_canonical_table_ids": [],
         "new_track_ids": [
           1,
           2
         ],
+        "new_canonical_table_ids": [
+          1,
+          2
+        ],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "within_stage_entry_track_ids": [],
         "within_stage_exit_track_ids": [],
         "handoff_type": "initial_table_roster",
@@ -2343,7 +2541,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+            "label": "Person 1: ID 1 table_operator 76 frames 0.0-3.0s"
           },
           {
             "track_id": 2,
@@ -2361,11 +2559,11 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+            "label": "Person 2: ID 2 table_operator 72 frames 0.0-3.0s"
           }
         ],
-        "roster_summary": "ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s",
-        "label": "Access / sheathing: peak table 2; 2 table IDs; initial_table_roster; ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s"
+        "roster_summary": "Person 1: ID 1 table_operator 76 frames 0.0-3.0s; Person 2: ID 2 table_operator 72 frames 0.0-3.0s",
+        "label": "Access / sheathing: peak table 2; 2 table IDs; initial_table_roster; Person 1: ID 1 table_operator 76 frames 0.0-3.0s; Person 2: ID 2 table_operator 72 frames 0.0-3.0s"
       },
       {
         "stage_segment_index": 1,
@@ -2384,20 +2582,34 @@
         "active_table_track_count": 3,
         "canonical_table_identity_count": 3,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
           1,
           2,
           4
         ],
+        "active_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "continued_track_ids": [
+          1,
+          2
+        ],
+        "continued_canonical_table_ids": [
           1,
           2
         ],
         "new_track_ids": [
           4
         ],
+        "new_canonical_table_ids": [
+          3
+        ],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "within_stage_entry_track_ids": [
           4
         ],
@@ -2424,7 +2636,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+            "label": "Person 1: ID 1 table_operator 24 frames 3.0-3.8s"
           },
           {
             "track_id": 2,
@@ -2442,7 +2654,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+            "label": "Person 2: ID 2 table_operator 21 frames 3.0-3.8s"
           },
           {
             "track_id": 4,
@@ -2460,11 +2672,11 @@
             "last_seen_s": 903.87,
             "first_seen_clip_s": 3.837,
             "last_seen_clip_s": 3.871,
-            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+            "label": "Person 3: ID 4 table_operator 2 frames 3.8-3.9s"
           }
         ],
-        "roster_summary": "ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s",
-        "label": "Angio alignment / crossing: peak table 3; 3 table IDs; roster_added; ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s"
+        "roster_summary": "Person 1: ID 1 table_operator 24 frames 3.0-3.8s; Person 2: ID 2 table_operator 21 frames 3.0-3.8s; Person 3: ID 4 table_operator 2 frames 3.8-3.9s",
+        "label": "Angio alignment / crossing: peak table 3; 3 table IDs; roster_added; Person 1: ID 1 table_operator 24 frames 3.0-3.8s; Person 2: ID 2 table_operator 21 frames 3.0-3.8s; Person 3: ID 4 table_operator 2 frames 3.8-3.9s"
       },
       {
         "stage_segment_index": 2,
@@ -2483,19 +2695,32 @@
         "active_table_track_count": 3,
         "canonical_table_identity_count": 3,
         "lead_track_id": 1,
+        "lead_canonical_table_id": 1,
         "lead_table_team_role": "table_operator",
         "active_table_track_ids": [
           1,
           2,
           4
         ],
+        "active_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
         "continued_track_ids": [
           1,
           2,
           4
         ],
+        "continued_canonical_table_ids": [
+          1,
+          2,
+          3
+        ],
         "new_track_ids": [],
+        "new_canonical_table_ids": [],
         "dropped_track_ids": [],
+        "dropped_canonical_table_ids": [],
         "within_stage_entry_track_ids": [
           4
         ],
@@ -2522,7 +2747,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 1: ID 1 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 2,
@@ -2540,7 +2765,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 2: ID 2 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 4,
@@ -2558,11 +2783,11 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.104,
             "last_seen_clip_s": 4.171,
-            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+            "label": "Person 3: ID 4 table_operator 3 frames 4.1-4.2s"
           }
         ],
-        "roster_summary": "ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s",
-        "label": "Balloon valvuloplasty: peak table 3; 3 table IDs; roster_continued; ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s"
+        "roster_summary": "Person 1: ID 1 table_operator 5 frames 4.0-4.2s; Person 2: ID 2 table_operator 5 frames 4.0-4.2s; Person 3: ID 4 table_operator 3 frames 4.1-4.2s",
+        "label": "Balloon valvuloplasty: peak table 3; 3 table IDs; roster_continued; Person 1: ID 1 table_operator 5 frames 4.0-4.2s; Person 2: ID 2 table_operator 5 frames 4.0-4.2s; Person 3: ID 4 table_operator 3 frames 4.1-4.2s"
       }
     ],
     "stage_evidence_summary": [
@@ -2927,7 +3152,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+            "label": "Person 1: ID 1 table_operator 76 frames 0.0-3.0s"
           },
           {
             "track_id": 2,
@@ -2945,7 +3170,7 @@
             "last_seen_s": 903.002,
             "first_seen_clip_s": 0.0,
             "last_seen_clip_s": 3.003,
-            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+            "label": "Person 2: ID 2 table_operator 72 frames 0.0-3.0s"
           }
         ],
         "source": "stage_handoff_summary",
@@ -3081,7 +3306,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+            "label": "Person 1: ID 1 table_operator 24 frames 3.0-3.8s"
           },
           {
             "track_id": 2,
@@ -3099,7 +3324,7 @@
             "last_seen_s": 903.836,
             "first_seen_clip_s": 3.036,
             "last_seen_clip_s": 3.837,
-            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+            "label": "Person 2: ID 2 table_operator 21 frames 3.0-3.8s"
           },
           {
             "track_id": 4,
@@ -3117,7 +3342,7 @@
             "last_seen_s": 903.87,
             "first_seen_clip_s": 3.837,
             "last_seen_clip_s": 3.871,
-            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+            "label": "Person 3: ID 4 table_operator 2 frames 3.8-3.9s"
           }
         ],
         "source": "stage_handoff_summary",
@@ -3263,7 +3488,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 1: ID 1 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 2,
@@ -3281,7 +3506,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.037,
             "last_seen_clip_s": 4.171,
-            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+            "label": "Person 2: ID 2 table_operator 5 frames 4.0-4.2s"
           },
           {
             "track_id": 4,
@@ -3299,7 +3524,7 @@
             "last_seen_s": 904.17,
             "first_seen_clip_s": 4.104,
             "last_seen_clip_s": 4.171,
-            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+            "label": "Person 3: ID 4 table_operator 3 frames 4.1-4.2s"
           }
         ],
         "source": "stage_handoff_summary",

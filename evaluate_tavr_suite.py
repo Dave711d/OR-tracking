@@ -32,6 +32,7 @@ DEFAULT_THRESHOLDS = {
     "stage_evidence_pass_rate": 1.0,
     "procedure_milestone_pass_rate": 1.0,
     "procedure_status_pass_rate": 1.0,
+    "operator_snapshot_pass_rate": 1.0,
     "operator_packet_pass_rate": 1.0,
     "table_team_pass_rate": 1.0,
     "table_identity_group_pass_rate": 1.0,
@@ -263,6 +264,11 @@ def _score_summary(
             "procedure_status_pass_rate",
             label_score["procedure_status_score"]["pass_rate"],
             thresholds["procedure_status_pass_rate"],
+        ),
+        _threshold_check(
+            "operator_snapshot_pass_rate",
+            label_score["operator_snapshot_score"]["pass_rate"],
+            thresholds["operator_snapshot_pass_rate"],
         ),
         _threshold_check(
             "operator_packet_pass_rate",

@@ -210,6 +210,58 @@
       ]
     }
   ],
+  "operator_snapshot_expectations": [
+    {
+      "timestamp_s": 25.0,
+      "tolerance_s": 0.12,
+      "stage": "valve_deployment",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "strong_visual_support",
+      "next_stage": "post_deploy_assessment",
+      "current_view": "room",
+      "tracking_available": true,
+      "effective_table_source": "current_room_view",
+      "min_table_count": 1,
+      "min_effective_table_count": 1,
+      "min_peak_table_count": 3,
+      "required_current_canonical_table_ids": [
+        10
+      ],
+      "required_effective_canonical_table_ids": [
+        10
+      ],
+      "required_peak_canonical_table_ids": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "timestamp_s": 29.9,
+      "tolerance_s": 0.12,
+      "stage": "valve_deployment",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "strong_visual_support",
+      "next_stage": "post_deploy_assessment",
+      "current_view": "room",
+      "tracking_available": true,
+      "effective_table_source": "recent_room_view_hold",
+      "max_table_count": 0,
+      "min_effective_table_count": 1,
+      "min_peak_table_count": 3,
+      "required_effective_canonical_table_ids": [
+        8
+      ],
+      "required_last_observed_canonical_table_ids": [
+        8
+      ],
+      "required_peak_canonical_table_ids": [
+        8,
+        9,
+        10
+      ]
+    }
+  ],
   "operator_packet_expectations": [
     {
       "stage": "valve_deployment",
@@ -238,8 +290,8 @@
         "Current stage: Valve deployment",
         "evidence strong visual support",
         "handoff table roster started",
-        "active IDs",
-        "latest table status recent room view hold 1 IDs",
+        "active people",
+        "latest table status recent room view hold 1 people",
         "next Post-deploy assessment"
       ]
     }

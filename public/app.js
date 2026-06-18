@@ -1338,17 +1338,17 @@ function renderProcedureStatus(status = null, demo = null) {
   appendInfoRow(
     procedureStatus,
     "Effective table",
-    `${status.effective_table_count ?? 0} staff; ${tableSourceLabel(status.effective_table_source)}`,
+    `${status.effective_table_count ?? 0} staff; ${tableSourceLabel(status.effective_table_source)}; ${formatPersonIds(status.effective_table_canonical_ids)}`,
   );
   appendInfoRow(
     procedureStatus,
     "Last observed",
-    `${status.last_observed_table_count ?? 0} staff; age ${formatSeconds(status.last_observed_age_from_clip_end_s)}`,
+    `${status.last_observed_table_count ?? 0} staff; ${formatPersonIds(status.last_observed_table_canonical_ids)}; age ${formatSeconds(status.last_observed_age_from_clip_end_s)}`,
   );
   appendInfoRow(
     procedureStatus,
     "Peak table",
-    `${status.peak_table_count ?? 0} staff; IDs ${formatIdList(status.peak_table_track_ids)}`,
+    `${status.peak_table_count ?? 0} staff; ${formatPersonIds(status.peak_table_canonical_ids)}; raw ${formatIdList(status.peak_table_track_ids)}`,
   );
   const scoreValues = Object.values(demo?.scoreSummary || {});
   const scored = scoreValues.filter((value) => value !== null && value !== undefined);
@@ -1386,17 +1386,17 @@ function renderBackendOperatorPacket(packets = [], status = null) {
   appendInfoRow(
     operatorPacket,
     "Active table",
-    `${packet.active_table_track_count ?? 0} staff; IDs ${formatIdList(packet.active_table_track_ids)}`,
+    `${packet.active_table_track_count ?? 0} staff; ${formatPersonIds(packet.active_table_canonical_ids)}; raw ${formatIdList(packet.active_table_track_ids)}`,
   );
   appendInfoRow(
     operatorPacket,
     "Canonical people",
-    `${packet.canonical_table_identity_count ?? 0}; lead ${packet.lead_track_id ?? "none"} ${ROLE_LABELS[packet.lead_table_team_role] || packet.lead_table_team_role || ""}`,
+    `${packet.canonical_table_identity_count ?? 0}; lead ${formatPersonId(packet.lead_canonical_table_id)} ${ROLE_LABELS[packet.lead_table_team_role] || packet.lead_table_team_role || ""}`,
   );
   appendInfoRow(
     operatorPacket,
     "Effective table",
-    `${packet.effective_table_count ?? status?.effective_table_count ?? 0}; ${tableSourceLabel(packet.effective_table_source || status?.effective_table_source)}`,
+    `${packet.effective_table_count ?? status?.effective_table_count ?? 0}; ${tableSourceLabel(packet.effective_table_source || status?.effective_table_source)}; ${formatPersonIds(packet.effective_table_canonical_ids || status?.effective_table_canonical_ids)}`,
   );
   const flags = asArray(packet.quality_flag_codes);
   appendInfoRow(
@@ -1423,7 +1423,7 @@ function renderBackendTableRoster(status = {}) {
   visibleRows.forEach((row) => {
     const item = document.createElement("li");
     const prefix = current.length ? "" : "Last: ";
-    item.textContent = `${prefix}ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`;
+    item.textContent = `${prefix}${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`;
     tableRoster.append(item);
   });
   appendOverflowListItem(tableRoster, rows.length, visibleRows.length, "people");
@@ -1440,8 +1440,8 @@ function renderBackendTableTeam(rows = []) {
   visibleRows.forEach((row) => {
     appendInfoRow(
       tableTeamList,
-      `ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
-      `${row.observed_table_frames ?? 0}f; ${statusLabel(row.team_status)}; ${row.dominant_stage_label || "stage n/a"}`,
+      `${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
+      `${row.observed_table_frames ?? 0}f; ${statusLabel(row.team_status)}; raw ${formatIdList(row.merged_track_ids)}; ${row.dominant_stage_label || "stage n/a"}`,
       { status: row.team_status },
     );
   });
@@ -1460,7 +1460,7 @@ function renderBackendTableIdentities(rows = []) {
     const stageSummary = summarizeStageCounts(row.stage_counts);
     appendInfoRow(
       tableIdentityList,
-      `Canonical ${row.canonical_table_id}: ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
+      `${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
       `${row.observed_table_frames ?? 0}f; raw ${formatIdList(row.merged_track_ids)}; ${stageSummary}`,
     );
   });
@@ -1833,6 +1833,21 @@ function formatPercent(value) {
 
 function formatIdList(ids, maxVisible = 6) {
   return compactIdList(asArray(ids), maxVisible);
+}
+
+function formatPersonId(canonicalId) {
+  return canonicalId === null || canonicalId === undefined ? "none" : `Person ${canonicalId}`;
+}
+
+function formatPersonIds(canonicalIds) {
+  const values = asArray(canonicalIds);
+  if (!values.length) return "people none";
+  return `people ${values.map((id) => formatPersonId(id)).join(", ")}`;
+}
+
+function rosterPersonLabel(row = {}) {
+  const person = formatPersonId(row.canonical_table_id);
+  return person === "none" ? `ID ${row.track_id}` : `${person} (ID ${row.track_id})`;
 }
 
 function yesNo(value) {

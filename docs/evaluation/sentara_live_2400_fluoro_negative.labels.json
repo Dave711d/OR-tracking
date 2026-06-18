@@ -107,6 +107,23 @@
       ]
     }
   ],
+  "operator_snapshot_expectations": [
+    {
+      "timestamp_s": 29.9,
+      "tolerance_s": 0.12,
+      "stage": "valve_deployment",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "held_non_room_context",
+      "next_stage": "post_deploy_assessment",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "max_table_count": 0,
+      "max_effective_table_count": 0,
+      "max_last_observed_table_count": 0,
+      "max_peak_table_count": 0
+    }
+  ],
   "operator_packet_expectations": [
     {
       "stage": "valve_deployment",
@@ -131,8 +148,8 @@
         "Current stage: Valve deployment",
         "stage support held from non-room context",
         "handoff initial no table evidence",
-        "active IDs none",
-        "latest table status no room table evidence 0 IDs none",
+        "active people none",
+        "latest table status no room table evidence 0 people none",
         "quality flags low_stage_confidence, non_room_view"
       ]
     }

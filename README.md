@@ -106,9 +106,10 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outpu
 The suite currently covers a mixed fluoroscopy-to-room clip, a fluoroscopy-only
 negative clip, and a post-deployment/closure room clip from the public Sentara
 TAVR video. It fails if scored label sections fall below their configured
-thresholds, including `operator_packet_pass_rate` and
-`table_identity_group_pass_rate` when packet or canonical table-person
-expectations are labelled.
+thresholds, including `operator_packet_pass_rate`,
+`operator_snapshot_pass_rate` for timestamped "who plus stage" checks, and
+`table_identity_group_pass_rate` when packet, snapshot, or canonical
+table-person expectations are labelled.
 
 For long cases, evaluate targeted slices while preserving source timestamps:
 
@@ -160,8 +161,9 @@ milestone is the current observed stage, which track IDs were table-side in each
 TAVR phase, how long they were present, their operator-facing table role and raw
 dominant role, which raw IDs were stitched into a canonical table person,
 how many canonical table people were present in each stage or milestone,
-whether they entered or exited during a stage, which table-side IDs continued,
-appeared, or dropped at each stage boundary, and whether each
+which stable table-person IDs are current/effective/last-observed/peak at the
+operator status point, whether they entered or exited during a stage, which
+table-side IDs continued, appeared, or dropped at each stage boundary, and whether each
 stage estimate is strong, weak, or held because the room view was unavailable. Mixed
 room/fluoroscopy runs also include room-view frame counts, tracking-available
 rates, and room-view table occupancy so staff/table coverage is not understated

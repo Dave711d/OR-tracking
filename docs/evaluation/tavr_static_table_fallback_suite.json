@@ -9,6 +9,7 @@
     "stage_evidence_pass_rate": 1.0,
     "procedure_milestone_pass_rate": 1.0,
     "procedure_status_pass_rate": 1.0,
+    "operator_snapshot_pass_rate": 1.0,
     "operator_packet_pass_rate": 1.0,
     "table_team_pass_rate": 1.0,
     "table_identity_group_pass_rate": 1.0,

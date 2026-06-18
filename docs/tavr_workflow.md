@@ -301,7 +301,15 @@ The label file can include:
   stage, current view, tracking availability, effective table
   source/count/freshness, evidence level, observable rate, mean confidence,
   current table count, last-observed table count/freshness, peak table count,
-  and required or forbidden quality flags.
+  required current/effective/last-observed/peak canonical table-person IDs, and
+  required or forbidden quality flags.
+- `operator_snapshot_expectations`: expected timestamped operator status
+  snapshots for the combined question "what stage is underway, and who is at the
+  table?" Labels can use `timestamp_s` / `at_s` with `tolerance_s`, or a
+  `start_s` / `end_s` window. They support the same stage, view, evidence,
+  table-count, canonical table-person ID, and quality-flag checks as
+  `procedure_status_expectations`, with `stage` and `stage_evidence_status`
+  accepted as shorthand for current status fields.
 - `operator_packet_expectations`: expected operator handover packet rows,
   including stage/current-vs-prior status, stage evidence status, next stage,
   handoff type, evidence level, lead role, active/canonical/effective table

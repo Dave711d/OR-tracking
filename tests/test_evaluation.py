@@ -407,7 +407,9 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
     assert packets[1]["active_table_track_ids"] == [7, 8]
     assert packets[1]["handoff_type"] == "roster_added"
     assert "Valve deployment" in packets[1]["operator_packet"]
-    assert "active IDs 7, 8" in packets[1]["operator_packet"]
+    assert "active people Person 1, Person 2 (raw IDs 7, 8)" in (
+        packets[1]["operator_packet"]
+    )
 
     current = packets[-1]
     assert current["is_current_stage"] is True
@@ -419,7 +421,7 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
     assert current["effective_table_track_ids"] == [7, 8]
     assert "Current stage: Closure / finish" in current["operator_packet"]
     assert "stage support held from non-room context" in current["operator_packet"]
-    assert "latest table status last observed room view 2 IDs 7, 8" in (
+    assert "latest table status last observed room view 2 people Person 1, Person 2" in (
         current["operator_packet"]
     )
 
@@ -537,8 +539,10 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     assert status["peak_table_count"] == 2
     assert status["peak_table_track_ids"] == [7, 8]
     assert "Current held stage: Closure / finish" in status["operator_summary"]
-    assert "table status: last observed room view ID 7" in status["operator_summary"]
-    assert "last observed table: ID 7" in status["operator_summary"]
+    assert "table status: last observed room view Person 1: ID 7" in (
+        status["operator_summary"]
+    )
+    assert "last observed table: Person 1: ID 7" in status["operator_summary"]
 
 
 def test_procedure_status_holds_recent_room_roster_when_current_frame_is_quiet() -> None:
@@ -559,13 +563,163 @@ def test_procedure_status_holds_recent_room_roster_when_current_frame_is_quiet()
     assert status["effective_table_count"] == 1
     assert status["effective_table_track_ids"] == [7]
     assert status["effective_table_age_from_clip_end_s"] == 0.1
-    assert "table status: recent room view hold ID 7" in status["operator_summary"]
+    assert "table status: recent room view hold Person 1: ID 7" in (
+        status["operator_summary"]
+    )
     assert packet["effective_table_source"] == "recent_room_view_hold"
     assert packet["stage_evidence_status"] == "strong_visual_support"
     assert packet["effective_table_track_ids"] == [7]
-    assert "latest table status recent room view hold 1 IDs 7" in (
+    assert "latest table status recent room view hold 1 people Person 1" in (
         packet["operator_packet"]
     )
+
+
+def test_operator_status_uses_canonical_table_people_for_fragmented_tracks() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [18],
+            centroids_by_track={18: (100, 100)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [18],
+            centroids_by_track={18: (102, 101)},
+        ),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [],
+        ),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [21],
+            centroids_by_track={21: (106, 103)},
+        ),
+    ]
+
+    status = procedure_status_summary(metrics)[0]
+    packet = operator_stage_packet(metrics)[-1]
+
+    assert status["current_table_track_ids"] == [21]
+    assert status["current_table_canonical_ids"] == [1]
+    assert status["effective_table_track_ids"] == [21]
+    assert status["effective_table_canonical_ids"] == [1]
+    assert status["peak_table_canonical_ids"] == [1]
+    assert status["current_table_roster"][0]["canonical_table_id"] == 1
+    assert status["current_table_roster"][0]["merged_track_ids"] == [18, 21]
+    assert "Person 1: ID 21" in status["operator_summary"]
+    assert packet["active_table_track_ids"] == [18]
+    assert packet["active_table_canonical_ids"] == [1]
+    assert packet["canonical_table_identity_count"] == 1
+    assert "active people Person 1 (raw IDs 18)" in packet["operator_packet"]
+    assert "latest table status current room view 1 people Person 1" in (
+        packet["operator_packet"]
+    )
+    snapshot_rows = summarize_tavr_metrics(metrics)["table_roster_snapshots"]
+    assert snapshot_rows
+    assert {
+        (row["snapshot_type"], row["track_id"], row["canonical_table_id"])
+        for row in snapshot_rows
+    } == {
+        ("current", 21, 1),
+        ("last_observed", 21, 1),
+        ("peak", 21, 1),
+    }
+    assert all(row["merged_track_ids"] == [18, 21] for row in snapshot_rows)
+
+
+def test_operator_snapshot_score_combines_stage_table_and_canonical_people() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "access_sheathing",
+            [18],
+            centroids_by_track={18: (100, 100)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [18],
+            centroids_by_track={18: (102, 101)},
+        ),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [],
+        ),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [21],
+            centroids_by_track={21: (106, 103)},
+        ),
+    ]
+    labels = {
+        "operator_snapshot_expectations": [
+            {
+                "timestamp_s": 0.3,
+                "tolerance_s": 0.01,
+                "stage": "valve_deployment",
+                "stage_evidence_status": "strong_visual_support",
+                "current_view": "room",
+                "tracking_available": True,
+                "min_table_count": 1,
+                "min_effective_table_count": 1,
+                "required_current_canonical_table_ids": [1],
+                "required_effective_canonical_table_ids": [1],
+            }
+        ]
+    }
+
+    score = score_tavr_metrics(metrics, labels)
+
+    assert score["operator_snapshot_score"]["pass_rate"] == 1.0
+    candidate = score["operator_snapshot_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    assert candidate["current_stage"] == "valve_deployment"
+    assert candidate["current_table_canonical_ids"] == [1]
+    assert candidate["effective_table_canonical_ids"] == [1]
+    assert candidate["checks"]["required_current_canonical_table_ids"] is True
+
+
+def test_operator_snapshot_score_enforces_timestamp_tolerance() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+    ]
+    labels = {
+        "operator_snapshot_expectations": [
+            {
+                "timestamp_s": 1.0,
+                "tolerance_s": 0.01,
+                "stage": "valve_deployment",
+                "current_view": "room",
+                "tracking_available": True,
+                "min_table_count": 1,
+            }
+        ]
+    }
+
+    score = score_tavr_metrics(metrics, labels)
+
+    expectation = score["operator_snapshot_score"]["expectations"][0]
+    assert score["operator_snapshot_score"]["pass_rate"] == 0.0
+    assert expectation["matched_count"] == 0
+    assert expectation["matched_candidates"] == []
+    assert expectation["passed"] is False
 
 
 def test_table_team_summary_reports_active_recent_and_historical_members() -> None:
@@ -709,7 +863,7 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
                     "min_peak_table_count": 1,
                     "required_packet_text": [
                         "Current stage: Valve deployment",
-                        "active IDs 13",
+                        "active people Person 1 (raw IDs 13)",
                     ],
                 }
             ],
@@ -1171,19 +1325,23 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "room_table_occupancy_rate" in staffing_csv
     assert "handoff_type" in handoff_csv
     assert "lead_table_team_role" in handoff_csv
+    assert "active_table_canonical_ids" in handoff_csv
     assert "roster_added" in handoff_csv
     assert "roster_summary" in roster_csv
     assert "active_table_track_ids" in roster_csv
+    assert "active_table_canonical_ids" in roster_csv
     assert "canonical_table_identity_count" in roster_csv
     assert "Valve deployment: peak table 2" in roster_csv
     assert "operator_packet" in packet_csv
     assert "Current stage: Valve deployment" in packet_csv
-    assert "active IDs 7, 8" in packet_csv
+    assert "active people Person 1, Person 2 (raw IDs 7, 8)" in packet_csv
+    assert "effective_table_canonical_ids" in packet_csv
     assert "evidence_level" in evidence_csv
     assert "strong_visual_support" in evidence_csv
     assert "operator_summary" in status_csv
     assert "Current observed stage" in status_csv
     assert "effective_table_source" in status_csv
+    assert "effective_table_canonical_ids" in status_csv
     assert "team_status" in team_csv
     assert "canonical_table_id" in team_csv
     assert "merged_track_ids" in team_csv
@@ -1198,6 +1356,8 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "table_handoff" in event_csv
     assert "table_team_role" in event_csv
     assert "snapshot_type" in snapshots_csv
+    assert "canonical_table_id" in snapshots_csv
+    assert "merged_track_ids" in snapshots_csv
     assert "last_observed" in snapshots_csv
     assert "table_team_role" in snapshots_csv
     assert "ID 7" in coverage_csv
@@ -1375,10 +1535,10 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_new_tracks": 2,
                 "min_dropped_tracks": 1,
                 "required_quality_flags": ["non_room_view"],
-                "required_packet_text": [
-                    "Observed stage: Valve deployment",
-                    "active IDs 9, 10",
-                ],
+                    "required_packet_text": [
+                        "Observed stage: Valve deployment",
+                        "active people Person 2, Person 3 (raw IDs 9, 10)",
+                    ],
             }
         ],
         "table_team_expectations": [

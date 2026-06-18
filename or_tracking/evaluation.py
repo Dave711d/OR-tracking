@@ -57,6 +57,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "tracking_available",
         "current_table_count",
         "current_table_track_ids",
+        "current_table_canonical_ids",
         "current_table_roster",
         "effective_table_source",
         "effective_table_s",
@@ -66,6 +67,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "effective_table_stage_label",
         "effective_table_count",
         "effective_table_track_ids",
+        "effective_table_canonical_ids",
         "effective_table_roster",
         "last_observed_table_s",
         "last_observed_clip_s",
@@ -74,6 +76,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "last_observed_stage_label",
         "last_observed_table_count",
         "last_observed_table_track_ids",
+        "last_observed_table_canonical_ids",
         "last_observed_table_roster",
         "peak_table_s",
         "peak_table_clip_s",
@@ -81,6 +84,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "peak_table_stage_label",
         "peak_table_count",
         "peak_table_track_ids",
+        "peak_table_canonical_ids",
         "peak_table_roster",
         "quality_flag_codes",
         "operator_summary",
@@ -110,14 +114,20 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "active_table_track_count",
         "canonical_table_identity_count",
         "lead_track_id",
+        "lead_canonical_table_id",
         "lead_table_team_role",
         "active_table_track_ids",
+        "active_table_canonical_ids",
         "continued_track_ids",
+        "continued_canonical_table_ids",
         "new_track_ids",
+        "new_canonical_table_ids",
         "dropped_track_ids",
+        "dropped_canonical_table_ids",
         "effective_table_source",
         "effective_table_count",
         "effective_table_track_ids",
+        "effective_table_canonical_ids",
         "roster_summary",
         "quality_flag_codes",
         "operator_packet",
@@ -284,14 +294,19 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "tracking_available_rate",
         "active_table_track_count",
         "lead_track_id",
+        "lead_canonical_table_id",
         "lead_role",
         "lead_dominant_role",
         "lead_table_team_role",
         "lead_table_team_role_confidence",
         "lead_observed_table_frames",
+        "active_table_canonical_ids",
         "continued_track_ids",
+        "continued_canonical_table_ids",
         "new_track_ids",
+        "new_canonical_table_ids",
         "dropped_track_ids",
+        "dropped_canonical_table_ids",
         "within_stage_entry_track_ids",
         "within_stage_exit_track_ids",
         "handoff_type",
@@ -318,11 +333,16 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "active_table_track_count",
         "canonical_table_identity_count",
         "lead_track_id",
+        "lead_canonical_table_id",
         "lead_table_team_role",
         "active_table_track_ids",
+        "active_table_canonical_ids",
         "continued_track_ids",
+        "continued_canonical_table_ids",
         "new_track_ids",
+        "new_canonical_table_ids",
         "dropped_track_ids",
+        "dropped_canonical_table_ids",
         "within_stage_entry_track_ids",
         "within_stage_exit_track_ids",
         "handoff_type",
@@ -451,6 +471,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_label",
         "table_count",
         "track_id",
+        "canonical_table_id",
+        "merged_track_ids",
         "dominant_role",
         "table_team_role",
         "table_team_role_confidence",
@@ -610,6 +632,10 @@ def score_tavr_metrics(
             scoring_metrics,
             labels.get("procedure_status_expectations", []),
         ),
+        "operator_snapshot_score": _operator_snapshot_score(
+            scoring_metrics,
+            labels.get("operator_snapshot_expectations", []),
+        ),
         "operator_packet_score": _operator_packet_score(
             scoring_metrics,
             labels.get("operator_packet_expectations", []),
@@ -700,16 +726,27 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     if not metrics:
         return []
 
+    identity_map, _ = _table_identity_map(metrics)
     latest_metric = metrics[-1]
     latest_state = _tavr_state(latest_metric)
     milestones = procedure_milestones(metrics)
     current_milestone = _current_milestone(milestones, latest_state.stage)
     next_milestone = _next_milestone(milestones, current_milestone)
-    current_roster = current_table_roster(metrics)
-    last_observed = last_observed_table_roster(metrics)
-    peak = peak_table_roster(metrics)
+    current_roster = _enrich_roster_identities(
+        current_table_roster(metrics),
+        identity_map,
+    )
+    last_observed = _enrich_table_snapshot_identities(
+        last_observed_table_roster(metrics),
+        identity_map,
+    )
+    peak = _enrich_table_snapshot_identities(
+        peak_table_roster(metrics),
+        identity_map,
+    )
     quality_flags = tavr_quality_flags(metrics)
     current_track_ids = [item["track_id"] for item in current_roster]
+    current_canonical_ids = _canonical_table_ids_from_roster(current_roster)
     last_observed_roster = last_observed.get("roster", [])
     peak_roster = peak.get("roster", [])
     timebase = timebase_summary(metrics)[0]
@@ -759,6 +796,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "tracking_available": tracking_available,
         "current_table_count": latest_state.table_count,
         "current_table_track_ids": current_track_ids,
+        "current_table_canonical_ids": current_canonical_ids,
         "current_table_roster": current_roster,
         "effective_table_source": effective_table["source"],
         "effective_table_s": effective_table["timestamp_s"],
@@ -770,6 +808,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "effective_table_stage_label": effective_table["stage_label"],
         "effective_table_count": effective_table["table_count"],
         "effective_table_track_ids": effective_table["track_ids"],
+        "effective_table_canonical_ids": effective_table["canonical_ids"],
         "effective_table_roster": effective_table["roster"],
         "last_observed_table_s": last_observed.get("timestamp_s"),
         "last_observed_clip_s": last_observed.get("clip_timestamp_s"),
@@ -782,6 +821,9 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "last_observed_table_track_ids": [
             item["track_id"] for item in last_observed_roster
         ],
+        "last_observed_table_canonical_ids": _canonical_table_ids_from_roster(
+            last_observed_roster
+        ),
         "last_observed_table_roster": last_observed_roster,
         "peak_table_s": peak.get("timestamp_s"),
         "peak_table_clip_s": peak.get("clip_timestamp_s"),
@@ -789,6 +831,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "peak_table_stage_label": peak.get("stage_label"),
         "peak_table_count": peak.get("table_count", 0),
         "peak_table_track_ids": [item["track_id"] for item in peak_roster],
+        "peak_table_canonical_ids": _canonical_table_ids_from_roster(peak_roster),
         "peak_table_roster": peak_roster,
         "quality_flag_codes": [flag["code"] for flag in quality_flags],
     }
@@ -866,11 +909,25 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
                 0,
             ),
             "lead_track_id": roster.get("lead_track_id"),
+            "lead_canonical_table_id": roster.get("lead_canonical_table_id"),
             "lead_table_team_role": roster.get("lead_table_team_role"),
             "active_table_track_ids": roster.get("active_table_track_ids", []),
+            "active_table_canonical_ids": roster.get(
+                "active_table_canonical_ids",
+                [],
+            ),
             "continued_track_ids": roster.get("continued_track_ids", []),
+            "continued_canonical_table_ids": roster.get(
+                "continued_canonical_table_ids",
+                [],
+            ),
             "new_track_ids": roster.get("new_track_ids", []),
+            "new_canonical_table_ids": roster.get("new_canonical_table_ids", []),
             "dropped_track_ids": roster.get("dropped_track_ids", []),
+            "dropped_canonical_table_ids": roster.get(
+                "dropped_canonical_table_ids",
+                [],
+            ),
             "effective_table_source": (
                 status.get("effective_table_source") if is_current_stage else None
             ),
@@ -879,6 +936,11 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             ),
             "effective_table_track_ids": (
                 status.get("effective_table_track_ids", [])
+                if is_current_stage
+                else []
+            ),
+            "effective_table_canonical_ids": (
+                status.get("effective_table_canonical_ids", [])
                 if is_current_stage
                 else []
             ),
@@ -1037,10 +1099,29 @@ def table_roster_snapshots(metrics: Sequence[FrameMetrics]) -> List[Dict[str, An
         return []
 
     clip_end_s = float(metrics[-1].clip_timestamp_s)
+    identity_map, _ = _table_identity_map(metrics)
     snapshot_items = [
-        ("current", _roster_snapshot_from_metric(metrics[-1], clip_end_s)),
-        ("last_observed", last_observed_table_roster(metrics)),
-        ("peak", peak_table_roster(metrics)),
+        (
+            "current",
+            _enrich_table_snapshot_identities(
+                _roster_snapshot_from_metric(metrics[-1], clip_end_s),
+                identity_map,
+            ),
+        ),
+        (
+            "last_observed",
+            _enrich_table_snapshot_identities(
+                last_observed_table_roster(metrics),
+                identity_map,
+            ),
+        ),
+        (
+            "peak",
+            _enrich_table_snapshot_identities(
+                peak_table_roster(metrics),
+                identity_map,
+            ),
+        ),
     ]
     rows: List[Dict[str, Any]] = []
     for snapshot_type, snapshot in snapshot_items:
@@ -1919,6 +2000,8 @@ def _snapshot_rows(
                 "stage_label": snapshot.get("stage_label"),
                 "table_count": snapshot.get("table_count", 0),
                 "track_id": roster_item["track_id"],
+                "canonical_table_id": roster_item.get("canonical_table_id"),
+                "merged_track_ids": roster_item.get("merged_track_ids", []),
                 "dominant_role": roster_item["dominant_role"],
                 "table_team_role": roster_item["table_team_role"],
                 "table_team_role_confidence": roster_item["table_team_role_confidence"],
@@ -1928,6 +2011,72 @@ def _snapshot_rows(
             }
         )
     return rows
+
+
+def _enrich_table_snapshot_identities(
+    snapshot: Dict[str, Any],
+    identity_map: Dict[int, Dict[str, Any]],
+) -> Dict[str, Any]:
+    enriched = dict(snapshot)
+    enriched["roster"] = _enrich_roster_identities(
+        snapshot.get("roster", []),
+        identity_map,
+    )
+    return enriched
+
+
+def _enrich_roster_identities(
+    roster: Sequence[Dict[str, Any]],
+    identity_map: Dict[int, Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    return [
+        _enrich_roster_item_identity(item, identity_map)
+        for item in roster
+    ]
+
+
+def _enrich_roster_item_identity(
+    item: Dict[str, Any],
+    identity_map: Dict[int, Dict[str, Any]],
+) -> Dict[str, Any]:
+    enriched = dict(item)
+    track_id = int(enriched["track_id"])
+    identity = identity_map.get(track_id)
+    canonical_id = (
+        int(identity["canonical_table_id"])
+        if identity
+        else int(enriched.get("canonical_table_id", track_id) or track_id)
+    )
+    merged_track_ids = (
+        [int(value) for value in identity["merged_track_ids"]]
+        if identity
+        else [int(value) for value in enriched.get("merged_track_ids", [track_id])]
+    )
+    role = enriched.get("table_team_role") or enriched.get("dominant_role") or "unassigned"
+    raw_label = enriched.get("label") or _role_label(
+        track_id=track_id,
+        role=role,
+        dominant_role=enriched.get("dominant_role"),
+    )
+
+    enriched["canonical_table_id"] = canonical_id
+    enriched["merged_track_ids"] = sorted(set(merged_track_ids))
+    enriched["raw_track_id"] = track_id
+    enriched["raw_track_label"] = raw_label
+    enriched["canonical_table_label"] = f"Person {canonical_id}"
+    enriched["label"] = f"Person {canonical_id}: {raw_label}"
+    return enriched
+
+
+def _canonical_table_ids_from_roster(
+    roster: Sequence[Dict[str, Any]],
+) -> List[int]:
+    return sorted(
+        {
+            int(item.get("canonical_table_id", item["track_id"]))
+            for item in roster
+        }
+    )
 
 
 def low_confidence_segments(
@@ -2196,6 +2345,15 @@ def _stage_handoff_item(
         row["track_id"] for row in coverage_rows if row["exited_during_stage"]
     )
     lead = active_roster[0] if active_roster else None
+    continued_roster = [
+        active_roster_by_id[track_id] for track_id in continued_ids
+    ]
+    new_roster = [
+        active_roster_by_id[track_id] for track_id in new_ids
+    ]
+    dropped_roster = [
+        previous_roster_by_id[track_id] for track_id in dropped_ids
+    ]
     handoff_type = _handoff_type(
         has_previous_stage=previous_stage is not None,
         previous_ids=previous_ids,
@@ -2221,6 +2379,9 @@ def _stage_handoff_item(
         "tracking_available_rate": _ratio(room_view_frames, stage_frames),
         "active_table_track_count": len(active_roster),
         "lead_track_id": lead["track_id"] if lead else None,
+        "lead_canonical_table_id": (
+            lead.get("canonical_table_id") if lead else None
+        ),
         "lead_role": lead["table_team_role"] if lead else None,
         "lead_dominant_role": lead["dominant_role"] if lead else None,
         "lead_table_team_role": lead["table_team_role"] if lead else None,
@@ -2230,22 +2391,26 @@ def _stage_handoff_item(
         "lead_observed_table_frames": (
             lead["observed_table_frames"] if lead else 0
         ),
+        "active_table_canonical_ids": _canonical_table_ids_from_roster(
+            active_roster
+        ),
         "continued_track_ids": continued_ids,
+        "continued_canonical_table_ids": _canonical_table_ids_from_roster(
+            continued_roster
+        ),
         "new_track_ids": new_ids,
+        "new_canonical_table_ids": _canonical_table_ids_from_roster(new_roster),
         "dropped_track_ids": dropped_ids,
+        "dropped_canonical_table_ids": _canonical_table_ids_from_roster(
+            dropped_roster
+        ),
         "within_stage_entry_track_ids": within_stage_entry_ids,
         "within_stage_exit_track_ids": within_stage_exit_ids,
         "handoff_type": handoff_type,
         "active_table_roster": active_roster,
-        "continued_table_roster": [
-            active_roster_by_id[track_id] for track_id in continued_ids
-        ],
-        "new_table_roster": [
-            active_roster_by_id[track_id] for track_id in new_ids
-        ],
-        "dropped_table_roster": [
-            previous_roster_by_id[track_id] for track_id in dropped_ids
-        ],
+        "continued_table_roster": continued_roster,
+        "new_table_roster": new_roster,
+        "dropped_table_roster": dropped_roster,
         "label": _handoff_label(stage_state.stage_label, handoff_type, lead, active_roster),
     }
 
@@ -2263,6 +2428,9 @@ def _stage_roster_summary_item(
             for item in active_roster
         }
     )
+    continued_roster = list(handoff.get("continued_table_roster", []))
+    new_roster = list(handoff.get("new_table_roster", []))
+    dropped_roster = list(handoff.get("dropped_table_roster", []))
     lead = active_roster[0] if active_roster else None
     peak_table_count = max(
         (_tavr_state(metric).table_count for metric in segment_metrics),
@@ -2286,11 +2454,22 @@ def _stage_roster_summary_item(
         "active_table_track_count": len(active_roster),
         "canonical_table_identity_count": len(canonical_ids),
         "lead_track_id": lead["track_id"] if lead else None,
+        "lead_canonical_table_id": (
+            lead.get("canonical_table_id") if lead else None
+        ),
         "lead_table_team_role": lead["table_team_role"] if lead else None,
         "active_table_track_ids": active_track_ids,
+        "active_table_canonical_ids": canonical_ids,
         "continued_track_ids": handoff.get("continued_track_ids", []),
+        "continued_canonical_table_ids": _canonical_table_ids_from_roster(
+            continued_roster
+        ),
         "new_track_ids": handoff.get("new_track_ids", []),
+        "new_canonical_table_ids": _canonical_table_ids_from_roster(new_roster),
         "dropped_track_ids": handoff.get("dropped_track_ids", []),
+        "dropped_canonical_table_ids": _canonical_table_ids_from_roster(
+            dropped_roster
+        ),
         "within_stage_entry_track_ids": handoff.get(
             "within_stage_entry_track_ids", []
         ),
@@ -2521,6 +2700,7 @@ def _effective_table_status(
                 "stage_label": last_observed.get("stage_label"),
                 "table_count": last_observed.get("table_count", 0),
                 "track_ids": [item["track_id"] for item in last_roster],
+                "canonical_ids": _canonical_table_ids_from_roster(last_roster),
                 "roster": list(last_roster),
             }
         source = (
@@ -2537,6 +2717,7 @@ def _effective_table_status(
             "stage_label": latest_state.stage_label,
             "table_count": latest_state.table_count,
             "track_ids": [item["track_id"] for item in current_roster],
+            "canonical_ids": _canonical_table_ids_from_roster(current_roster),
             "roster": list(current_roster),
         }
 
@@ -2551,6 +2732,7 @@ def _effective_table_status(
             "stage_label": last_observed.get("stage_label"),
             "table_count": last_observed.get("table_count", 0),
             "track_ids": [item["track_id"] for item in last_roster],
+            "canonical_ids": _canonical_table_ids_from_roster(last_roster),
             "roster": list(last_roster),
         }
 
@@ -2563,6 +2745,7 @@ def _effective_table_status(
         "stage_label": None,
         "table_count": 0,
         "track_ids": [],
+        "canonical_ids": [],
         "roster": [],
     }
 
@@ -2660,8 +2843,11 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
     mean_confidence = _maybe_float_label(row.get("mean_confidence"))
     handoff = _text_status_label(row.get("handoff_type"))
     active_ids = _track_ids_text(row.get("active_table_track_ids", []))
+    active_people = _person_ids_text(row.get("active_table_canonical_ids", []))
     new_ids = _track_ids_text(row.get("new_track_ids", []))
+    new_people = _person_ids_text(row.get("new_canonical_table_ids", []))
     dropped_ids = _track_ids_text(row.get("dropped_track_ids", []))
+    dropped_people = _person_ids_text(row.get("dropped_canonical_table_ids", []))
     quality_flags = row.get("quality_flag_codes", [])
     quality_label = ", ".join(quality_flags) if quality_flags else "none"
     packet = (
@@ -2671,15 +2857,20 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
         f"confidence {mean_confidence}, "
         f"observable {observable_rate}; handoff {handoff}; "
         f"peak table {row.get('peak_table_count', 0)}; "
-        f"active IDs {active_ids}; new IDs {new_ids}; "
-        f"dropped IDs {dropped_ids}; roster {row.get('roster_summary') or 'none'}"
+        f"active people {active_people} (raw IDs {active_ids}); "
+        f"new people {new_people} (raw IDs {new_ids}); "
+        f"dropped people {dropped_people} (raw IDs {dropped_ids}); "
+        f"roster {row.get('roster_summary') or 'none'}"
     )
     if row.get("is_current_stage"):
+        effective_people = _person_ids_text(
+            row.get("effective_table_canonical_ids", [])
+        )
         packet += (
             f"; latest table status "
             f"{_text_status_label(row.get('effective_table_source'))} "
-            f"{row.get('effective_table_count', 0)} IDs "
-            f"{_track_ids_text(row.get('effective_table_track_ids', []))}"
+            f"{row.get('effective_table_count', 0)} people {effective_people} "
+            f"(raw IDs {_track_ids_text(row.get('effective_table_track_ids', []))})"
         )
         if row.get("next_stage_label"):
             packet += f"; next {row['next_stage_label']}"
@@ -2792,6 +2983,11 @@ def _roster_status_label(roster: Sequence[Dict[str, Any]]) -> str:
 
 def _track_ids_text(track_ids: Sequence[Any]) -> str:
     return ", ".join(str(track_id) for track_id in track_ids) or "none"
+
+
+def _person_ids_text(canonical_ids: Sequence[Any]) -> str:
+    values = [f"Person {canonical_id}" for canonical_id in canonical_ids]
+    return ", ".join(values) or "none"
 
 
 def _text_status_label(value: Any) -> str:
@@ -3054,6 +3250,7 @@ def _handoff_roster_item(row: Dict[str, Any]) -> Dict[str, Any]:
         "first_seen_clip_s": row["first_seen_clip_s"],
         "last_seen_clip_s": row["last_seen_clip_s"],
         "label": (
+            f"Person {row['canonical_table_id']}: "
             f"{_role_label(row['track_id'], row['table_team_role'], row['dominant_role'])} "
             f"{row['observed_table_frames']} frames "
             f"{row['first_seen_clip_s']:.1f}-{row['last_seen_clip_s']:.1f}s"
@@ -3953,6 +4150,62 @@ def _procedure_status_score(
     }
 
 
+def _operator_snapshot_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        status_expectation = _operator_snapshot_status_expectation(expectation)
+        scored_candidates = []
+        for index in _operator_snapshot_candidate_indices(metrics, expectation):
+            status_rows = procedure_status_summary(metrics[: index + 1])
+            if not status_rows:
+                continue
+            metric = metrics[index]
+            scored = _score_procedure_status_candidate(
+                status_rows[0],
+                status_expectation,
+            )
+            scored_candidates.append(
+                {
+                    "frame_index": metric.frame_index,
+                    "timestamp_s": round(float(metric.timestamp_s), 3),
+                    "clip_timestamp_s": round(float(metric.clip_timestamp_s), 3),
+                    **scored,
+                }
+            )
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "stage": expectation.get(
+                    "stage",
+                    expectation.get("current_stage"),
+                ),
+                "timestamp_s": expectation.get("timestamp_s", expectation.get("at_s")),
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed_candidate_count": sum(
+                    1 for candidate in scored_candidates if candidate["passed"]
+                ),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _operator_packet_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -4308,6 +4561,62 @@ def _expected_text_fragments(values: Any) -> List[str]:
     if isinstance(values, str):
         return [values]
     return [str(value) for value in values]
+
+
+def _operator_snapshot_status_expectation(
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    status_expectation = dict(expectation)
+    if "current_stage" not in status_expectation and "stage" in expectation:
+        status_expectation["current_stage"] = expectation["stage"]
+    if (
+        "current_stage_evidence_status" not in status_expectation
+        and "stage_evidence_status" in expectation
+    ):
+        status_expectation["current_stage_evidence_status"] = expectation[
+            "stage_evidence_status"
+        ]
+    if "min_current_table_count" not in status_expectation:
+        for alias in ("min_table_count", "min_current_count"):
+            if alias in expectation:
+                status_expectation["min_current_table_count"] = expectation[alias]
+                break
+    if "max_current_table_count" not in status_expectation:
+        for alias in ("max_table_count", "max_current_count"):
+            if alias in expectation:
+                status_expectation["max_current_table_count"] = expectation[alias]
+                break
+    return status_expectation
+
+
+def _operator_snapshot_candidate_indices(
+    metrics: Sequence[FrameMetrics],
+    expectation: Dict[str, Any],
+) -> List[int]:
+    if not metrics:
+        return []
+
+    timestamp = expectation.get("timestamp_s", expectation.get("at_s"))
+    tolerance_s = float(expectation.get("tolerance_s", 0.25))
+    if timestamp is not None:
+        target = float(timestamp)
+        return [
+            index
+            for index, metric in enumerate(metrics)
+            if abs(float(metric.timestamp_s) - target) <= tolerance_s
+        ]
+
+    has_window = "start_s" in expectation or "end_s" in expectation
+    if has_window:
+        start_s = float(expectation.get("start_s", float("-inf")))
+        end_s = float(expectation.get("end_s", float("inf")))
+        return [
+            index
+            for index, metric in enumerate(metrics)
+            if start_s <= float(metric.timestamp_s) <= end_s
+        ]
+
+    return [len(metrics) - 1]
 
 
 def _stage_evidence_matches_expectation(
@@ -5014,9 +5323,37 @@ def _score_procedure_status_candidate(
     )
     min_peak_table_count = expectation.get("min_peak_table_count")
     max_peak_table_count = expectation.get("max_peak_table_count")
+    required_current_canonical_ids = {
+        int(value)
+        for value in expectation.get("required_current_canonical_table_ids", [])
+    }
+    required_effective_canonical_ids = {
+        int(value)
+        for value in expectation.get("required_effective_canonical_table_ids", [])
+    }
+    required_last_observed_canonical_ids = {
+        int(value)
+        for value in expectation.get("required_last_observed_canonical_table_ids", [])
+    }
+    required_peak_canonical_ids = {
+        int(value)
+        for value in expectation.get("required_peak_canonical_table_ids", [])
+    }
     required_quality_flags = set(expectation.get("required_quality_flags", []))
     forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
     actual_quality_flags = set(row.get("quality_flag_codes", []))
+    current_canonical_ids = {
+        int(value) for value in row.get("current_table_canonical_ids", [])
+    }
+    effective_canonical_ids = {
+        int(value) for value in row.get("effective_table_canonical_ids", [])
+    }
+    last_observed_canonical_ids = {
+        int(value) for value in row.get("last_observed_table_canonical_ids", [])
+    }
+    peak_canonical_ids = {
+        int(value) for value in row.get("peak_table_canonical_ids", [])
+    }
     checks = {
         "current_stage": (
             current_stage is None or row["current_stage"] == current_stage
@@ -5122,6 +5459,20 @@ def _score_procedure_status_candidate(
             max_peak_table_count is None
             or row["peak_table_count"] <= int(max_peak_table_count)
         ),
+        "required_current_canonical_table_ids": (
+            required_current_canonical_ids.issubset(current_canonical_ids)
+        ),
+        "required_effective_canonical_table_ids": (
+            required_effective_canonical_ids.issubset(effective_canonical_ids)
+        ),
+        "required_last_observed_canonical_table_ids": (
+            required_last_observed_canonical_ids.issubset(
+                last_observed_canonical_ids
+            )
+        ),
+        "required_peak_canonical_table_ids": (
+            required_peak_canonical_ids.issubset(peak_canonical_ids)
+        ),
         "required_quality_flags": required_quality_flags.issubset(
             actual_quality_flags
         ),
@@ -5146,11 +5497,17 @@ def _score_procedure_status_candidate(
         "observable_rate": row["observable_rate"],
         "mean_confidence": row["mean_confidence"],
         "current_table_count": row["current_table_count"],
+        "current_table_canonical_ids": row["current_table_canonical_ids"],
         "last_observed_table_count": row["last_observed_table_count"],
+        "last_observed_table_canonical_ids": row[
+            "last_observed_table_canonical_ids"
+        ],
         "last_observed_age_from_clip_end_s": row[
             "last_observed_age_from_clip_end_s"
         ],
         "peak_table_count": row["peak_table_count"],
+        "peak_table_canonical_ids": row["peak_table_canonical_ids"],
+        "effective_table_canonical_ids": row["effective_table_canonical_ids"],
         "quality_flag_codes": row["quality_flag_codes"],
         "operator_summary": row["operator_summary"],
         "checks": checks,
@@ -5203,6 +5560,14 @@ def _score_operator_packet_candidate(
         int(track_id)
         for track_id in expectation.get("required_effective_track_ids", [])
     }
+    required_active_canonical_ids = {
+        int(value)
+        for value in expectation.get("required_active_canonical_table_ids", [])
+    }
+    required_effective_canonical_ids = {
+        int(value)
+        for value in expectation.get("required_effective_canonical_table_ids", [])
+    }
     required_quality_flags = set(expectation.get("required_quality_flags", []))
     forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
     actual_quality_flags = set(row.get("quality_flag_codes", []))
@@ -5218,6 +5583,12 @@ def _score_operator_packet_candidate(
     }
     effective_track_ids = {
         int(track_id) for track_id in row.get("effective_table_track_ids", [])
+    }
+    active_canonical_ids = {
+        int(value) for value in row.get("active_table_canonical_ids", [])
+    }
+    effective_canonical_ids = {
+        int(value) for value in row.get("effective_table_canonical_ids", [])
     }
     checks = {
         "stage_status": stage_status is None or row.get("stage_status") == stage_status,
@@ -5339,6 +5710,12 @@ def _score_operator_packet_candidate(
         "required_effective_track_ids": required_effective_track_ids.issubset(
             effective_track_ids
         ),
+        "required_active_canonical_table_ids": (
+            required_active_canonical_ids.issubset(active_canonical_ids)
+        ),
+        "required_effective_canonical_table_ids": (
+            required_effective_canonical_ids.issubset(effective_canonical_ids)
+        ),
         "required_quality_flags": required_quality_flags.issubset(
             actual_quality_flags
         ),
@@ -5374,6 +5751,11 @@ def _score_operator_packet_candidate(
         "effective_table_count": row.get("effective_table_count"),
         "active_table_track_ids": row.get("active_table_track_ids", []),
         "effective_table_track_ids": row.get("effective_table_track_ids", []),
+        "active_table_canonical_ids": row.get("active_table_canonical_ids", []),
+        "effective_table_canonical_ids": row.get(
+            "effective_table_canonical_ids",
+            [],
+        ),
         "new_track_ids": row.get("new_track_ids", []),
         "dropped_track_ids": row.get("dropped_track_ids", []),
         "quality_flag_codes": row.get("quality_flag_codes", []),

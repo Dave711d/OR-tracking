@@ -246,6 +246,74 @@
       ]
     }
   ],
+  "operator_snapshot_expectations": [
+    {
+      "timestamp_s": 4.2,
+      "tolerance_s": 0.12,
+      "stage": "bav_optional",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "strong_visual_support",
+      "next_stage": "valve_delivery_positioning",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "last_observed_room_view",
+      "max_table_count": 0,
+      "min_effective_table_count": 3,
+      "max_effective_table_count": 3,
+      "min_last_observed_table_count": 3,
+      "max_last_observed_table_count": 3,
+      "min_peak_table_count": 3,
+      "max_peak_table_count": 3,
+      "required_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_last_observed_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_peak_canonical_table_ids": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "timestamp_s": 29.9,
+      "tolerance_s": 0.12,
+      "stage": "bav_optional",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "weak_visual_support",
+      "next_stage": "valve_delivery_positioning",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "last_observed_room_view",
+      "max_table_count": 0,
+      "min_effective_table_count": 3,
+      "max_effective_table_count": 3,
+      "min_last_observed_table_count": 3,
+      "max_last_observed_table_count": 3,
+      "min_peak_table_count": 3,
+      "max_peak_table_count": 3,
+      "required_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_last_observed_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_peak_canonical_table_ids": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
   "operator_packet_expectations": [
     {
       "stage": "bav_optional",
@@ -281,8 +349,8 @@
         "Current stage: Balloon valvuloplasty",
         "evidence weak visual support",
         "handoff roster continued",
-        "active IDs 1, 2, 4",
-        "latest table status last observed room view 3 IDs 1, 2, 4",
+        "active people Person 1, Person 2, Person 3",
+        "latest table status last observed room view 3 people Person 1, Person 2, Person 3",
         "next Valve delivery / positioning"
       ]
     }

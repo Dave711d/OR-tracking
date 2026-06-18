@@ -269,10 +269,16 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert status["current_stage_evidence_status"] == demo["evidence"]
         assert status["effective_table_source"] == demo["table_source"]
         assert status["effective_table_count"] == demo["table_count"]
+        assert "effective_table_canonical_ids" in status
+        assert "last_observed_table_canonical_ids" in status
+        assert "peak_table_canonical_ids" in status
         assert set(status["quality_flag_codes"]) >= demo["required_flags"]
         assert packet["stage_evidence_status"] == demo["evidence"]
         assert packet["effective_table_source"] == demo["table_source"]
         assert packet["effective_table_count"] == demo["table_count"]
+        assert "active_table_canonical_ids" in packet
+        assert "effective_table_canonical_ids" in packet
+        assert "lead_canonical_table_id" in packet
         assert "canonical_table_identity_count" in packet
         assert "quality_flag_codes" in packet
         assert tavr["stage_roster_summary"]
@@ -357,6 +363,12 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "effective_table_source" in app_js
     assert "tracking_available_rate" in app_js
     assert "canonical_table_identity_count" in app_js
+    assert "effective_table_canonical_ids" in app_js
+    assert "active_table_canonical_ids" in app_js
+    assert "lead_canonical_table_id" in app_js
+    assert "function formatPersonIds" in app_js
+    assert "function rosterPersonLabel" in app_js
+    assert "${rosterPersonLabel(row)}" in app_js
     assert "timebase_summary" in app_js
     assert "clip_timestamp_s" in app_js
     assert "table_identity_groups" in app_js
