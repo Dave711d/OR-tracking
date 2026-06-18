@@ -3,6 +3,7 @@ import {
   ROLE_LABELS,
   asArray,
   currentTableSnapshot,
+  effectiveTableSnapshot,
   eventTimeSeconds,
   formatPersonId,
   formatPersonIds,
@@ -1662,25 +1663,71 @@ function renderBackendOperatorPacket(packets = [], status = null) {
 
 function renderBackendTableRoster(status = {}) {
   tableRoster.replaceChildren();
-  const tableSnapshot = currentTableSnapshot(status);
-  const rows = tableSnapshot.rows;
+  const currentTable = currentTableSnapshot(status);
+  const effectiveTable = effectiveTableSnapshot(status);
+  const currentRows = currentTable.rows;
+  const effectiveRows = effectiveTable.rows;
 
-  if (!rows.length) {
-    const item = document.createElement("li");
-    item.textContent = "None";
-    tableRoster.append(item);
+  if (!currentRows.length) {
+    appendRosterListItem("At table now", "None", "empty");
+  } else {
+    appendBackendRosterRows({
+      rows: currentRows,
+      sourceLabel: "At table now",
+      ageFromClipEndS: currentTable.ageFromClipEndS,
+      context: "current",
+    });
+  }
+
+  if (hasDistinctEffectiveTable(currentTable, effectiveTable)) {
+    appendBackendRosterRows({
+      rows: effectiveRows,
+      sourceLabel: `At table for stage (${effectiveTable.sourceLabel})`,
+      ageFromClipEndS: effectiveTable.ageFromClipEndS,
+      context: "effective",
+    });
+  }
+
+  if (!currentRows.length && !effectiveRows.length) {
     return;
   }
+}
+
+function appendBackendRosterRows({ rows, sourceLabel, ageFromClipEndS, context }) {
   const visibleRows = rows.slice(0, 5);
-  const ageSuffix = tableSnapshot.ageFromClipEndS === null || tableSnapshot.ageFromClipEndS === undefined
+  const ageSuffix = ageFromClipEndS === null || ageFromClipEndS === undefined
     ? ""
-    : `; age ${formatSeconds(tableSnapshot.ageFromClipEndS)}`;
+    : `; age ${formatSeconds(ageFromClipEndS)}`;
   visibleRows.forEach((row) => {
-    const item = document.createElement("li");
-    item.textContent = `${tableSnapshot.sourceLabel}: ${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}${ageSuffix}`;
-    tableRoster.append(item);
+    appendRosterListItem(
+      sourceLabel,
+      `${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}${ageSuffix}`,
+      context,
+    );
   });
   appendOverflowListItem(tableRoster, rows.length, visibleRows.length, "people");
+}
+
+function appendRosterListItem(label, value, context) {
+  const item = document.createElement("li");
+  item.textContent = `${label}: ${value}`;
+  if (context) item.dataset.context = context;
+  tableRoster.append(item);
+}
+
+function hasDistinctEffectiveTable(currentTable, effectiveTable) {
+  if (!effectiveTable.rows.length) return false;
+  const currentIds = currentTable.rows
+    .map((row) => row.canonical_table_id ?? row.track_id)
+    .join(",");
+  const effectiveIds = effectiveTable.rows
+    .map((row) => row.canonical_table_id ?? row.track_id)
+    .join(",");
+  return (
+    !currentTable.rows.length ||
+    currentIds !== effectiveIds ||
+    currentTable.source !== effectiveTable.source
+  );
 }
 
 function renderBackendTableTeam(rows = []) {

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
 import {
+  effectiveTableSnapshot,
   eventTimeSeconds,
   normalizeEvaluationPayload,
   packetForStatus,
@@ -26,6 +27,9 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.equal(view.stageMetric, "Valve deployment (strong_visual_support)");
   assert.equal(view.tableSideMetric, "0");
   assert.deepEqual(view.tableRosterItems, ["None"]);
+  assert.equal(view.effectiveTableRosterItems.length, 2);
+  assert.match(view.effectiveTableRosterItems[0], /recent room-view hold: Person 8/);
+  assert.match(view.effectiveTableRosterItems[1], /recent room-view hold: Person 10/);
   assert.deepEqual(view.currentTable.canonicalIds, []);
   assert.equal(view.effectiveTable.count, 2);
   assert.equal(view.effectiveTable.source, "recent_room_view_hold");
@@ -45,11 +49,31 @@ test("replay projection separates current visible person from current-stage effe
   assert.equal(view.tableRosterItems.length, 1);
   assert.match(view.tableRosterItems[0], /Person 9/);
   assert.doesNotMatch(view.tableRosterItems.join(" "), /Person 10/);
+  assert.equal(view.effectiveTableRosterItems.length, 2);
+  assert.match(view.effectiveTableRosterItems.join(" "), /Person 9/);
+  assert.match(view.effectiveTableRosterItems.join(" "), /Person 10/);
   assert.equal(view.effectiveTable.count, 2);
   assert.equal(view.effectiveTable.source, "current_stage_recent_room_window");
   assert.equal(view.effectiveTable.sourceLabel, "current-stage recent room window");
   assert.deepEqual(view.effectiveTable.canonicalIds, [9, 10]);
   assert.deepEqual(view.operatorPacketEffective.canonicalIds, [9, 10]);
+});
+
+test("effective table snapshot exposes static fallback continuity roster", async () => {
+  const payload = await demoPayload("sentara-900-static-fallback-evaluation.json");
+  const demo = normalizeEvaluationPayload(payload, { label: "900s static fallback" });
+  const snapshot = effectiveTableSnapshot(demo.status);
+  const view = replayOperatorProjection(payload, { label: "900s static fallback" });
+
+  assert.equal(snapshot.source, "last_observed_room_view");
+  assert.equal(snapshot.sourceLabel, "last observed room view");
+  assert.equal(snapshot.count, 3);
+  assert.deepEqual(snapshot.canonicalIds, [1, 2, 3]);
+  assert.deepEqual(view.currentTable.canonicalIds, []);
+  assert.equal(view.effectiveTableRosterItems.length, 3);
+  assert.match(view.effectiveTableRosterItems.join(" "), /Person 1/);
+  assert.match(view.effectiveTableRosterItems.join(" "), /Person 2/);
+  assert.match(view.effectiveTableRosterItems.join(" "), /Person 3/);
 });
 
 test("evaluation replay normalization sorts events by clip-relative fallback time", () => {

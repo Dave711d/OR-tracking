@@ -436,6 +436,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "Evaluated demo" in index_html
     assert "Replay" in index_html
     assert "At table now" in index_html
+    assert "Table status" in index_html
     assert "Table-side count" not in index_html
     assert "Status snapshots" in index_html
     assert catalog_block_match is not None
@@ -491,6 +492,10 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function formatClockPoint" in app_js
     assert "tableSourceLabel" in app_js
     assert "export function tableSourceLabel" in replay_js
+    assert "effectiveTableSnapshot" in app_js
+    assert "export function effectiveTableSnapshot" in replay_js
+    assert "At table for stage" in app_js
+    assert "item.dataset.context = context" in app_js
     assert "function stageEvidenceLabel" in app_js
     assert "function evidenceLevelLabel" in app_js
     assert "function evidenceSupportLabel" in app_js
@@ -552,3 +557,5 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert ".milestone-list" in styles
     assert ".event-list" in styles
     assert ".quality-list" in styles
+    assert '.roster-card li[data-context="effective"]' in styles
+    assert '.roster-card li[data-context="empty"]' in styles

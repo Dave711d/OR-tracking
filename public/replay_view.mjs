@@ -49,8 +49,9 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
   const latestPacket = packetForStatus(demo.packets, status);
   const stageLabel = status.current_stage_label || latestPacket?.stage_label || demo.caseName;
   const currentTable = currentTableSnapshot(status);
-  const effectiveSource = status.effective_table_source;
-  const effectiveCount = status.effective_table_count ?? 0;
+  const effectiveTable = effectiveTableSnapshot(status);
+  const effectiveSource = effectiveTable.source;
+  const effectiveCount = effectiveTable.count;
 
   return {
     caseName: demo.caseName,
@@ -67,6 +68,12 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
         `${ROLE_LABELS[row.table_team_role] || row.table_team_role}`
       ))
       : ["None"],
+    effectiveTableRosterItems: effectiveTable.rows.length
+      ? effectiveTable.rows.slice(0, 5).map((row) => (
+        `${effectiveTable.sourceLabel}: ${rosterPersonLabel(row)} ` +
+        `${ROLE_LABELS[row.table_team_role] || row.table_team_role}`
+      ))
+      : [],
     currentTable: {
       count: currentTable.count,
       source: currentTable.source,
@@ -76,9 +83,9 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
     effectiveTable: {
       count: effectiveCount,
       source: effectiveSource,
-      sourceLabel: tableSourceLabel(effectiveSource),
-      canonicalIds: asArray(status.effective_table_canonical_ids),
-      label: `${effectiveCount} staff; ${tableSourceLabel(effectiveSource)}; ` +
+      sourceLabel: effectiveTable.sourceLabel,
+      canonicalIds: effectiveTable.canonicalIds,
+      label: `${effectiveCount} staff; ${effectiveTable.sourceLabel}; ` +
         `${formatPersonIds(status.effective_table_canonical_ids)}`,
     },
     operatorPacketEffective: latestPacket ? {
@@ -173,6 +180,21 @@ export function currentTableSnapshot(status = {}) {
     source,
     sourceLabel: tableSourceLabel(source),
     ageFromClipEndS: 0,
+  };
+}
+
+export function effectiveTableSnapshot(status = {}) {
+  const rows = asArray(status.effective_table_roster);
+  const source = status.effective_table_source || (
+    rows.length ? "last_observed_room_view" : "no_room_table_evidence"
+  );
+  return {
+    count: status.effective_table_count ?? rows.length,
+    rows,
+    source,
+    sourceLabel: tableSourceLabel(source),
+    canonicalIds: asArray(status.effective_table_canonical_ids),
+    ageFromClipEndS: status.effective_table_age_from_clip_end_s ?? null,
   };
 }
 
