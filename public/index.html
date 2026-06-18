@@ -12,7 +12,7 @@
         <header class="topbar">
           <div>
             <h1>TAVR OR Tracking Prototype</h1>
-            <p>Browser-based TAVR stage, table-side, and role/zone review.</p>
+            <p>Live and replay TAVR stage, table-side, and role/zone review.</p>
           </div>
           <label class="upload-button">
             <input id="videoInput" type="file" accept="video/*" />
@@ -31,7 +31,15 @@
 
         <section class="controls">
           <button id="playButton" type="button">Play / pause</button>
+          <button id="liveCameraButton" type="button">Live camera</button>
+          <button id="stopLiveButton" type="button" disabled>Stop live</button>
           <button id="syntheticButton" type="button">Synthetic demo</button>
+          <label class="stream-control">
+            Stream URL
+            <input id="liveStreamUrl" type="url" inputmode="url" placeholder="https://.../stream.m3u8" />
+          </label>
+          <button id="liveStreamButton" type="button">Open stream</button>
+          <output id="liveStatus" class="live-status">Live source idle</output>
           <label class="replay-control">
             Replay
             <select id="evaluationDemoSelect"></select>

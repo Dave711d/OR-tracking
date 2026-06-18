@@ -103,6 +103,11 @@ button {
   color: var(--text);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .video-stage {
   position: relative;
   flex: 1;
@@ -196,6 +201,46 @@ select {
   font: inherit;
   font-size: 13px;
   padding: 8px 10px;
+}
+
+input[type="url"] {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #10171d;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.controls .stream-control {
+  grid-column: span 2;
+}
+
+.live-status {
+  align-self: end;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #10171d;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  padding: 9px 10px;
+}
+
+.live-status[data-tone="current"] {
+  border-color: rgba(55, 214, 163, 0.45);
+  color: var(--accent);
+}
+
+.live-status[data-tone="warn"] {
+  border-color: rgba(255, 204, 102, 0.5);
+  color: var(--warn);
 }
 
 .toggle-control {

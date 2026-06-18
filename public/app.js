@@ -29,6 +29,11 @@ const video = document.querySelector("#sourceVideo");
 const overlay = document.querySelector("#overlayCanvas");
 const emptyState = document.querySelector("#emptyState");
 const playButton = document.querySelector("#playButton");
+const liveCameraButton = document.querySelector("#liveCameraButton");
+const stopLiveButton = document.querySelector("#stopLiveButton");
+const liveStreamUrlInput = document.querySelector("#liveStreamUrl");
+const liveStreamButton = document.querySelector("#liveStreamButton");
+const liveStatus = document.querySelector("#liveStatus");
 const syntheticButton = document.querySelector("#syntheticButton");
 const evaluationDemoSelect = document.querySelector("#evaluationDemoSelect");
 const evaluationDemoButton = document.querySelector("#evaluationDemoButton");
@@ -252,6 +257,11 @@ let rafId = null;
 let syntheticMode = false;
 let syntheticStartedAt = 0;
 let evaluationReplayRequestId = 0;
+let liveMode = false;
+let liveStartedAt = 0;
+let liveMediaStream = null;
+let activeObjectUrl = null;
+let frameReadBlocked = false;
 
 populateInitialStageOptions();
 populateEvaluationDemoOptions();
@@ -259,27 +269,43 @@ populateEvaluationDemoOptions();
 input.addEventListener("change", () => {
   const file = input.files?.[0];
   if (!file) return;
+  stopLiveSource();
+  revokeActiveObjectUrl();
   const url = URL.createObjectURL(file);
+  activeObjectUrl = url;
   syntheticMode = false;
+  liveMode = false;
+  video.srcObject = null;
   video.src = url;
   video.hidden = false;
   video.load();
   emptyState.hidden = true;
   resetMetrics();
+  setLiveStatus("Uploaded file ready");
 });
 
 playButton.addEventListener("click", () => {
-  if (!video.src || video.hidden) return;
+  if (!hasVideoSource() || video.hidden) return;
   if (video.paused) {
-    video.play();
-    tick();
+    playVideoSource().catch(() => {});
   } else {
     video.pause();
   }
 });
 
+liveCameraButton.addEventListener("click", startLiveCamera);
+liveStreamButton.addEventListener("click", startLiveStreamUrl);
+stopLiveButton.addEventListener("click", () => {
+  cancelAnimationFrame(rafId);
+  stopLiveSource();
+  video.pause();
+  resetMetrics();
+  syncEmptyStateToVideoSource();
+});
+
 syntheticButton.addEventListener("click", () => {
   cancelAnimationFrame(rafId);
+  stopLiveSource();
   syntheticMode = true;
   syntheticStartedAt = performance.now();
   video.pause();
@@ -301,11 +327,21 @@ evaluationSnapshotRange.addEventListener("input", () => {
 resetButton.addEventListener("click", () => {
   cancelAnimationFrame(rafId);
   video.hidden = false;
-  resetMetrics();
+  if (liveMode) {
+    liveStartedAt = performance.now();
+    resetMetrics({ keepLiveMode: true });
+    playVideoSource().catch(() => {});
+  } else {
+    resetMetrics();
+  }
   syncEmptyStateToVideoSource();
 });
 initialStageInput.addEventListener("change", () => {
-  resetMetrics({ keepSyntheticMode: syntheticMode });
+  resetMetrics({ keepSyntheticMode: syntheticMode, keepLiveMode: liveMode });
+  if (syntheticMode || liveMode) {
+    cancelAnimationFrame(rafId);
+    tick();
+  }
 });
 video.addEventListener("play", tick);
 video.addEventListener("pause", () => cancelAnimationFrame(rafId));
@@ -316,6 +352,7 @@ async function loadEvaluationDemo() {
   const requestId = ++evaluationReplayRequestId;
   const demoMeta = selectedEvaluationDemo();
   cancelAnimationFrame(rafId);
+  stopLiveSource();
   syntheticMode = false;
   video.pause();
   resetMetrics({ keepEvaluationReplayRequest: true });
@@ -451,6 +488,135 @@ function resetEvaluationScrubber() {
   evaluationSnapshotLabel.textContent = "No replay loaded";
 }
 
+async function startLiveCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setLiveStatus("Camera API unavailable in this browser", true);
+    setEmptyState("Live camera unavailable", "Use HTTPS or a browser with getUserMedia support.");
+    emptyState.hidden = false;
+    return;
+  }
+
+  cancelAnimationFrame(rafId);
+  stopLiveSource();
+  revokeActiveObjectUrl();
+  setLiveStatus("Requesting camera...");
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: "environment",
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    });
+    liveMediaStream = stream;
+    liveMode = true;
+    liveStartedAt = performance.now();
+    frameReadBlocked = false;
+    video.pause();
+    video.removeAttribute("src");
+    video.srcObject = stream;
+    video.hidden = false;
+    video.muted = true;
+    video.playsInline = true;
+    emptyState.hidden = true;
+    resetMetrics({ keepLiveMode: true });
+    setLiveStatus("Live camera running");
+    await playVideoSource();
+  } catch (error) {
+    stopLiveSource();
+    setLiveStatus(`Camera failed: ${error.message || error}`, true);
+    setEmptyState("Live camera failed", String(error.message || error));
+    emptyState.hidden = false;
+  }
+}
+
+async function startLiveStreamUrl() {
+  const streamUrl = liveStreamUrlInput.value.trim();
+  if (!streamUrl) {
+    setLiveStatus("Enter a browser-playable HTTPS stream URL", true);
+    liveStreamUrlInput.focus();
+    return;
+  }
+
+  cancelAnimationFrame(rafId);
+  stopLiveSource();
+  revokeActiveObjectUrl();
+  liveMode = true;
+  liveStartedAt = performance.now();
+  frameReadBlocked = false;
+  video.pause();
+  video.srcObject = null;
+  video.crossOrigin = "anonymous";
+  video.src = streamUrl;
+  video.hidden = false;
+  video.muted = true;
+  video.playsInline = true;
+  video.load();
+  emptyState.hidden = true;
+  resetMetrics({ keepLiveMode: true });
+  setLiveStatus("Opening live stream...");
+  await playVideoSource().then(
+    () => setLiveStatus("Live stream running"),
+    (error) => {
+      setLiveStatus(`Stream playback blocked: ${error.message || error}`, true);
+      setEmptyState("Stream playback blocked", String(error.message || error));
+      emptyState.hidden = false;
+    },
+  );
+}
+
+function stopLiveSource() {
+  const wasLiveUrl = liveMode && !liveMediaStream && video.src && !activeObjectUrl;
+  if (liveMediaStream) {
+    liveMediaStream.getTracks().forEach((track) => track.stop());
+  }
+  liveMediaStream = null;
+  liveMode = false;
+  frameReadBlocked = false;
+  stopLiveButton.disabled = true;
+  video.srcObject = null;
+  if (wasLiveUrl) {
+    video.removeAttribute("src");
+    video.load();
+  }
+  setLiveStatus("Live source idle");
+}
+
+function revokeActiveObjectUrl() {
+  if (activeObjectUrl) URL.revokeObjectURL(activeObjectUrl);
+  activeObjectUrl = null;
+}
+
+async function playVideoSource() {
+  if (!hasVideoSource()) return;
+  emptyState.hidden = true;
+  try {
+    await video.play();
+    cancelAnimationFrame(rafId);
+    tick();
+  } catch (error) {
+    setLiveStatus(`Playback blocked: ${error.message || error}`, true);
+    throw error;
+  }
+}
+
+function hasVideoSource() {
+  return Boolean(video.src || video.srcObject);
+}
+
+function sourceElapsedSeconds() {
+  if (liveMode) return Math.max(0, (performance.now() - liveStartedAt) / 1000);
+  const currentTime = Number(video.currentTime);
+  return Number.isFinite(currentTime) ? currentTime : 0;
+}
+
+function setLiveStatus(message, isWarning = false) {
+  liveStatus.textContent = message;
+  liveStatus.dataset.tone = isWarning ? "warn" : (liveMode ? "current" : "idle");
+  stopLiveButton.disabled = !liveMode;
+}
+
 function tick() {
   resizeOverlay();
   if (syntheticMode) {
@@ -472,13 +638,22 @@ function resizeOverlay() {
 
 function analyzeFrame() {
   if (video.readyState < 2 || video.paused || video.ended) return;
+  if (frameReadBlocked) return;
 
   const targetWidth = 320;
   const ratio = video.videoHeight / Math.max(video.videoWidth, 1);
   work.width = targetWidth;
   work.height = Math.max(1, Math.round(targetWidth * ratio));
-  workCtx.drawImage(video, 0, 0, work.width, work.height);
-  const image = workCtx.getImageData(0, 0, work.width, work.height);
+  let image;
+  try {
+    workCtx.drawImage(video, 0, 0, work.width, work.height);
+    image = workCtx.getImageData(0, 0, work.width, work.height);
+  } catch (error) {
+    frameReadBlocked = true;
+    setLiveStatus("Stream pixels blocked by browser CORS; use a CORS-enabled stream", true);
+    setEmptyState("Stream visible but not analyzable", "Enable CORS on the stream or use Live camera.");
+    return;
+  }
 
   if (!previousFrame) {
     previousFrame = image;
@@ -505,7 +680,8 @@ function analyzeFrame() {
   previousFrame = image;
   activityHistory.push(activity);
   if (activityHistory.length > 80) activityHistory.shift();
-  const stage = estimateUploadedTavrStage(boxes, activity, video.currentTime, {
+  const elapsedSeconds = sourceElapsedSeconds();
+  const stage = estimateUploadedTavrStage(boxes, activity, elapsedSeconds, {
     stageHoldReason: nonRoomView
       ? "non_room_view"
       : (staticTableUsed ? "static_table_fallback" : null),
@@ -513,7 +689,7 @@ function analyzeFrame() {
   });
 
   drawOverlay(boxes, activity, stage);
-  updateMetrics(boxes, activity, video.currentTime, stage);
+  updateMetrics(boxes, activity, elapsedSeconds, stage);
 }
 
 function analyzeSyntheticFrame() {
@@ -2564,13 +2740,15 @@ function setEmptyState(title, subtitle) {
 }
 
 function syncEmptyStateToVideoSource() {
-  emptyState.hidden = Boolean(video.src);
+  emptyState.hidden = hasVideoSource();
 }
 
 function resetMetrics(options = {}) {
   if (!options.keepEvaluationReplayRequest) evaluationReplayRequestId += 1;
   if (!options.keepSyntheticMode) syntheticMode = false;
+  if (!options.keepLiveMode) liveMode = false;
   previousFrame = null;
+  frameReadBlocked = false;
   activityHistory = [];
   browserIdentityTracker = new BrowserTableIdentityTracker();
   tableTeam = new Map();
@@ -2582,7 +2760,7 @@ function resetMetrics(options = {}) {
   lastObservedTableSnapshot = null;
   resetEvaluationScrubber();
   uploadedStageIndex = selectedInitialStageIndex();
-  uploadedStageStartedAt = video.currentTime || 0;
+  uploadedStageStartedAt = sourceElapsedSeconds();
   stageMetric.textContent = "Idle";
   countMetric.textContent = "0";
   tableSideMetric.textContent = "0";

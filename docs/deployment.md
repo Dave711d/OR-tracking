@@ -37,6 +37,14 @@ tracking using `public/app.js` plus browser-side canonical table identity
 stitching in `public/browser_identity.mjs`, so it does not need Python, ffmpeg,
 or server storage.
 
+The same static surface supports live browser inputs. `Live camera` uses the
+browser camera/capture-card API over HTTPS or localhost. `Stream URL` can attach
+a browser-playable HTTP(S) video stream, but the stream must allow CORS canvas
+pixel reads or the browser will display the video without permitting analysis.
+For OR feeds such as RTSP, NDI, or SDI, run the conversion on an edge workstation
+inside the hospital network and expose a CORS-enabled browser stream to the
+static UI.
+
 `.vercelignore` intentionally excludes `app.py` and the Python package from the
 Vercel upload so Vercel does not auto-detect the Streamlit entrypoint as a Python
 serverless function. `vercel.json` also sets `framework` to `null`, which is

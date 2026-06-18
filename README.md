@@ -18,9 +18,9 @@ added behind the same metrics surface later.
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
 - Single-clip evaluator in `evaluate_tavr.py`
 - Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
-- Browser-only Vercel demo in `public/`, including an opt-in static table
-  fallback for low-motion room-view review and bundled evaluated TAVR replay
-  artifacts from the real-footage suite
+- Browser-only Vercel demo in `public/`, including live camera / browser
+  stream mode, an opt-in static table fallback for low-motion room-view review,
+  and bundled evaluated TAVR replay artifacts from the real-footage suite
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
 
@@ -88,10 +88,11 @@ For low-motion room-view review, pass `--static-table-fallback` to opt into the
 same conservative table-zone silhouette fallback exposed in the apps. This stays
 off by default so default footage regressions do not silently count static
 equipment as staff.
-The Vercel browser uploader also canonicalizes table-side detections into stable
+The Vercel browser surface also canonicalizes table-side detections into stable
 person IDs across short raw-ID gaps, crossings, and held non-room views, so the
 live "who is at the table" panels track people rather than per-frame motion
-cluster labels.
+cluster labels. It can analyze uploaded videos, a local camera/capture-card
+feed, or a browser-playable stream URL.
 
 To compare output against expected stage/table labels:
 
@@ -261,11 +262,33 @@ both total-stage rates and room-view-only rates for those mixed-view clips.
 Procedure-stage advancement is held on non-room frames and reported with low
 confidence until room-video evidence returns.
 
+## Live browser mode
+
+The static browser app can run the same frame analyzer against live sources:
+
+- `Live camera` uses `navigator.mediaDevices.getUserMedia()` and works on HTTPS
+  or localhost. This is the easiest path for a USB webcam, HDMI capture card, or
+  local OR camera feed exposed to the browser as a camera device.
+- `Stream URL` attaches a browser-playable stream to the video element. Use an
+  HTTPS URL that the browser can decode directly, such as an MP4/WebM stream or
+  HLS on browsers with native HLS support. The stream must send CORS headers
+  that allow canvas pixel reads, otherwise the video may play but the tracker
+  will show `Stream pixels blocked by browser CORS`.
+- `Stop live` stops camera tracks or clears the live stream source without
+  disturbing uploaded-file and replay workflows.
+
+For a real OR install, run the video conversion on an edge workstation inside
+the hospital network and send the browser only a CORS-enabled, browser-readable
+stream. For example, an RTSP/NDI/SDI source can be converted to low-latency HLS
+or another browser-supported transport by the edge machine; the Vercel UI can
+then consume that URL while all pixel processing stays local in the browser.
+
 ## Vercel static demo
 
-Vercel hosts the browser demo from `public/`. It accepts local video uploads and
-performs client-side frame differencing, motion clustering, zone counts, and an
-activity sparkline. The synthetic TAVR demo also shows procedure milestone
+Vercel hosts the browser demo from `public/`. It accepts local video uploads,
+live camera/capture-card input, browser-playable stream URLs, and performs
+client-side frame differencing, motion clustering, zone counts, and an activity
+sparkline. The synthetic TAVR demo also shows procedure milestone
 progress in canonical order, including the current observed stage, prior
 observed stages, first/last seen times, peak table-side count, and unique
 table-side IDs for each milestone. A `Table team status` panel keeps current

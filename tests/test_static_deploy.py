@@ -249,7 +249,8 @@ def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
     assert "tableSideMetric.textContent = String(currentTable.count)" in app_js
     assert "renderTableRoster(currentTable, tableSnapshot)" in app_js
     assert "renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot)" in app_js
-    assert "estimateUploadedTavrStage(boxes, activity, video.currentTime, {" in app_js
+    assert "const elapsedSeconds = sourceElapsedSeconds()" in app_js
+    assert "estimateUploadedTavrStage(boxes, activity, elapsedSeconds, {" in app_js
     assert "function estimateUploadedTavrStage" in app_js
     assert "function scoreTavrStages" in app_js
     assert "function chooseTavrStageIndex" in app_js
@@ -584,6 +585,13 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert 'id="evaluationDemoSelect"' in index_html
     assert 'id="evaluationSnapshotRange"' in index_html
     assert 'id="evaluationSnapshotLabel"' in index_html
+    assert 'id="liveCameraButton"' in index_html
+    assert 'id="stopLiveButton"' in index_html
+    assert 'id="liveStreamUrl"' in index_html
+    assert 'id="liveStreamButton"' in index_html
+    assert 'id="liveStatus"' in index_html
+    assert "Live camera" in index_html
+    assert "Open stream" in index_html
     assert 'id="procedureStatus"' in index_html
     assert 'id="statusSnapshotList"' in index_html
     assert 'id="tableIdentityList"' in index_html
@@ -623,6 +631,15 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function populateEvaluationDemoOptions" in app_js
     assert "function selectedEvaluationDemo" in app_js
     assert "function loadEvaluationDemo" in app_js
+    assert "async function startLiveCamera" in app_js
+    assert "async function startLiveStreamUrl" in app_js
+    assert "function stopLiveSource" in app_js
+    assert "navigator.mediaDevices.getUserMedia" in app_js
+    assert "video.srcObject = stream" in app_js
+    assert 'video.crossOrigin = "anonymous"' in app_js
+    assert "function sourceElapsedSeconds" in app_js
+    assert "Stream pixels blocked by browser CORS" in app_js
+    assert "keepLiveMode" in app_js
     assert "function setupEvaluationScrubber" in app_js
     assert "function renderEvaluationReplaySnapshot" in app_js
     assert "function visibleSnapshotRows" in app_js
@@ -741,7 +758,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function appendTablePresenceRow" in app_js
     assert "const tableSnapshot = currentTableSnapshot(status);" in app_js
     assert "const tableSnapshot = effectiveTableSnapshot(status);" not in app_js
-    assert "emptyState.hidden = Boolean(video.src)" in app_js
+    assert "emptyState.hidden = hasVideoSource()" in app_js
     assert "effective_table_source" in app_js
     assert "current_table_count ?? rows.length" in replay_js
     assert "status.current_table_count ?? status.effective_table_count" not in app_js
@@ -782,6 +799,9 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert ".procedure-status-list" in styles
     assert ".replay-control" in styles
     assert ".replay-scrub-control" in styles
+    assert ".stream-control" in styles
+    assert ".live-status" in styles
+    assert "button:disabled" in styles
     assert "overflow-wrap: anywhere" in styles
     assert "grid-template-columns: minmax(0, 1fr)" in styles
     assert ".identity-list" in styles
