@@ -10,6 +10,7 @@ import {
   operatorAnswerRows,
   operatorAnswerRowsFromSnapshots,
   packetForStatus,
+  replayClockLabel,
   replayOperatorProjection,
   replaySnapshotAt,
   replaySnapshotIndexForTime,
@@ -268,6 +269,19 @@ test("replay snapshots select matching operator packets by stage and time", asyn
   assert.equal(final.current_stage, "closure_finish");
   assert.equal(packetForStatus(demo.packets, final).stage, "closure_finish");
   assert.match(replaySnapshotLabel(deployment, deploymentIndex, demo.statusSnapshots.length), /Valve deployment/);
+});
+
+test("replay clock labels show clip and source clocks when they differ", async () => {
+  const payload = await demoPayload("sentara-1800-evaluation.json");
+  const demo = normalizeEvaluationPayload(payload, { label: "1800s deployment table hold" });
+  const final = replaySnapshotAt(demo);
+  const label = replaySnapshotLabel(final, demo.statusSnapshots.length - 1, demo.statusSnapshots.length);
+  const brief = stageTableBriefRows(demo.status);
+
+  assert.equal(replayClockLabel({ clip_timestamp_s: 3.2, timestamp_s: 3.2 }), "clip 3.2s");
+  assert.equal(replayClockLabel({ source_timestamp_s: 1829.961 }), "source 1829.961s");
+  assert.match(label, /clip 30\.0s \/ source 1829\.961s/);
+  assert.match(brief[0].detail, /clip 30\.0s \/ source 1829\.961s/);
 });
 
 test("focused replay events stay scoped to the selected snapshot stage", async () => {

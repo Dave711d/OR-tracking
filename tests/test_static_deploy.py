@@ -582,10 +582,13 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "evaluationSnapshotRange.addEventListener" in app_js
     assert "replaySnapshotAt" in app_js
     assert "packetForStatus" in app_js
+    assert "replayClockLabel" in app_js
     assert "replaySnapshotLabel" in app_js
     assert "export function replaySnapshotAt" in replay_js
     assert "export function replaySnapshotIndexForTime" in replay_js
+    assert "export function replayClockLabel" in replay_js
     assert "export function replaySnapshotLabel" in replay_js
+    assert "source ${formatPreciseSeconds(source)}" in replay_js
     assert "export function packetForStatus" in replay_js
     assert "normalizeEvaluationPayload" in app_js
     assert "export function normalizeEvaluationPayload" in replay_js

@@ -12,6 +12,7 @@ import {
   operatorAnswerRows,
   operatorAnswerRowsFromSnapshots,
   packetForStatus,
+  replayClockLabel,
   replaySnapshotAt,
   replaySnapshotLabel,
   rosterPersonLabel,
@@ -369,7 +370,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   countMetric.textContent = String(teamCount);
   tableSideMetric.textContent = String(tableCount);
   activityMetric.textContent = "replay";
-  elapsedMetric.textContent = formatSeconds(eventTimeSeconds(status));
+  elapsedMetric.textContent = replayClockLabel(status);
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
   renderOperatorAnswer(operatorAnswerRows(status, packet, stageRoster, demo.milestones));

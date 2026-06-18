@@ -317,7 +317,7 @@ export function stageTableBriefRows(
   return stageTableBriefRowsFromSnapshots({
     stageLabel,
     evidenceLabel: String(evidence).replaceAll("_", " "),
-    timeLabel: Number.isFinite(time) ? `clip ${formatSeconds(time)}` : "",
+    timeLabel: Number.isFinite(time) ? replayClockLabel(status) : "",
     progress: procedureProgressBrief(status, packet, milestones),
     stageRoster,
     currentTable: currentTableSnapshot(status),
@@ -730,7 +730,30 @@ export function replaySnapshotLabel(snapshot = {}, index = 0, total = 0) {
   const stage = snapshot.current_stage_label || snapshot.stage_label || "stage n/a";
   const reason = asArray(snapshot.snapshot_reason).join(", ") || "status";
   const prefix = total > 0 ? `${Number(index) + 1}/${total}` : `${Number(index) + 1}`;
-  return `${prefix} - clip ${formatSeconds(eventTimeSeconds(snapshot))} - ${stage} (${reason})`;
+  return `${prefix} - ${replayClockLabel(snapshot)} - ${stage} (${reason})`;
+}
+
+export function replayClockLabel(row = {}) {
+  const clip = Number(
+    row.clip_timestamp_s ??
+    row.clip_end_s ??
+    row.clip_start_s ??
+    row.clip_s,
+  );
+  const source = Number(
+    row.timestamp_s ??
+    row.source_timestamp_s ??
+    row.source_end_s ??
+    row.source_start_s,
+  );
+  const hasClip = Number.isFinite(clip);
+  const hasSource = Number.isFinite(source);
+  if (hasClip && hasSource && Math.abs(source - clip) > 0.01) {
+    return `clip ${formatSeconds(clip)} / source ${formatPreciseSeconds(source)}`;
+  }
+  if (hasClip) return `clip ${formatSeconds(clip)}`;
+  if (hasSource) return `source ${formatPreciseSeconds(source)}`;
+  return "time n/a";
 }
 
 export function currentTableSnapshot(status = {}) {
@@ -1040,6 +1063,10 @@ function handoffLabel(handoffType) {
 
 function formatSeconds(value) {
   return value === null || value === undefined ? "n/a" : `${Number(value).toFixed(1)}s`;
+}
+
+function formatPreciseSeconds(value) {
+  return value === null || value === undefined ? "n/a" : `${Number(value).toFixed(3)}s`;
 }
 
 function formatPercent(value) {
