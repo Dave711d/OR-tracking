@@ -184,6 +184,7 @@ def test_tracker_static_table_fallback_counts_low_motion_room_staff() -> None:
             enable_static_table_fallback=True,
             static_table_min_area=120,
             tavr_initial_stage="access_sheathing",
+            tavr_min_stage_frames=0,
         )
     )
     frame = np.full((120, 180, 3), (95, 100, 105), dtype=np.uint8)
@@ -198,6 +199,10 @@ def test_tracker_static_table_fallback_counts_low_motion_room_staff() -> None:
     assert metrics.tavr.table_count == 1
     assert metrics.tavr.table_track_ids == [1]
     assert metrics.tavr.role_track_ids["table_operator"] == [1]
+    assert metrics.tavr.stage == "access_sheathing"
+    assert metrics.tavr.signals["stage_observable"] == 0.0
+    assert metrics.tavr.signals["stage_hold_static_table_fallback"] == 1.0
+    assert "static table fallback" in metrics.tavr.note
 
 
 def test_tracker_static_table_fallback_stays_suppressed_for_non_room_view() -> None:

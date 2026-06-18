@@ -112,7 +112,10 @@ Streamlit sidebar for uploaded clips.
 Add `--static-table-fallback` when reviewing low-motion room-view footage where
 table-side staff are visually present but too still for motion-only tracking.
 The fallback is opt-in so the default evaluator and regression suite keep
-static equipment from being counted as people.
+static equipment from being counted as people. Static fallback detections update
+the table roster and role history, but they are deliberately treated as
+roster-only evidence; by themselves they do not advance the TAVR procedure
+stage.
 
 The JSON output includes:
 
@@ -418,6 +421,11 @@ The current local Sentara suite covers:
   static table fallback can be used for manual low-motion review, but the
   default suite keeps this case conservative unless static staff are visually
   proven.
+- `sentara_900_static_table_fallback`: the opt-in version of the same slice,
+  proving static fallback can recover the three-person table roster before the
+  fluoroscopy switch while keeping the procedure stage held at
+  `access_sheathing`. Static table silhouettes are roster evidence, not
+  procedure-stage evidence.
 - `sentara_1800_mixed_room`: fluoroscopy-to-room transition with table-side
   roster expectations once the room view returns, plus room-view denominator
   checks for the deployment-stage staffing summary, a deployment-stage

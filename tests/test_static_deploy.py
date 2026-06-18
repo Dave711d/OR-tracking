@@ -79,20 +79,19 @@ PUBLIC_EVALUATION_DEMOS = [
     {
         "file": "sentara-900-static-fallback-evaluation.json",
         "case": "sentara_900_static_table_fallback",
-        "stage": "bav_optional",
-        "stage_label": "Balloon valvuloplasty",
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
         "evidence": "weak_visual_support",
         "table_source": "last_observed_room_view",
         "table_count": 3,
         "required_flags": {
-            "rapid_stage_progression",
             "low_stage_confidence",
             "non_room_view",
         },
         "min_team_rows": 3,
         "min_identity_groups": 3,
-        "min_coverage_rows": 8,
-        "min_events": 12,
+        "min_coverage_rows": 3,
+        "min_events": 11,
     },
 ]
 
@@ -328,7 +327,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         if "view_start" in row["snapshot_reason"]
         and row["current_view"] == "non_room"
     )
-    assert view_snapshot["current_stage"] == "bav_optional"
+    assert view_snapshot["current_stage"] == "access_sheathing"
     assert view_snapshot["effective_table_source"] == "last_observed_room_view"
     assert view_snapshot["effective_table_canonical_ids"] == [1, 2, 3]
 

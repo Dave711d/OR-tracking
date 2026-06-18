@@ -212,6 +212,7 @@ class TAVRWorkflowAnalyzer:
         frame_index: int,
         movement_px: float,
         stage_observable: bool = True,
+        stage_hold_reason: Optional[str] = None,
         stage_frame_index: Optional[int] = None,
     ) -> TAVRFrameState:
         stage_frame = frame_index if stage_frame_index is None else stage_frame_index
@@ -232,6 +233,8 @@ class TAVRWorkflowAnalyzer:
         )
         signals = _signals(zone_counts, len(detections), movement_px)
         signals["stage_observable"] = 1.0 if stage_observable else 0.0
+        if not stage_observable and stage_hold_reason:
+            signals[f"stage_hold_{stage_hold_reason}"] = 1.0
         if not stage_observable:
             stage = TAVR_STAGE_ORDER[self.current_stage_index]
             return TAVRFrameState(
@@ -244,10 +247,7 @@ class TAVRWorkflowAnalyzer:
                 role_track_ids=normalized_role_track_ids,
                 track_role_summaries=track_role_summaries,
                 signals=signals,
-                note=(
-                    f"{TAVR_STAGE_NOTES[stage]} Stage held because the room "
-                    "view is unavailable."
-                ),
+                note=_stage_hold_note(stage, stage_hold_reason),
             )
         stage_scores = _stage_scores(signals, stage_frame)
         stage_index, confidence = self._choose_stage(stage_scores, stage_frame)
@@ -326,6 +326,18 @@ class TAVRWorkflowAnalyzer:
         ):
             return next_index, min(next_score, 0.95)
         return self.current_stage_index, min(max(current_score, next_score), 0.9)
+
+
+def _stage_hold_note(stage: str, reason: Optional[str]) -> str:
+    base_note = TAVR_STAGE_NOTES[stage]
+    if reason == "static_table_fallback":
+        return (
+            f"{base_note} Stage held because static table fallback is "
+            "table-roster evidence, not procedure-stage evidence."
+        )
+    if reason == "non_room_view":
+        return f"{base_note} Stage held because the room view is unavailable."
+    return f"{base_note} Stage held because procedure-stage evidence is not observable."
 
 
 def tavr_default_zones() -> Dict[str, ZoneRect]:

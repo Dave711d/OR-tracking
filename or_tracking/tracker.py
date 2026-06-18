@@ -53,6 +53,7 @@ class MotionTrackerConfig:
     freeze_non_room_tavr_stage: bool = True
     non_room_colorfulness_threshold: float = 8.0
     enable_static_table_fallback: bool = False
+    freeze_static_table_tavr_stage: bool = True
     static_table_min_area: int = 240
     static_table_max_zone_area_ratio: float = 0.38
     static_table_min_aspect_ratio: float = 0.18
@@ -244,10 +245,18 @@ class ORActivityTracker:
                 frame.shape[1],
                 frame.shape[0],
             )
-            stage_observable = not (
+            stage_hold_reason = None
+            if (
                 self.config.freeze_non_room_tavr_stage
                 and "non_room_view" in view_flags
-            )
+            ):
+                stage_hold_reason = "non_room_view"
+            elif (
+                self.config.freeze_static_table_tavr_stage
+                and static_table_used
+            ):
+                stage_hold_reason = "static_table_fallback"
+            stage_observable = stage_hold_reason is None
             tavr = self._tavr.update(
                 detections=detections,
                 zone_counts=zone_counts,
@@ -256,6 +265,7 @@ class ORActivityTracker:
                 frame_index=frame_index,
                 movement_px=movement_px,
                 stage_observable=stage_observable,
+                stage_hold_reason=stage_hold_reason,
                 stage_frame_index=clip_frame_index,
             )
         return FrameMetrics(

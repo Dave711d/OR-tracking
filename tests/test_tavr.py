@@ -142,6 +142,7 @@ def test_tavr_workflow_holds_stage_when_room_view_unavailable() -> None:
         0,
         0,
         stage_observable=False,
+        stage_hold_reason="non_room_view",
     )
     advanced = analyzer.update(
         [detection],
@@ -156,7 +157,45 @@ def test_tavr_workflow_holds_stage_when_room_view_unavailable() -> None:
     assert held.stage == "access_sheathing"
     assert held.confidence == 0.2
     assert held.signals["stage_observable"] == 0.0
-    assert "Stage held" in held.note
+    assert held.signals["stage_hold_non_room_view"] == 1.0
+    assert "room view is unavailable" in held.note
+    assert advanced.stage == "angio_alignment_crossing"
+    assert advanced.signals["stage_observable"] == 1.0
+
+
+def test_tavr_workflow_holds_stage_for_static_table_fallback_evidence() -> None:
+    analyzer = TAVRWorkflowAnalyzer(
+        initial_stage="access_sheathing",
+        min_stage_frames=0,
+    )
+    detection = Detection(1, (10, 10, 20, 40), (20, 30), 700)
+
+    held = analyzer.update(
+        [detection],
+        {"imaging": 2, "table": 2},
+        [1],
+        {"imaging": [1], "table_operator": [1]},
+        0,
+        0,
+        stage_observable=False,
+        stage_hold_reason="static_table_fallback",
+    )
+    advanced = analyzer.update(
+        [detection],
+        {"imaging": 2, "table": 2},
+        [1],
+        {"imaging": [1], "table_operator": [1]},
+        1,
+        0,
+        stage_observable=True,
+    )
+
+    assert held.stage == "access_sheathing"
+    assert held.table_count == 1
+    assert held.table_track_ids == [1]
+    assert held.signals["stage_observable"] == 0.0
+    assert held.signals["stage_hold_static_table_fallback"] == 1.0
+    assert "static table fallback" in held.note
     assert advanced.stage == "angio_alignment_crossing"
     assert advanced.signals["stage_observable"] == 1.0
 

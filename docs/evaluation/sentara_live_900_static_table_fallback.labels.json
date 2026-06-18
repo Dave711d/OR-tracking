@@ -1,24 +1,14 @@
 {
   "name": "Sentara live TAVR 900s room-to-fluoro static table fallback ROI",
   "source_url": "https://bcmmedia.s3.amazonaws.com/bcp/video/transcodes/live-tavr-transcatheter-aortic-valve-replacement/1710771171/live-tavr-transcatheter-aortic-valve-replacement-720p.mp4",
-  "clip_hint": "Extract a 30s clip from 900s. The configured ROI begins as low-motion room-camera footage, then switches to fluoroscopy around 4.2s.",
+  "clip_hint": "Extract a 30s clip from 900s. The configured ROI begins as low-motion room-camera footage, then switches to fluoroscopy around 4.2s. Static table fallback is roster evidence only and must not advance the TAVR stage.",
   "command_hint": "python evaluate_tavr.py samples/live_tavr_slices/live_tavr_900_30s.mp4 --roi 0,0.46,0.31,0.89 --initial-stage access_sheathing --min-area 300 --max-frames 900 --static-table-fallback --no-annotated-video --labels docs/evaluation/sentara_live_900_static_table_fallback.labels.json",
   "timebase": "clip",
   "stage_segments": [
     {
       "start_s": 0.0,
-      "end_s": 2.9,
+      "end_s": 30.0,
       "stage": "access_sheathing"
-    },
-    {
-      "start_s": 3.1,
-      "end_s": 3.9,
-      "stage": "angio_alignment_crossing"
-    },
-    {
-      "start_s": 4.2,
-      "end_s": 29.9,
-      "stage": "bav_optional"
     }
   ],
   "table_count_segments": [
@@ -36,7 +26,22 @@
   ],
   "event_timeline_expectations": [
     {
+      "event_type": "stage_started",
+      "stage": "access_sheathing",
+      "start_s": 0.0,
+      "end_s": 0.1,
+      "role": "table_operator",
+      "min_tracks": 2,
+      "min_table_count": 2,
+      "required_table_canonical_ids": [
+        1,
+        2
+      ],
+      "tracking_available": true
+    },
+    {
       "event_type": "view_started",
+      "stage": "access_sheathing",
       "view": "room",
       "start_s": 0.0,
       "end_s": 0.1,
@@ -50,19 +55,20 @@
       "start_s": 0.0,
       "end_s": 0.1,
       "role": "table_operator",
-      "min_tracks": 2,
-      "min_table_count": 2,
+      "min_tracks": 3,
+      "min_table_count": 3,
       "required_table_canonical_ids": [
         1,
-        2
+        2,
+        3
       ],
       "tracking_available": true
     },
     {
       "event_type": "table_peak",
-      "stage": "angio_alignment_crossing",
-      "start_s": 3.7,
-      "end_s": 3.9,
+      "stage": "access_sheathing",
+      "start_s": 4.0,
+      "end_s": 4.25,
       "role": "table_operator",
       "min_tracks": 3,
       "min_table_count": 3,
@@ -76,7 +82,7 @@
     },
     {
       "event_type": "view_started",
-      "stage": "bav_optional",
+      "stage": "access_sheathing",
       "view": "non_room",
       "start_s": 4.1,
       "end_s": 4.3,
@@ -87,14 +93,23 @@
   "stage_roster_expectations": [
     {
       "stage": "access_sheathing",
+      "stage_segment_index": 0,
       "role": "table_operator",
       "handoff_type": "initial_table_roster",
       "lead_role": "table_operator",
-      "min_tracks": 2,
-      "min_peak_table_count": 2,
-      "min_canonical_table_identity_count": 2,
-      "min_tracking_available_rate": 0.9,
-      "evidence_level": "moderate_visual_support"
+      "min_tracks": 3,
+      "max_tracks": 3,
+      "min_peak_table_count": 3,
+      "max_peak_table_count": 3,
+      "min_canonical_table_identity_count": 3,
+      "max_canonical_table_identity_count": 3,
+      "min_tracking_available_rate": 0.1,
+      "evidence_level": "weak_visual_support",
+      "max_observable_rate": 0.03,
+      "max_mean_confidence": 0.25,
+      "min_new_tracks": 3,
+      "min_within_stage_entry_tracks": 1,
+      "min_within_stage_exit_tracks": 3
     }
   ],
   "stage_table_coverage_expectations": [
@@ -104,20 +119,24 @@
       "role": "table_operator",
       "min_tracks": 2,
       "max_tracks": 2,
-      "min_observed_table_frames": 70,
+      "min_observed_table_frames": 90,
       "min_room_coverage_ratio": 0.75,
-      "spans_full_stage": true
+      "max_coverage_ratio": 0.13,
+      "spans_full_stage": false,
+      "required_label_text": "Access / sheathing"
     },
     {
-      "stage": "bav_optional",
-      "stage_segment_index": 2,
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "canonical_table_id": 3,
       "role": "table_operator",
-      "min_tracks": 3,
-      "max_tracks": 3,
-      "min_observed_table_frames": 3,
-      "min_room_coverage_ratio": 0.6,
+      "min_tracks": 1,
+      "max_tracks": 1,
+      "min_observed_table_frames": 5,
       "max_coverage_ratio": 0.01,
-      "required_label_text": "Balloon valvuloplasty"
+      "entered_during_stage": true,
+      "exited_during_stage": true,
+      "required_label_text": "Access / sheathing"
     }
   ],
   "table_transition_expectations": [
@@ -127,89 +146,76 @@
       "stage_segment_index": 0,
       "role": "table_operator",
       "min_events": 2,
-      "min_observed_table_frames": 70,
+      "min_observed_table_frames": 90,
       "min_room_coverage_ratio": 0.75,
       "required_label_text": "Access / sheathing"
     },
     {
-      "event_type": "table_present_at_stage_end",
+      "event_type": "table_entry",
       "stage": "access_sheathing",
       "stage_segment_index": 0,
-      "role": "table_operator",
-      "min_events": 2,
-      "min_observed_table_frames": 70,
-      "min_room_coverage_ratio": 0.75
-    },
-    {
-      "event_type": "table_entry",
-      "stage": "bav_optional",
-      "stage_segment_index": 2,
+      "canonical_table_id": 3,
       "role": "table_operator",
       "min_events": 1,
-      "min_observed_table_frames": 3,
-      "min_room_coverage_ratio": 0.6,
+      "min_observed_table_frames": 5,
       "max_coverage_ratio": 0.01,
-      "required_label_text": "table_entry"
+      "required_label_text": "Person 3"
     },
     {
       "event_type": "table_exit",
-      "stage": "bav_optional",
-      "stage_segment_index": 2,
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
       "role": "table_operator",
       "min_events": 3,
-      "min_observed_table_frames": 3,
-      "min_room_coverage_ratio": 0.6,
-      "max_coverage_ratio": 0.01
+      "min_observed_table_frames": 5,
+      "required_label_text": "Access / sheathing"
     }
   ],
   "stage_evidence_expectations": [
     {
       "stage": "access_sheathing",
-      "evidence_level": "moderate_visual_support",
-      "min_observable_rate": 0.9,
-      "min_mean_confidence": 0.35,
-      "min_room_view_frames": 80
-    },
-    {
-      "stage": "bav_optional",
+      "stage_segment_index": 0,
       "evidence_level": "weak_visual_support",
-      "max_observable_rate": 0.02,
+      "max_observable_rate": 0.03,
       "max_mean_confidence": 0.25,
-      "min_non_room_view_frames": 700
+      "min_room_view_frames": 120,
+      "min_non_room_view_frames": 700,
+      "dominant_signal": "stillness"
     }
   ],
   "procedure_milestone_expectations": [
     {
+      "stage": "room_prep_drape",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    },
+    {
       "stage": "access_sheathing",
-      "observed_in_clip": true,
-      "is_current_observed_stage": false,
-      "milestone_status": "observed_prior",
-      "evidence_level": "moderate_visual_support",
-      "min_observable_rate": 0.9,
-      "min_mean_confidence": 0.35,
-      "min_peak_table_count": 2,
-      "min_unique_table_track_count": 2
-    },
-    {
-      "stage": "angio_alignment_crossing",
-      "observed_in_clip": true,
-      "is_current_observed_stage": false,
-      "milestone_status": "observed_prior",
-      "evidence_level": "moderate_visual_support",
-      "min_observable_rate": 0.9,
-      "min_peak_table_count": 3,
-      "min_unique_table_track_count": 3
-    },
-    {
-      "stage": "bav_optional",
       "observed_in_clip": true,
       "is_current_observed_stage": true,
       "milestone_status": "current_observed",
       "evidence_level": "weak_visual_support",
-      "max_observable_rate": 0.02,
+      "max_observable_rate": 0.03,
       "max_mean_confidence": 0.25,
       "min_peak_table_count": 3,
-      "min_unique_table_track_count": 3
+      "max_peak_table_count": 3,
+      "min_unique_table_track_count": 3,
+      "max_unique_table_track_count": 3,
+      "min_canonical_table_identity_count": 3,
+      "max_canonical_table_identity_count": 3
+    },
+    {
+      "stage": "angio_alignment_crossing",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
+    },
+    {
+      "stage": "bav_optional",
+      "observed_in_clip": false,
+      "milestone_status": "not_observed_in_clip",
+      "max_peak_table_count": 0
     },
     {
       "stage": "valve_deployment",
@@ -226,15 +232,15 @@
   ],
   "procedure_status_expectations": [
     {
-      "current_stage": "bav_optional",
+      "current_stage": "access_sheathing",
       "current_stage_status": "current_observed",
       "current_stage_evidence_status": "weak_visual_support",
-      "next_stage": "valve_delivery_positioning",
+      "next_stage": "angio_alignment_crossing",
       "current_view": "non_room",
       "tracking_available": false,
       "effective_table_source": "last_observed_room_view",
       "evidence_level": "weak_visual_support",
-      "max_observable_rate": 0.02,
+      "max_observable_rate": 0.03,
       "max_mean_confidence": 0.25,
       "max_current_table_count": 0,
       "min_effective_table_count": 3,
@@ -245,12 +251,27 @@
       "max_last_observed_age_from_clip_end_s": 30.0,
       "min_peak_table_count": 3,
       "max_peak_table_count": 3,
+      "required_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_last_observed_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_peak_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_quality_flags": [
-        "rapid_stage_progression",
         "low_stage_confidence",
         "non_room_view"
       ],
       "forbidden_quality_flags": [
+        "rapid_stage_progression",
         "low_motion_room_view"
       ]
     }
@@ -259,10 +280,10 @@
     {
       "timestamp_s": 4.2,
       "tolerance_s": 0.12,
-      "stage": "bav_optional",
+      "stage": "access_sheathing",
       "current_stage_status": "current_observed",
-      "stage_evidence_status": "strong_visual_support",
-      "next_stage": "valve_delivery_positioning",
+      "stage_evidence_status": "weak_visual_support",
+      "next_stage": "angio_alignment_crossing",
       "current_view": "non_room",
       "tracking_available": false,
       "effective_table_source": "last_observed_room_view",
@@ -292,10 +313,10 @@
     {
       "timestamp_s": 29.9,
       "tolerance_s": 0.12,
-      "stage": "bav_optional",
+      "stage": "access_sheathing",
       "current_stage_status": "current_observed",
       "stage_evidence_status": "weak_visual_support",
-      "next_stage": "valve_delivery_positioning",
+      "next_stage": "angio_alignment_crossing",
       "current_view": "non_room",
       "tracking_available": false,
       "effective_table_source": "last_observed_room_view",
@@ -325,13 +346,13 @@
   ],
   "operator_packet_expectations": [
     {
-      "stage": "bav_optional",
-      "stage_segment_index": 2,
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
       "current": true,
       "stage_status": "current_observed",
       "stage_evidence_status": "weak_visual_support",
-      "next_stage": "valve_delivery_positioning",
-      "handoff_type": "roster_continued",
+      "next_stage": "angio_alignment_crossing",
+      "handoff_type": "initial_table_roster",
       "evidence_level": "weak_visual_support",
       "lead_role": "table_operator",
       "min_peak_table_count": 3,
@@ -340,27 +361,37 @@
       "max_active_tracks": 3,
       "min_canonical_table_identity_count": 3,
       "max_canonical_table_identity_count": 3,
-      "min_continued_tracks": 3,
+      "min_new_tracks": 3,
       "min_effective_table_count": 3,
       "max_effective_table_count": 3,
       "effective_table_source": "last_observed_room_view",
-      "max_observable_rate": 0.02,
+      "max_observable_rate": 0.03,
       "max_mean_confidence": 0.25,
+      "required_active_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "required_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_quality_flags": [
-        "rapid_stage_progression",
         "low_stage_confidence",
         "non_room_view"
       ],
       "forbidden_quality_flags": [
+        "rapid_stage_progression",
         "low_motion_room_view"
       ],
       "required_packet_text": [
-        "Current stage: Balloon valvuloplasty",
+        "Current stage: Access / sheathing",
         "evidence weak visual support",
-        "handoff roster continued",
+        "handoff initial table roster",
         "active people Person 1, Person 2, Person 3",
         "latest table status last observed room view 3 people Person 1, Person 2, Person 3",
-        "next Valve delivery / positioning"
+        "next Angio alignment / crossing"
       ]
     }
   ],
@@ -380,7 +411,9 @@
     {
       "team_status": "recent_last_observed",
       "table_team_role": "table_operator",
+      "dominant_stage": "access_sheathing",
       "min_tracks": 3,
+      "max_tracks": 3,
       "min_table_presence_ratio": 0.5,
       "require_in_current_table_roster": false,
       "require_in_effective_table_roster": true,
@@ -398,10 +431,11 @@
       "min_stage_frames": 70
     },
     {
+      "stage": "access_sheathing",
       "role": "table_operator",
       "min_groups": 3,
       "max_groups": 3,
-      "min_observed_table_frames": 3
+      "min_observed_table_frames": 5
     }
   ],
   "roster_snapshot_expectations": [
