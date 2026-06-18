@@ -36,6 +36,10 @@ PUBLIC_DEMO_CASES = (
         Path("outputs/tavr_static_stage_support/sentara_900_static_table_fallback/result.json"),
         Path("public/demo-data/sentara-900-static-fallback-evaluation.json"),
     ),
+    PublicDemoCase(
+        Path("outputs/tavr_synthetic_full_suite/synthetic_full_tavr_workflow/result.json"),
+        Path("public/demo-data/synthetic-full-tavr-evaluation.json"),
+    ),
 )
 
 

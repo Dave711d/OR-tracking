@@ -93,6 +93,20 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_coverage_rows": 3,
         "min_events": 11,
     },
+    {
+        "file": "synthetic-full-tavr-evaluation.json",
+        "case": "synthetic_full_tavr_workflow",
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "evidence": "strong_visual_support",
+        "table_source": "current_room_view",
+        "table_count": 1,
+        "required_flags": {"rapid_stage_progression"},
+        "min_team_rows": 10,
+        "min_identity_groups": 10,
+        "min_coverage_rows": 18,
+        "min_events": 60,
+    },
 ]
 
 
@@ -369,6 +383,17 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert view_snapshot["current_stage"] == "access_sheathing"
     assert view_snapshot["effective_table_source"] == "last_observed_room_view"
     assert view_snapshot["effective_table_canonical_ids"] == [1, 2, 3]
+    synthetic_payload = load_public_demo_payload(
+        "synthetic-full-tavr-evaluation.json"
+    )
+    synthetic_milestones = synthetic_payload["tavr"]["procedure_milestones"]
+    assert [row["stage"] for row in synthetic_milestones] == TAVR_STAGE_ORDER
+    assert all(row["observed_in_clip"] for row in synthetic_milestones)
+    assert len(synthetic_payload["tavr"]["operator_stage_packet"]) == 8
+    assert any(
+        len(row["merged_track_ids"]) > 1
+        for row in synthetic_payload["tavr"]["table_identity_groups"]
+    )
 
 
 def test_static_demo_loads_backend_evaluation_replay() -> None:

@@ -194,6 +194,11 @@ const EVALUATION_DEMOS = [
     default: true,
   },
   {
+    id: "synthetic_full_tavr_workflow",
+    label: "Full synthetic workflow",
+    url: "/demo-data/synthetic-full-tavr-evaluation.json",
+  },
+  {
     id: "sentara_2400_fluoro_negative",
     label: "2400s fluoro held context",
     url: "/demo-data/sentara-2400-evaluation.json",

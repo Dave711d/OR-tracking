@@ -239,9 +239,11 @@ public Vercel surface mirrors the richer Python output. The browser inspector
 also includes an `Operator packet` panel with the current stage, evidence,
 handoff status, active table IDs, next stage, and quality flags.
 The `Evaluated demo` replay selector loads compact backend artifacts from the
-Sentara 900s, 1800s, 2400s, and 2700s windows, including weak visual support,
-held non-room context, recent room-view hold, and static-fallback review cases.
-Refresh those public replay JSON files after rerunning the local suites with:
+Sentara 900s, 1800s, 2400s, and 2700s windows plus the full synthetic TAVR
+workflow, including weak visual support, held non-room context, recent
+room-view hold, static-fallback review, and all-eight-stage table identity
+cases. Refresh those public replay JSON files after rerunning the local suites
+with:
 
 ```bash
 python3 export_public_demo_data.py

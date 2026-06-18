@@ -410,8 +410,8 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output
 ## Public Replay Artifacts
 
 The Vercel static demo can replay compact backend artifacts without shipping the
-full source videos. After refreshing the real-footage suites, export the public
-JSON bundle with:
+full source videos. After refreshing the real-footage suites and the synthetic
+full-workflow suite, export the public JSON bundle with:
 
 ```bash
 python3 export_public_demo_data.py
@@ -419,9 +419,10 @@ python3 export_public_demo_data.py
 
 The selector in `public/app.js` currently covers the 900s weak-support access
 window, the 1800s deployment/table-hold window, the 2400s fluoroscopy-held
-context window, the 2700s closure weak-support window, and the opt-in 900s
-static-fallback review artifact. This lets the online prototype show both
-positive table-roster evidence and honest weak/held/non-room cases.
+context window, the 2700s closure weak-support window, the opt-in 900s
+static-fallback review artifact, and the synthetic full TAVR workflow with all
+eight canonical stages. This lets the online prototype show both positive
+table-roster evidence and honest weak/held/non-room cases.
 
 The current local Sentara suite covers:
 
