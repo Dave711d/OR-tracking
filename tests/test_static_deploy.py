@@ -6,13 +6,111 @@ from or_tracking.tracker import ROLE_ZONE_PRIORITY
 from or_tracking.tavr import TAVR_STAGE_ORDER
 
 
+PUBLIC_EVALUATION_DEMOS = [
+    {
+        "file": "sentara-900-evaluation.json",
+        "case": "sentara_900_room_to_fluoro_low_motion",
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "evidence": "weak_visual_support",
+        "table_source": "no_room_table_evidence",
+        "table_count": 0,
+        "required_flags": {
+            "low_stage_confidence",
+            "non_room_view",
+            "low_motion_room_view",
+        },
+        "min_team_rows": 0,
+        "min_identity_groups": 0,
+        "min_coverage_rows": 0,
+        "min_events": 4,
+    },
+    {
+        "file": "sentara-1800-evaluation.json",
+        "case": "sentara_1800_mixed_room",
+        "stage": "valve_deployment",
+        "stage_label": "Valve deployment",
+        "evidence": "strong_visual_support",
+        "table_source": "recent_room_view_hold",
+        "table_count": 1,
+        "required_flags": {
+            "rapid_stage_progression",
+            "low_stage_confidence",
+            "non_room_view",
+        },
+        "min_team_rows": 8,
+        "min_identity_groups": 10,
+        "min_coverage_rows": 8,
+        "min_events": 12,
+    },
+    {
+        "file": "sentara-2400-evaluation.json",
+        "case": "sentara_2400_fluoro_negative",
+        "stage": "valve_deployment",
+        "stage_label": "Valve deployment",
+        "evidence": "held_non_room_context",
+        "table_source": "no_room_table_evidence",
+        "table_count": 0,
+        "required_flags": {"low_stage_confidence", "non_room_view"},
+        "min_team_rows": 0,
+        "min_identity_groups": 0,
+        "min_coverage_rows": 0,
+        "min_events": 3,
+    },
+    {
+        "file": "sentara-2700-evaluation.json",
+        "case": "sentara_2700_room_post",
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "evidence": "weak_visual_support",
+        "table_source": "last_observed_room_view",
+        "table_count": 1,
+        "required_flags": {
+            "rapid_stage_progression",
+            "early_terminal_stage",
+            "low_stage_confidence",
+            "non_room_view",
+        },
+        "min_team_rows": 8,
+        "min_identity_groups": 9,
+        "min_coverage_rows": 8,
+        "min_events": 12,
+    },
+    {
+        "file": "sentara-900-static-fallback-evaluation.json",
+        "case": "sentara_900_static_table_fallback",
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "evidence": "weak_visual_support",
+        "table_source": "last_observed_room_view",
+        "table_count": 3,
+        "required_flags": {
+            "rapid_stage_progression",
+            "low_stage_confidence",
+            "non_room_view",
+        },
+        "min_team_rows": 3,
+        "min_identity_groups": 3,
+        "min_coverage_rows": 8,
+        "min_events": 12,
+    },
+]
+
+
+def load_public_demo_payload(file_name: str) -> dict:
+    return json.loads(
+        Path("public/demo-data", file_name).read_text(encoding="utf-8")
+    )
+
+
 def test_vercel_static_demo_files_are_present() -> None:
     public = Path("public")
 
     assert (public / "index.html").exists()
     assert (public / "app.js").exists()
     assert (public / "styles.css").exists()
-    assert (public / "demo-data" / "sentara-1800-evaluation.json").exists()
+    for demo in PUBLIC_EVALUATION_DEMOS:
+        assert (public / "demo-data" / demo["file"]).exists()
 
 
 def test_vercel_config_builds_public_assets() -> None:
@@ -121,71 +219,110 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
     assert ".operator-packet" in styles
 
 
-def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
-    payload = json.loads(
-        Path("public/demo-data/sentara-1800-evaluation.json").read_text(
-            encoding="utf-8"
+def test_static_demo_exporter_covers_all_public_tavr_replays() -> None:
+    exporter = Path("export_public_demo_data.py").read_text(encoding="utf-8")
+
+    assert "PUBLIC_DEMO_CASES" in exporter
+    assert "summarize_scores" in exporter
+    for demo in PUBLIC_EVALUATION_DEMOS:
+        assert demo["file"] in exporter
+
+
+def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
+    for demo in PUBLIC_EVALUATION_DEMOS:
+        payload = load_public_demo_payload(demo["file"])
+        tavr = payload["tavr"]
+
+        assert payload["case"] == demo["case"]
+        assert payload["timebase"]["timebase"] in {"clip", "source"}
+        assert payload["score_summary"]["procedure_status_score"] == 1.0
+        assert payload["score_summary"]["stage_evidence_score"] == 1.0
+        assert tavr["timebase_summary"]
+        for key in [
+            "timebase_summary",
+            "procedure_status_summary",
+            "operator_stage_packet",
+            "table_team_summary",
+            "table_identity_groups",
+            "stage_roster_summary",
+            "stage_table_coverage",
+            "procedure_milestones",
+            "procedure_event_timeline",
+            "table_transition_events",
+            "quality_flags",
+        ]:
+            assert key in tavr
+
+        status = tavr["procedure_status_summary"][0]
+        packet = tavr["operator_stage_packet"][-1]
+        event_count = (
+            len(tavr["procedure_event_timeline"])
+            + len(tavr["table_transition_events"])
         )
-    )
-    tavr = payload["tavr"]
+        assert "source_start_s" in status
+        assert "clip_start_s" in status
+        assert "clip_start_s" in packet
+        assert "clip_end_s" in packet
+        assert status["current_stage"] in TAVR_STAGE_ORDER
+        assert status["current_stage"] == demo["stage"]
+        assert status["current_stage_label"] == demo["stage_label"]
+        assert status["current_stage_evidence_status"] == demo["evidence"]
+        assert status["effective_table_source"] == demo["table_source"]
+        assert status["effective_table_count"] == demo["table_count"]
+        assert set(status["quality_flag_codes"]) >= demo["required_flags"]
+        assert packet["stage_evidence_status"] == demo["evidence"]
+        assert packet["effective_table_source"] == demo["table_source"]
+        assert packet["effective_table_count"] == demo["table_count"]
+        assert "canonical_table_identity_count" in packet
+        assert "quality_flag_codes" in packet
+        assert tavr["stage_roster_summary"]
+        assert tavr["procedure_milestones"]
+        assert len(tavr["table_team_summary"]) >= demo["min_team_rows"]
+        assert len(tavr["table_identity_groups"]) >= demo["min_identity_groups"]
+        assert len(tavr["stage_table_coverage"]) >= demo["min_coverage_rows"]
+        assert event_count >= demo["min_events"]
 
-    assert payload["case"] == "sentara_1800_mixed_room"
-    assert payload["timebase"]["timebase"] in {"clip", "source"}
-    assert tavr["timebase_summary"]
-    for key in [
-        "timebase_summary",
-        "procedure_status_summary",
-        "operator_stage_packet",
-        "table_team_summary",
-        "table_identity_groups",
-        "stage_roster_summary",
-        "stage_table_coverage",
-        "procedure_event_timeline",
-        "table_transition_events",
-        "quality_flags",
-    ]:
-        assert tavr[key]
-
-    status = tavr["procedure_status_summary"][0]
-    packet = tavr["operator_stage_packet"][-1]
-    assert "source_start_s" in status
-    assert "clip_start_s" in status
-    assert "clip_end_s" in packet
-    assert "effective_table_source" in status
-    assert status["current_stage_evidence_status"] == "strong_visual_support"
-    assert status["effective_table_source"] == "recent_room_view_hold"
-    assert status["effective_table_count"] == 1
-    assert status["effective_table_track_ids"]
-    assert packet["stage_evidence_status"] == "strong_visual_support"
-    assert packet["effective_table_source"] == "recent_room_view_hold"
-    assert packet["effective_table_count"] == 1
-    assert "canonical_table_identity_count" in packet
-    assert "quality_flag_codes" in packet
-    assert payload["score_summary"]["table_identity_group_score"] == 1.0
-    assert len(tavr["table_team_summary"]) > 8
-    assert len(tavr["table_identity_groups"]) >= 10
-    assert any(
-        len(row["merged_track_ids"]) > 1
-        for row in tavr["table_identity_groups"]
-    )
-    assert len(tavr["stage_table_coverage"]) > 8
-    assert (
-        len(tavr["procedure_event_timeline"]) + len(tavr["table_transition_events"])
-    ) > 12
+    strong_payload = load_public_demo_payload("sentara-1800-evaluation.json")
+    strong_identities = strong_payload["tavr"]["table_identity_groups"]
+    assert any(len(row["merged_track_ids"]) > 1 for row in strong_identities)
 
 
 def test_static_demo_loads_backend_evaluation_replay() -> None:
     index_html = Path("public/index.html").read_text(encoding="utf-8")
     app_js = Path("public/app.js").read_text(encoding="utf-8")
     styles = Path("public/styles.css").read_text(encoding="utf-8")
+    catalog_block_match = re.search(
+        r"const EVALUATION_DEMOS = \[(?P<body>.*?)\];",
+        app_js,
+        flags=re.DOTALL,
+    )
 
     assert 'id="evaluationDemoButton"' in index_html
+    assert 'id="evaluationDemoSelect"' in index_html
     assert 'id="procedureStatus"' in index_html
     assert 'id="tableIdentityList"' in index_html
+    assert 'id="milestoneList"' in index_html
     assert 'id="eventTimelineList"' in index_html
     assert 'id="qualityFlagList"' in index_html
     assert "Evaluated demo" in index_html
-    assert "EVALUATION_DEMO_URL" in app_js
+    assert "Replay" in index_html
+    assert catalog_block_match is not None
+    catalog_block = catalog_block_match.group("body")
+    case_ids = re.findall(r'id: "([^"]+)"', catalog_block)
+    labels = re.findall(r'label: "([^"]+)"', catalog_block)
+    urls = re.findall(r'url: "([^"]+)"', catalog_block)
+    assert len(case_ids) >= 2
+    assert len(case_ids) == len(set(case_ids))
+    assert len(labels) == len(set(labels)) == len(case_ids)
+    assert len(urls) == len(set(urls)) == len(case_ids)
+    assert all(url.startswith("/demo-data/") for url in urls)
+    for demo in PUBLIC_EVALUATION_DEMOS:
+        assert demo["case"] in case_ids
+        assert f'/demo-data/{demo["file"]}' in urls
+    assert "EVALUATION_DEMOS" in app_js
+    assert "EVALUATION_DEMO_URL" not in app_js
+    assert "function populateEvaluationDemoOptions" in app_js
+    assert "function selectedEvaluationDemo" in app_js
     assert "function loadEvaluationDemo" in app_js
     assert "function normalizeEvaluationPayload" in app_js
     assert "function renderEvaluationReplay" in app_js
@@ -195,6 +332,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderBackendTableIdentities" in app_js
     assert "function renderBackendStageCoverage" in app_js
     assert "function renderBackendStageRoster" in app_js
+    assert "function renderBackendProcedureMilestones" in app_js
     assert "function renderBackendProcedureEvents" in app_js
     assert "function renderBackendQualityFlags" in app_js
     assert "function formatClockRange" in app_js
@@ -208,6 +346,10 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "evaluationReplayRequestId" in app_js
     assert "keepEvaluationReplayRequest" in app_js
     assert "requestId !== evaluationReplayRequestId" in app_js
+    assert "function eventTimeSeconds" in app_js
+    assert "event.clip_timestamp_s" in app_js
+    assert "event.clip_start_s" in app_js
+    assert "Sentara TAVR backend artifact" not in app_js
     assert "function appendOverflowRow" in app_js
     assert "function syncEmptyStateToVideoSource" in app_js
     assert "function summarizeStageCounts" in app_js
@@ -222,6 +364,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "quality_flag_codes" in app_js
     assert "procedure_event_timeline" in app_js
     assert ".procedure-status-list" in styles
+    assert ".replay-control" in styles
     assert ".identity-list" in styles
+    assert ".milestone-list" in styles
     assert ".event-list" in styles
     assert ".quality-list" in styles

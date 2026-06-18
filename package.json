@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rm -rf dist && mkdir -p dist && cp -R public/* dist/",
+    "export-demo-data": "python3 export_public_demo_data.py",
     "start": "python3 -m http.server 4174 --directory public"
   }
 }

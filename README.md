@@ -19,7 +19,8 @@ added behind the same metrics surface later.
 - Single-clip evaluator in `evaluate_tavr.py`
 - Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
 - Browser-only Vercel demo in `public/`, including an opt-in static table
-  fallback for low-motion room-view review
+  fallback for low-motion room-view review and bundled evaluated TAVR replay
+  artifacts from the real-footage suite
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
 
@@ -211,6 +212,14 @@ synthetic/browser-tracked IDs as active, recently observed, or historical so the
 public Vercel surface mirrors the richer Python output. The browser inspector
 also includes an `Operator packet` panel with the current stage, evidence,
 handoff status, active table IDs, next stage, and quality flags.
+The `Evaluated demo` replay selector loads compact backend artifacts from the
+Sentara 900s, 1800s, 2400s, and 2700s windows, including weak visual support,
+held non-room context, recent room-view hold, and static-fallback review cases.
+Refresh those public replay JSON files after rerunning the local suites with:
+
+```bash
+python3 export_public_demo_data.py
+```
 
 ```bash
 npm install

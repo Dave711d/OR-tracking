@@ -1,0 +1,4436 @@
+{
+  "case": "sentara_2700_room_post",
+  "generated_from": "outputs/tavr_suite_stage_support/sentara_2700_room_post/result.json",
+  "timebase": {
+    "timebase": "source",
+    "fps": 29.97,
+    "source_start_frame": 80919,
+    "source_start_s": 2699.997,
+    "source_end_frame": 81817,
+    "source_end_s": 2729.961,
+    "clip_start_frame": 0,
+    "clip_start_s": 0.0,
+    "clip_end_frame": 898,
+    "clip_end_s": 29.963,
+    "source_offset_s": 2699.997
+  },
+  "evaluation_config": {
+    "roi": [
+      0.0,
+      0.46,
+      0.31,
+      0.89
+    ],
+    "initial_stage": "post_deploy_assessment",
+    "min_area": 300,
+    "max_frames": 900,
+    "source_start_s": 2700.0
+  },
+  "score_summary": {
+    "stage_score": 1.0,
+    "table_count_score": 1.0,
+    "table_presence_score": 1.0,
+    "stage_staffing_score": 1.0,
+    "stage_table_coverage_score": 1.0,
+    "table_transition_score": 1.0,
+    "stage_handoff_score": 1.0,
+    "stage_roster_score": 1.0,
+    "stage_evidence_score": 1.0,
+    "procedure_milestone_score": 1.0,
+    "procedure_status_score": 1.0,
+    "operator_packet_score": 1.0,
+    "table_team_score": 1.0,
+    "table_identity_group_score": 1.0,
+    "event_timeline_score": 1.0,
+    "roster_snapshot_score": 1.0,
+    "quality_flag_score": 1.0
+  },
+  "label_score_timebase": {
+    "label_timebase": "clip",
+    "default_timebase": "clip"
+  },
+  "tavr": {
+    "timebase_summary": [
+      {
+        "timebase": "source",
+        "fps": 29.97,
+        "source_start_frame": 80919,
+        "source_end_frame": 81817,
+        "source_start_s": 2699.997,
+        "source_end_s": 2729.961,
+        "clip_start_frame": 0,
+        "clip_end_frame": 898,
+        "clip_start_s": 0.0,
+        "clip_end_s": 29.963,
+        "source_offset_s": 2699.997
+      }
+    ],
+    "procedure_status_summary": [
+      {
+        "timebase": "source",
+        "source_start_frame": 80919,
+        "source_end_frame": 81817,
+        "source_start_s": 2699.997,
+        "source_end_s": 2729.961,
+        "clip_start_frame": 0,
+        "clip_end_frame": 898,
+        "clip_start_s": 0.0,
+        "clip_end_s": 29.963,
+        "source_offset_s": 2699.997,
+        "current_stage": "closure_finish",
+        "current_stage_label": "Closure / finish",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "weak_visual_support",
+        "current_stage_evidence_label": "weak visual support",
+        "next_stage": null,
+        "next_stage_label": null,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.464,
+        "mean_confidence": 0.289,
+        "current_view": "non_room",
+        "tracking_available": false,
+        "current_table_count": 0,
+        "current_table_track_ids": [],
+        "current_table_roster": [],
+        "effective_table_source": "last_observed_room_view",
+        "effective_table_s": 2712.91,
+        "effective_table_clip_s": 12.913,
+        "effective_table_age_from_clip_end_s": 17.05,
+        "effective_table_stage": "closure_finish",
+        "effective_table_stage_label": "Closure / finish",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          13
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "ID 13 table_operator table=92%"
+          }
+        ],
+        "last_observed_table_s": 2712.91,
+        "last_observed_clip_s": 12.913,
+        "last_observed_age_from_clip_end_s": 17.05,
+        "last_observed_stage": "closure_finish",
+        "last_observed_stage_label": "Closure / finish",
+        "last_observed_table_count": 1,
+        "last_observed_table_track_ids": [
+          13
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "frames_seen": 25,
+            "table_presence_ratio": 0.92,
+            "label": "ID 13 table_operator table=92%"
+          }
+        ],
+        "peak_table_s": 2703.968,
+        "peak_table_clip_s": 3.971,
+        "peak_table_stage": "closure_finish",
+        "peak_table_stage_label": "Closure / finish",
+        "peak_table_count": 4,
+        "peak_table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "ID 1 table_operator table=96%"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "ID 3 access_operator table=86%"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "ID 5 table_operator (dominant imaging) table=32%"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "ID 6 table_operator table=100%"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_summary": "Current weakly supported stage: Closure / finish (weak visual support, confidence 0.29, observable 46%); tracking not available; at table now: none; table status: last observed room view ID 13 table_operator table=92%; last observed table: ID 13 table_operator table=92%; next: procedure end; quality flags: rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+      }
+    ],
+    "operator_stage_packet": [
+      {
+        "packet_index": 0,
+        "stage_segment_index": 0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "stage_status": "observed_prior",
+        "stage_evidence_status": "weak_visual_support",
+        "stage_evidence_label": "weak visual support",
+        "is_current_stage": false,
+        "next_stage": null,
+        "next_stage_label": null,
+        "start_s": 2699.997,
+        "end_s": 2702.533,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.278,
+        "tracking_available_rate": 1.0,
+        "handoff_type": "initial_table_roster",
+        "peak_table_count": 2,
+        "active_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2
+        ],
+        "continued_track_ids": [],
+        "new_track_ids": [
+          1,
+          2
+        ],
+        "dropped_track_ids": [],
+        "effective_table_source": null,
+        "effective_table_count": null,
+        "effective_table_track_ids": [],
+        "roster_summary": "ID 1 table_operator 28 frames 1.6-2.5s; ID 2 device_prep 1 frames 2.5-2.5s",
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_packet": "Observed stage: Post-deploy assessment 2699.997s-2702.533s; evidence weak visual support, confidence 0.28, observable 100%; handoff initial table roster; peak table 2; active IDs 1, 2; new IDs 1, 2; dropped IDs none; roster ID 1 table_operator 28 frames 1.6-2.5s; ID 2 device_prep 1 frames 2.5-2.5s; quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+      },
+      {
+        "packet_index": 1,
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_status": "current_observed",
+        "stage_evidence_status": "weak_visual_support",
+        "stage_evidence_label": "weak visual support",
+        "is_current_stage": true,
+        "next_stage": null,
+        "next_stage_label": null,
+        "start_s": 2702.567,
+        "end_s": 2729.961,
+        "clip_start_s": 2.569,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.464,
+        "mean_confidence": 0.289,
+        "tracking_available_rate": 0.464,
+        "handoff_type": "roster_added",
+        "peak_table_count": 4,
+        "active_table_track_count": 9,
+        "canonical_table_identity_count": 9,
+        "lead_track_id": 3,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          3,
+          1,
+          11,
+          13,
+          6,
+          5,
+          2,
+          4,
+          12
+        ],
+        "continued_track_ids": [
+          1,
+          2
+        ],
+        "new_track_ids": [
+          3,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "dropped_track_ids": [],
+        "effective_table_source": "last_observed_room_view",
+        "effective_table_count": 1,
+        "effective_table_track_ids": [
+          13
+        ],
+        "roster_summary": "ID 3 table_operator 63 frames 2.6-4.9s; ID 1 table_operator 43 frames 2.6-4.0s; ID 11 device_prep 24 frames 8.4-9.4s; ID 13 table_operator 23 frames 12.0-12.9s; ID 6 table_operator 10 frames 3.8-4.1s; ID 5 table_operator 7 frames 3.6-4.0s",
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "early_terminal_stage",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; active IDs 3, 1, 11, 13, 6, 5, 2, 4, 12; new IDs 3, 4, 5, 6, 11, 12, 13; dropped IDs none; roster ID 3 table_operator 63 frames 2.6-4.9s; ID 1 table_operator 43 frames 2.6-4.0s; ID 11 device_prep 24 frames 8.4-9.4s; ID 13 table_operator 23 frames 12.0-12.9s; ID 6 table_operator 10 frames 3.8-4.1s; ID 5 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 IDs 13; quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+      }
+    ],
+    "table_team_summary": [
+      {
+        "track_id": 9,
+        "canonical_table_id": 9,
+        "merged_track_ids": [
+          9,
+          13
+        ],
+        "team_status": "recent_last_observed",
+        "dominant_role": "imaging",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.174,
+        "is_current_table_member": false,
+        "is_effective_table_member": true,
+        "is_last_observed_table_member": true,
+        "is_peak_table_member": false,
+        "first_seen_frame": 81163,
+        "last_seen_frame": 81306,
+        "first_seen_s": 2708.139,
+        "last_seen_s": 2712.91,
+        "first_seen_clip_s": 8.141,
+        "last_seen_clip_s": 12.913,
+        "age_from_clip_end_s": 17.05,
+        "frames_seen": 38,
+        "observed_table_frames": 23,
+        "table_frames": 23,
+        "table_presence_ratio": 0.605,
+        "table_observed_duration_s": 0.901,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 23
+        },
+        "role_counts": {
+          "imaging": 21,
+          "table_operator": 4
+        },
+        "label": "ID 9 table_operator (dominant imaging) recent last observed; table=60%; last=17.1s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 3,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "access_operator",
+        "table_team_role": "access_operator",
+        "table_team_role_confidence": 0.603,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": true,
+        "first_seen_frame": 80990,
+        "last_seen_frame": 81065,
+        "first_seen_s": 2702.366,
+        "last_seen_s": 2704.869,
+        "first_seen_clip_s": 2.369,
+        "last_seen_clip_s": 4.872,
+        "age_from_clip_end_s": 25.091,
+        "frames_seen": 69,
+        "observed_table_frames": 63,
+        "table_frames": 63,
+        "table_presence_ratio": 0.913,
+        "table_observed_duration_s": 2.336,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 63
+        },
+        "role_counts": {
+          "access_operator": 38,
+          "table_operator": 21,
+          "unassigned": 5
+        },
+        "label": "ID 3 access_operator historical seen; table=91%; last=25.1s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 6,
+        "canonical_table_id": 6,
+        "merged_track_ids": [
+          6
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": true,
+        "first_seen_frame": 81033,
+        "last_seen_frame": 81042,
+        "first_seen_s": 2703.801,
+        "last_seen_s": 2704.101,
+        "first_seen_clip_s": 3.804,
+        "last_seen_clip_s": 4.104,
+        "age_from_clip_end_s": 25.859,
+        "frames_seen": 10,
+        "observed_table_frames": 10,
+        "table_frames": 10,
+        "table_presence_ratio": 1.0,
+        "table_observed_duration_s": 0.334,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 10
+        },
+        "role_counts": {
+          "table_operator": 11
+        },
+        "label": "ID 6 table_operator historical seen; table=100%; last=25.9s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 5,
+        "canonical_table_id": 5,
+        "merged_track_ids": [
+          5
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": true,
+        "first_seen_frame": 81017,
+        "last_seen_frame": 81042,
+        "first_seen_s": 2703.267,
+        "last_seen_s": 2704.101,
+        "first_seen_clip_s": 3.27,
+        "last_seen_clip_s": 4.104,
+        "age_from_clip_end_s": 25.859,
+        "frames_seen": 26,
+        "observed_table_frames": 7,
+        "table_frames": 7,
+        "table_presence_ratio": 0.269,
+        "table_observed_duration_s": 0.367,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 7
+        },
+        "role_counts": {
+          "imaging": 7,
+          "table_operator": 1
+        },
+        "label": "ID 5 imaging historical seen; table=27%; last=25.9s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": true,
+        "first_seen_frame": 80929,
+        "last_seen_frame": 81038,
+        "first_seen_s": 2700.331,
+        "last_seen_s": 2703.968,
+        "first_seen_clip_s": 0.334,
+        "last_seen_clip_s": 3.971,
+        "age_from_clip_end_s": 25.992,
+        "frames_seen": 74,
+        "observed_table_frames": 71,
+        "table_frames": 71,
+        "table_presence_ratio": 0.959,
+        "table_observed_duration_s": 2.369,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 43,
+          "post_deploy_assessment": 28
+        },
+        "role_counts": {
+          "table_operator": 72
+        },
+        "label": "ID 1 table_operator historical seen; table=96%; last=26.0s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 7,
+        "canonical_table_id": 7,
+        "merged_track_ids": [
+          7,
+          11
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": false,
+        "first_seen_frame": 81130,
+        "last_seen_frame": 81226,
+        "first_seen_s": 2707.038,
+        "last_seen_s": 2710.241,
+        "first_seen_clip_s": 7.04,
+        "last_seen_clip_s": 10.244,
+        "age_from_clip_end_s": 19.72,
+        "frames_seen": 55,
+        "observed_table_frames": 24,
+        "table_frames": 24,
+        "table_presence_ratio": 0.436,
+        "table_observed_duration_s": 1.034,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 24
+        },
+        "role_counts": {
+          "device_prep": 24
+        },
+        "label": "ID 7 device_prep historical seen; table=44%; last=19.7s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 4,
+        "canonical_table_id": 4,
+        "merged_track_ids": [
+          4
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": false,
+        "first_seen_frame": 81004,
+        "last_seen_frame": 81030,
+        "first_seen_s": 2702.833,
+        "last_seen_s": 2703.701,
+        "first_seen_clip_s": 2.836,
+        "last_seen_clip_s": 3.704,
+        "age_from_clip_end_s": 26.259,
+        "frames_seen": 16,
+        "observed_table_frames": 3,
+        "table_frames": 3,
+        "table_presence_ratio": 0.188,
+        "table_observed_duration_s": 0.1,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 3
+        },
+        "role_counts": {
+          "imaging": 3
+        },
+        "label": "ID 4 imaging historical seen; table=19%; last=26.3s ago; dominant=Closure / finish"
+      },
+      {
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "team_status": "historical_seen",
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": false,
+        "is_last_observed_table_member": false,
+        "is_peak_table_member": false,
+        "first_seen_frame": 80968,
+        "last_seen_frame": 81002,
+        "first_seen_s": 2701.632,
+        "last_seen_s": 2702.767,
+        "first_seen_clip_s": 1.635,
+        "last_seen_clip_s": 2.769,
+        "age_from_clip_end_s": 27.194,
+        "frames_seen": 25,
+        "observed_table_frames": 6,
+        "table_frames": 6,
+        "table_presence_ratio": 0.24,
+        "table_observed_duration_s": 0.334,
+        "interval_count": 1,
+        "dominant_stage": "closure_finish",
+        "dominant_stage_label": "Closure / finish",
+        "stage_counts": {
+          "closure_finish": 5,
+          "post_deploy_assessment": 1
+        },
+        "role_counts": {
+          "device_prep": 6
+        },
+        "label": "ID 2 device_prep historical seen; table=24%; last=27.2s ago; dominant=Closure / finish"
+      }
+    ],
+    "table_identity_groups": [
+      {
+        "canonical_table_id": 1,
+        "track_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 80968,
+        "last_seen_frame": 81038,
+        "first_seen_s": 2701.632,
+        "last_seen_s": 2703.968,
+        "first_seen_clip_s": 1.635,
+        "last_seen_clip_s": 3.971,
+        "observed_table_frames": 71,
+        "role_counts": {
+          "table_operator": 71
+        },
+        "stage_counts": {
+          "closure_finish": 43,
+          "post_deploy_assessment": 28
+        }
+      },
+      {
+        "canonical_table_id": 2,
+        "track_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 80993,
+        "last_seen_frame": 81002,
+        "first_seen_s": 2702.466,
+        "last_seen_s": 2702.767,
+        "first_seen_clip_s": 2.469,
+        "last_seen_clip_s": 2.769,
+        "observed_table_frames": 6,
+        "role_counts": {
+          "device_prep": 6
+        },
+        "stage_counts": {
+          "closure_finish": 5,
+          "post_deploy_assessment": 1
+        }
+      },
+      {
+        "canonical_table_id": 3,
+        "track_id": 3,
+        "merged_track_ids": [
+          3
+        ],
+        "dominant_role": "access_operator",
+        "table_team_role": "access_operator",
+        "table_team_role_confidence": 0.587,
+        "first_seen_frame": 80996,
+        "last_seen_frame": 81065,
+        "first_seen_s": 2702.567,
+        "last_seen_s": 2704.869,
+        "first_seen_clip_s": 2.569,
+        "last_seen_clip_s": 4.872,
+        "observed_table_frames": 63,
+        "role_counts": {
+          "access_operator": 37,
+          "table_operator": 21,
+          "unassigned": 5
+        },
+        "stage_counts": {
+          "closure_finish": 63
+        }
+      },
+      {
+        "canonical_table_id": 4,
+        "track_id": 4,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 81028,
+        "last_seen_frame": 81030,
+        "first_seen_s": 2703.634,
+        "last_seen_s": 2703.701,
+        "first_seen_clip_s": 3.637,
+        "last_seen_clip_s": 3.704,
+        "observed_table_frames": 3,
+        "role_counts": {
+          "imaging": 3
+        },
+        "stage_counts": {
+          "closure_finish": 3
+        }
+      },
+      {
+        "canonical_table_id": 5,
+        "track_id": 5,
+        "merged_track_ids": [
+          5
+        ],
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 81028,
+        "last_seen_frame": 81038,
+        "first_seen_s": 2703.634,
+        "last_seen_s": 2703.968,
+        "first_seen_clip_s": 3.637,
+        "last_seen_clip_s": 3.971,
+        "observed_table_frames": 7,
+        "role_counts": {
+          "imaging": 7
+        },
+        "stage_counts": {
+          "closure_finish": 7
+        }
+      },
+      {
+        "canonical_table_id": 6,
+        "track_id": 6,
+        "merged_track_ids": [
+          6
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 81033,
+        "last_seen_frame": 81042,
+        "first_seen_s": 2703.801,
+        "last_seen_s": 2704.101,
+        "first_seen_clip_s": 3.804,
+        "last_seen_clip_s": 4.104,
+        "observed_table_frames": 10,
+        "role_counts": {
+          "table_operator": 10
+        },
+        "stage_counts": {
+          "closure_finish": 10
+        }
+      },
+      {
+        "canonical_table_id": 7,
+        "track_id": 11,
+        "merged_track_ids": [
+          11
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 81170,
+        "last_seen_frame": 81200,
+        "first_seen_s": 2708.372,
+        "last_seen_s": 2709.373,
+        "first_seen_clip_s": 8.375,
+        "last_seen_clip_s": 9.376,
+        "observed_table_frames": 24,
+        "role_counts": {
+          "device_prep": 24
+        },
+        "stage_counts": {
+          "closure_finish": 24
+        }
+      },
+      {
+        "canonical_table_id": 8,
+        "track_id": 12,
+        "merged_track_ids": [
+          12
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 81204,
+        "last_seen_frame": 81204,
+        "first_seen_s": 2709.507,
+        "last_seen_s": 2709.507,
+        "first_seen_clip_s": 9.51,
+        "last_seen_clip_s": 9.51,
+        "observed_table_frames": 1,
+        "role_counts": {
+          "table_operator": 1
+        },
+        "stage_counts": {
+          "closure_finish": 1
+        }
+      },
+      {
+        "canonical_table_id": 9,
+        "track_id": 13,
+        "merged_track_ids": [
+          13
+        ],
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 0.913,
+        "first_seen_frame": 81280,
+        "last_seen_frame": 81306,
+        "first_seen_s": 2712.043,
+        "last_seen_s": 2712.91,
+        "first_seen_clip_s": 12.045,
+        "last_seen_clip_s": 12.913,
+        "observed_table_frames": 23,
+        "role_counts": {
+          "imaging": 21,
+          "table_operator": 2
+        },
+        "stage_counts": {
+          "closure_finish": 23
+        }
+      }
+    ],
+    "stage_timeline": [
+      {
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "start_frame": 80919,
+        "end_frame": 80995,
+        "start_s": 2699.9973,
+        "end_s": 2702.5331666666666,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.5358666666666667,
+        "peak_table_count": 2,
+        "peak_table_roster": {
+          "frame_index": 80993,
+          "timestamp_s": 2702.466,
+          "clip_timestamp_s": 2.469,
+          "age_from_clip_end_s": 0.067,
+          "stage": "post_deploy_assessment",
+          "stage_label": "Post-deploy assessment",
+          "table_count": 2,
+          "roster": [
+            {
+              "track_id": 1,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 29,
+              "table_presence_ratio": 0.897,
+              "label": "ID 1 table_operator table=90%"
+            },
+            {
+              "track_id": 2,
+              "dominant_role": "device_prep",
+              "table_team_role": "device_prep",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 20,
+              "table_presence_ratio": 0.05,
+              "label": "ID 2 device_prep table=5%"
+            }
+          ]
+        },
+        "table_presence_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "interval_duration_s": 0.934,
+            "start_s": 2701.632,
+            "end_s": 2702.533,
+            "clip_start_s": 1.635,
+            "clip_end_s": 2.536,
+            "label": "ID 1 table_operator 2701.6-2702.5s"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "interval_duration_s": 0.033,
+            "start_s": 2702.466,
+            "end_s": 2702.466,
+            "clip_start_s": 2.469,
+            "clip_end_s": 2.469,
+            "label": "ID 2 device_prep 2702.5-2702.5s"
+          }
+        ],
+        "table_roster": [
+          "ID 1 table_operator table=90%"
+        ],
+        "note": "Angiographic/echo assessment and possible post-dilation loop."
+      },
+      {
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "start_frame": 80996,
+        "end_frame": 81817,
+        "start_s": 2702.5665333333336,
+        "end_s": 2729.9605666666666,
+        "clip_start_s": 2.5692333333333335,
+        "clip_end_s": 29.963266666666666,
+        "peak_table_count": 4,
+        "peak_table_roster": {
+          "frame_index": 81038,
+          "timestamp_s": 2703.968,
+          "clip_timestamp_s": 3.971,
+          "age_from_clip_end_s": 25.993,
+          "stage": "closure_finish",
+          "stage_label": "Closure / finish",
+          "table_count": 4,
+          "roster": [
+            {
+              "track_id": 1,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 74,
+              "table_presence_ratio": 0.959,
+              "label": "ID 1 table_operator table=96%"
+            },
+            {
+              "track_id": 3,
+              "dominant_role": "access_operator",
+              "table_team_role": "access_operator",
+              "table_team_role_confidence": 0.583,
+              "frames_seen": 42,
+              "table_presence_ratio": 0.857,
+              "label": "ID 3 access_operator table=86%"
+            },
+            {
+              "track_id": 5,
+              "dominant_role": "imaging",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 0.571,
+              "frames_seen": 22,
+              "table_presence_ratio": 0.318,
+              "label": "ID 5 table_operator (dominant imaging) table=32%"
+            },
+            {
+              "track_id": 6,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 6,
+              "table_presence_ratio": 1.0,
+              "label": "ID 6 table_operator table=100%"
+            }
+          ]
+        },
+        "table_presence_roster": [
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.587,
+            "observed_table_frames": 63,
+            "interval_duration_s": 2.336,
+            "start_s": 2702.567,
+            "end_s": 2704.869,
+            "clip_start_s": 2.569,
+            "clip_end_s": 4.872,
+            "label": "ID 3 access_operator 2702.6-2704.9s"
+          },
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "interval_duration_s": 1.435,
+            "start_s": 2702.567,
+            "end_s": 2703.968,
+            "clip_start_s": 2.569,
+            "clip_end_s": 3.971,
+            "label": "ID 1 table_operator 2702.6-2704.0s"
+          },
+          {
+            "track_id": 11,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "interval_duration_s": 1.034,
+            "start_s": 2708.372,
+            "end_s": 2709.373,
+            "clip_start_s": 8.375,
+            "clip_end_s": 9.376,
+            "label": "ID 11 device_prep 2708.4-2709.4s"
+          },
+          {
+            "track_id": 13,
+            "dominant_role": "imaging",
+            "table_team_role": "imaging",
+            "table_team_role_confidence": 0.913,
+            "observed_table_frames": 23,
+            "interval_duration_s": 0.901,
+            "start_s": 2712.043,
+            "end_s": 2712.91,
+            "clip_start_s": 12.045,
+            "clip_end_s": 12.913,
+            "label": "ID 13 imaging 2712.0-2712.9s"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "interval_duration_s": 0.334,
+            "start_s": 2703.801,
+            "end_s": 2704.101,
+            "clip_start_s": 3.804,
+            "clip_end_s": 4.104,
+            "label": "ID 6 table_operator 2703.8-2704.1s"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "imaging",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 7,
+            "interval_duration_s": 0.367,
+            "start_s": 2703.634,
+            "end_s": 2703.968,
+            "clip_start_s": 3.637,
+            "clip_end_s": 3.971,
+            "label": "ID 5 imaging 2703.6-2704.0s"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "interval_duration_s": 0.167,
+            "start_s": 2702.633,
+            "end_s": 2702.767,
+            "clip_start_s": 2.636,
+            "clip_end_s": 2.769,
+            "label": "ID 2 device_prep 2702.6-2702.8s"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "imaging",
+            "table_team_role": "imaging",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "interval_duration_s": 0.1,
+            "start_s": 2703.634,
+            "end_s": 2703.701,
+            "clip_start_s": 3.637,
+            "clip_end_s": 3.704,
+            "label": "ID 4 imaging 2703.6-2703.7s"
+          },
+          {
+            "track_id": 12,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "interval_duration_s": 0.033,
+            "start_s": 2709.507,
+            "end_s": 2709.507,
+            "clip_start_s": 9.51,
+            "clip_end_s": 9.51,
+            "label": "ID 12 table_operator 2709.5-2709.5s"
+          }
+        ],
+        "table_roster": [],
+        "note": "Access closure, final vessel checks, drape-down, and room cleanup."
+      }
+    ],
+    "track_role_report": [
+      {
+        "track_id": 6,
+        "dominant_role": "table_operator",
+        "frames_seen": 10,
+        "first_frame": 81033,
+        "last_frame": 81042,
+        "table_frames": 10,
+        "table_presence_ratio": 1.0,
+        "role_counts": {
+          "table_operator": 10
+        }
+      },
+      {
+        "track_id": 12,
+        "dominant_role": "table_operator",
+        "frames_seen": 1,
+        "first_frame": 81204,
+        "last_frame": 81204,
+        "table_frames": 1,
+        "table_presence_ratio": 1.0,
+        "role_counts": {
+          "table_operator": 1
+        }
+      },
+      {
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "frames_seen": 74,
+        "first_frame": 80929,
+        "last_frame": 81038,
+        "table_frames": 71,
+        "table_presence_ratio": 0.959,
+        "role_counts": {
+          "device_prep": 1,
+          "entry_supply": 1,
+          "table_operator": 71,
+          "unassigned": 1
+        }
+      },
+      {
+        "track_id": 13,
+        "dominant_role": "table_operator",
+        "frames_seen": 25,
+        "first_frame": 81280,
+        "last_frame": 81306,
+        "table_frames": 23,
+        "table_presence_ratio": 0.92,
+        "role_counts": {
+          "imaging": 12,
+          "table_operator": 13
+        }
+      },
+      {
+        "track_id": 3,
+        "dominant_role": "table_operator",
+        "frames_seen": 69,
+        "first_frame": 80990,
+        "last_frame": 81065,
+        "table_frames": 63,
+        "table_presence_ratio": 0.913,
+        "role_counts": {
+          "access_operator": 21,
+          "table_operator": 42,
+          "unassigned": 6
+        }
+      },
+      {
+        "track_id": 11,
+        "dominant_role": "device_prep",
+        "frames_seen": 48,
+        "first_frame": 81170,
+        "last_frame": 81226,
+        "table_frames": 24,
+        "table_presence_ratio": 0.5,
+        "role_counts": {
+          "device_prep": 48
+        }
+      },
+      {
+        "track_id": 5,
+        "dominant_role": "imaging",
+        "frames_seen": 26,
+        "first_frame": 81017,
+        "last_frame": 81042,
+        "table_frames": 7,
+        "table_presence_ratio": 0.269,
+        "role_counts": {
+          "imaging": 22,
+          "table_operator": 4
+        }
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "device_prep",
+        "frames_seen": 25,
+        "first_frame": 80968,
+        "last_frame": 81002,
+        "table_frames": 6,
+        "table_presence_ratio": 0.24,
+        "role_counts": {
+          "device_prep": 24,
+          "table_operator": 1
+        }
+      },
+      {
+        "track_id": 4,
+        "dominant_role": "imaging",
+        "frames_seen": 16,
+        "first_frame": 81004,
+        "last_frame": 81030,
+        "table_frames": 3,
+        "table_presence_ratio": 0.188,
+        "role_counts": {
+          "imaging": 13,
+          "table_operator": 3
+        }
+      },
+      {
+        "track_id": 8,
+        "dominant_role": "device_prep",
+        "frames_seen": 54,
+        "first_frame": 81158,
+        "last_frame": 81221,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "device_prep": 51,
+          "unassigned": 3
+        }
+      },
+      {
+        "track_id": 10,
+        "dominant_role": "unassigned",
+        "frames_seen": 28,
+        "first_frame": 81164,
+        "last_frame": 81191,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "unassigned": 28
+        }
+      },
+      {
+        "track_id": 9,
+        "dominant_role": "imaging",
+        "frames_seen": 13,
+        "first_frame": 81163,
+        "last_frame": 81175,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "imaging": 13
+        }
+      },
+      {
+        "track_id": 7,
+        "dominant_role": "anesthesia",
+        "frames_seen": 7,
+        "first_frame": 81130,
+        "last_frame": 81145,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "anesthesia": 4,
+          "unassigned": 3
+        }
+      }
+    ],
+    "current_table_roster": [],
+    "last_observed_table_roster": {
+      "frame_index": 81306,
+      "timestamp_s": 2712.91,
+      "clip_timestamp_s": 12.913,
+      "age_from_clip_end_s": 17.05,
+      "stage": "closure_finish",
+      "stage_label": "Closure / finish",
+      "table_count": 1,
+      "roster": [
+        {
+          "track_id": 13,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 0.565,
+          "frames_seen": 25,
+          "table_presence_ratio": 0.92,
+          "label": "ID 13 table_operator table=92%"
+        }
+      ]
+    },
+    "peak_table_roster": {
+      "frame_index": 81038,
+      "timestamp_s": 2703.968,
+      "clip_timestamp_s": 3.971,
+      "age_from_clip_end_s": 25.993,
+      "stage": "closure_finish",
+      "stage_label": "Closure / finish",
+      "table_count": 4,
+      "roster": [
+        {
+          "track_id": 1,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 74,
+          "table_presence_ratio": 0.959,
+          "label": "ID 1 table_operator table=96%"
+        },
+        {
+          "track_id": 3,
+          "dominant_role": "access_operator",
+          "table_team_role": "access_operator",
+          "table_team_role_confidence": 0.583,
+          "frames_seen": 42,
+          "table_presence_ratio": 0.857,
+          "label": "ID 3 access_operator table=86%"
+        },
+        {
+          "track_id": 5,
+          "dominant_role": "imaging",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 0.571,
+          "frames_seen": 22,
+          "table_presence_ratio": 0.318,
+          "label": "ID 5 table_operator (dominant imaging) table=32%"
+        },
+        {
+          "track_id": 6,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 6,
+          "table_presence_ratio": 1.0,
+          "label": "ID 6 table_operator table=100%"
+        }
+      ]
+    },
+    "table_roster_snapshots": [
+      {
+        "snapshot_type": "last_observed",
+        "frame_index": 81306,
+        "timestamp_s": 2712.91,
+        "clip_timestamp_s": 12.913,
+        "age_from_clip_end_s": 17.05,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "table_count": 1,
+        "track_id": 13,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.565,
+        "frames_seen": 25,
+        "table_presence_ratio": 0.92,
+        "label": "ID 13 table_operator table=92%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 81038,
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "age_from_clip_end_s": 25.993,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "table_count": 4,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 74,
+        "table_presence_ratio": 0.959,
+        "label": "ID 1 table_operator table=96%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 81038,
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "age_from_clip_end_s": 25.993,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "table_count": 4,
+        "track_id": 3,
+        "dominant_role": "access_operator",
+        "table_team_role": "access_operator",
+        "table_team_role_confidence": 0.583,
+        "frames_seen": 42,
+        "table_presence_ratio": 0.857,
+        "label": "ID 3 access_operator table=86%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 81038,
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "age_from_clip_end_s": 25.993,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "table_count": 4,
+        "track_id": 5,
+        "dominant_role": "imaging",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.571,
+        "frames_seen": 22,
+        "table_presence_ratio": 0.318,
+        "label": "ID 5 table_operator (dominant imaging) table=32%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 81038,
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "age_from_clip_end_s": 25.993,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "table_count": 4,
+        "track_id": 6,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 6,
+        "table_presence_ratio": 1.0,
+        "label": "ID 6 table_operator table=100%"
+      }
+    ],
+    "table_presence_roster": [
+      {
+        "track_id": 6,
+        "dominant_role": "table_operator",
+        "frames_seen": 10,
+        "table_frames": 10,
+        "table_presence_ratio": 1.0,
+        "first_frame": 81033,
+        "last_frame": 81042,
+        "label": "ID 6 table_operator table=100%"
+      },
+      {
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "frames_seen": 74,
+        "table_frames": 71,
+        "table_presence_ratio": 0.959,
+        "first_frame": 80929,
+        "last_frame": 81038,
+        "label": "ID 1 table_operator table=96%"
+      },
+      {
+        "track_id": 13,
+        "dominant_role": "table_operator",
+        "frames_seen": 25,
+        "table_frames": 23,
+        "table_presence_ratio": 0.92,
+        "first_frame": 81280,
+        "last_frame": 81306,
+        "label": "ID 13 table_operator table=92%"
+      },
+      {
+        "track_id": 3,
+        "dominant_role": "table_operator",
+        "frames_seen": 69,
+        "table_frames": 63,
+        "table_presence_ratio": 0.913,
+        "first_frame": 80990,
+        "last_frame": 81065,
+        "label": "ID 3 table_operator table=91%"
+      },
+      {
+        "track_id": 11,
+        "dominant_role": "device_prep",
+        "frames_seen": 48,
+        "table_frames": 24,
+        "table_presence_ratio": 0.5,
+        "first_frame": 81170,
+        "last_frame": 81226,
+        "label": "ID 11 device_prep table=50%"
+      },
+      {
+        "track_id": 5,
+        "dominant_role": "imaging",
+        "frames_seen": 26,
+        "table_frames": 7,
+        "table_presence_ratio": 0.269,
+        "first_frame": 81017,
+        "last_frame": 81042,
+        "label": "ID 5 imaging table=27%"
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "device_prep",
+        "frames_seen": 25,
+        "table_frames": 6,
+        "table_presence_ratio": 0.24,
+        "first_frame": 80968,
+        "last_frame": 81002,
+        "label": "ID 2 device_prep table=24%"
+      },
+      {
+        "track_id": 4,
+        "dominant_role": "imaging",
+        "frames_seen": 16,
+        "table_frames": 3,
+        "table_presence_ratio": 0.188,
+        "first_frame": 81004,
+        "last_frame": 81030,
+        "label": "ID 4 imaging table=19%"
+      }
+    ],
+    "table_presence_intervals": [
+      {
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "closure_finish",
+        "start_frame": 80968,
+        "end_frame": 81038,
+        "start_s": 2701.632,
+        "end_s": 2703.968,
+        "clip_start_s": 1.635,
+        "clip_end_s": 3.971,
+        "first_cx": 88,
+        "first_cy": 154,
+        "last_cx": 211,
+        "last_cy": 114,
+        "first_area": 581.5,
+        "last_area": 300.0,
+        "observed_table_frames": 71,
+        "interval_duration_s": 2.369,
+        "role_counts": {
+          "table_operator": 71
+        },
+        "stage_counts": {
+          "closure_finish": 43,
+          "post_deploy_assessment": 28
+        },
+        "label": "ID 1 table_operator 2701.6-2704.0s"
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "closure_finish",
+        "start_frame": 80993,
+        "end_frame": 81002,
+        "start_s": 2702.466,
+        "end_s": 2702.767,
+        "clip_start_s": 2.469,
+        "clip_end_s": 2.769,
+        "first_cx": 102,
+        "first_cy": 102,
+        "last_cx": 111,
+        "last_cy": 78,
+        "first_area": 336.5,
+        "last_area": 835.5,
+        "observed_table_frames": 6,
+        "interval_duration_s": 0.334,
+        "role_counts": {
+          "device_prep": 6
+        },
+        "stage_counts": {
+          "closure_finish": 5,
+          "post_deploy_assessment": 1
+        },
+        "label": "ID 2 device_prep 2702.5-2702.8s"
+      },
+      {
+        "track_id": 3,
+        "dominant_role": "access_operator",
+        "table_team_role": "access_operator",
+        "table_team_role_confidence": 0.587,
+        "dominant_stage": "closure_finish",
+        "start_frame": 80996,
+        "end_frame": 81065,
+        "start_s": 2702.567,
+        "end_s": 2704.869,
+        "clip_start_s": 2.569,
+        "clip_end_s": 4.872,
+        "first_cx": 90,
+        "first_cy": 205,
+        "last_cx": 261,
+        "last_cy": 194,
+        "first_area": 343.5,
+        "last_area": 329.0,
+        "observed_table_frames": 63,
+        "interval_duration_s": 2.336,
+        "role_counts": {
+          "access_operator": 37,
+          "table_operator": 21,
+          "unassigned": 5
+        },
+        "stage_counts": {
+          "closure_finish": 63
+        },
+        "label": "ID 3 access_operator 2702.6-2704.9s"
+      },
+      {
+        "track_id": 4,
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "closure_finish",
+        "start_frame": 81028,
+        "end_frame": 81030,
+        "start_s": 2703.634,
+        "end_s": 2703.701,
+        "clip_start_s": 3.637,
+        "clip_end_s": 3.704,
+        "first_cx": 156,
+        "first_cy": 78,
+        "last_cx": 157,
+        "last_cy": 73,
+        "first_area": 736.0,
+        "last_area": 393.0,
+        "observed_table_frames": 3,
+        "interval_duration_s": 0.1,
+        "role_counts": {
+          "imaging": 3
+        },
+        "stage_counts": {
+          "closure_finish": 3
+        },
+        "label": "ID 4 imaging 2703.6-2703.7s"
+      },
+      {
+        "track_id": 5,
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "closure_finish",
+        "start_frame": 81028,
+        "end_frame": 81038,
+        "start_s": 2703.634,
+        "end_s": 2703.968,
+        "clip_start_s": 3.637,
+        "clip_end_s": 3.971,
+        "first_cx": 285,
+        "first_cy": 73,
+        "last_cx": 282,
+        "last_cy": 76,
+        "first_area": 669.0,
+        "last_area": 588.5,
+        "observed_table_frames": 7,
+        "interval_duration_s": 0.367,
+        "role_counts": {
+          "imaging": 7
+        },
+        "stage_counts": {
+          "closure_finish": 7
+        },
+        "label": "ID 5 imaging 2703.6-2704.0s"
+      },
+      {
+        "track_id": 6,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "closure_finish",
+        "start_frame": 81033,
+        "end_frame": 81042,
+        "start_s": 2703.801,
+        "end_s": 2704.101,
+        "clip_start_s": 3.804,
+        "clip_end_s": 4.104,
+        "first_cx": 223,
+        "first_cy": 167,
+        "last_cx": 231,
+        "last_cy": 156,
+        "first_area": 306.5,
+        "last_area": 301.0,
+        "observed_table_frames": 10,
+        "interval_duration_s": 0.334,
+        "role_counts": {
+          "table_operator": 10
+        },
+        "stage_counts": {
+          "closure_finish": 10
+        },
+        "label": "ID 6 table_operator 2703.8-2704.1s"
+      },
+      {
+        "track_id": 11,
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "closure_finish",
+        "start_frame": 81170,
+        "end_frame": 81200,
+        "start_s": 2708.372,
+        "end_s": 2709.373,
+        "clip_start_s": 8.375,
+        "clip_end_s": 9.376,
+        "first_cx": 92,
+        "first_cy": 82,
+        "last_cx": 88,
+        "last_cy": 76,
+        "first_area": 399.5,
+        "last_area": 669.5,
+        "observed_table_frames": 24,
+        "interval_duration_s": 1.034,
+        "role_counts": {
+          "device_prep": 24
+        },
+        "stage_counts": {
+          "closure_finish": 24
+        },
+        "label": "ID 11 device_prep 2708.4-2709.4s"
+      },
+      {
+        "track_id": 13,
+        "dominant_role": "imaging",
+        "table_team_role": "imaging",
+        "table_team_role_confidence": 0.913,
+        "dominant_stage": "closure_finish",
+        "start_frame": 81280,
+        "end_frame": 81306,
+        "start_s": 2712.043,
+        "end_s": 2712.91,
+        "clip_start_s": 12.045,
+        "clip_end_s": 12.913,
+        "first_cx": 250,
+        "first_cy": 74,
+        "last_cx": 258,
+        "last_cy": 84,
+        "first_area": 319.0,
+        "last_area": 388.5,
+        "observed_table_frames": 23,
+        "interval_duration_s": 0.901,
+        "role_counts": {
+          "imaging": 21,
+          "table_operator": 2
+        },
+        "stage_counts": {
+          "closure_finish": 23
+        },
+        "label": "ID 13 imaging 2712.0-2712.9s"
+      }
+    ],
+    "view_segments": [
+      {
+        "view": "room",
+        "is_room_view": true,
+        "tracking_available": true,
+        "start_frame": 80919,
+        "end_frame": 81376,
+        "start_s": 2699.997,
+        "end_s": 2715.246,
+        "clip_start_s": 0.0,
+        "clip_end_s": 15.249,
+        "duration_s": 15.282,
+        "frames": 458,
+        "mean_colorfulness": 34.566,
+        "mean_table_count": 0.454,
+        "peak_table_count": 4,
+        "dominant_stage": "closure_finish",
+        "stage_counts": {
+          "closure_finish": 381,
+          "post_deploy_assessment": 77
+        },
+        "label": "room view 0.0-15.2s"
+      },
+      {
+        "view": "non_room",
+        "is_room_view": false,
+        "tracking_available": false,
+        "start_frame": 81377,
+        "end_frame": 81817,
+        "start_s": 2715.279,
+        "end_s": 2729.961,
+        "clip_start_s": 15.282,
+        "clip_end_s": 29.963,
+        "duration_s": 14.715,
+        "frames": 441,
+        "mean_colorfulness": 1.929,
+        "mean_table_count": 0.0,
+        "peak_table_count": 0,
+        "dominant_stage": "closure_finish",
+        "stage_counts": {
+          "closure_finish": 441
+        },
+        "label": "non_room view 15.3-30.0s"
+      }
+    ],
+    "table_transition_events": [
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2701.632,
+        "clip_timestamp_s": 1.635,
+        "frame_index": 80968,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "stage_segment_index": 0,
+        "coverage_ratio": 0.364,
+        "room_coverage_ratio": 0.364,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 28,
+        "label": "1.6s table_entry: ID 1 table_operator during Post-deploy assessment"
+      },
+      {
+        "event_type": "table_present_at_stage_end",
+        "timestamp_s": 2702.533,
+        "clip_timestamp_s": 2.536,
+        "frame_index": 80995,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "stage_segment_index": 0,
+        "coverage_ratio": 0.364,
+        "room_coverage_ratio": 0.364,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 28,
+        "label": "2.5s table_present_at_stage_end: ID 1 table_operator during Post-deploy assessment"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 2702.567,
+        "clip_timestamp_s": 2.569,
+        "frame_index": 80996,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.052,
+        "room_coverage_ratio": 0.113,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 43,
+        "label": "2.6s table_present_at_stage_start: ID 1 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 2702.567,
+        "clip_timestamp_s": 2.569,
+        "frame_index": 80996,
+        "track_id": 3,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.667,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.077,
+        "room_coverage_ratio": 0.165,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 63,
+        "label": "2.6s table_present_at_stage_start: ID 3 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2702.633,
+        "clip_timestamp_s": 2.636,
+        "frame_index": 80998,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 0.8,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 0.013,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 5,
+        "label": "2.6s table_entry: ID 2 device_prep during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2702.767,
+        "clip_timestamp_s": 2.769,
+        "frame_index": 81002,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 0.8,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 0.013,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 5,
+        "label": "2.8s table_exit: ID 2 device_prep during Closure / finish"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2703.634,
+        "clip_timestamp_s": 3.637,
+        "frame_index": 81028,
+        "track_id": 4,
+        "canonical_table_id": 4,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.004,
+        "room_coverage_ratio": 0.008,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 3,
+        "label": "3.6s table_entry: ID 4 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2703.634,
+        "clip_timestamp_s": 3.637,
+        "frame_index": 81028,
+        "track_id": 5,
+        "canonical_table_id": 5,
+        "merged_track_ids": [
+          5
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.571,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.009,
+        "room_coverage_ratio": 0.018,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 7,
+        "label": "3.6s table_entry: ID 5 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2703.701,
+        "clip_timestamp_s": 3.704,
+        "frame_index": 81030,
+        "track_id": 4,
+        "canonical_table_id": 4,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.004,
+        "room_coverage_ratio": 0.008,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 3,
+        "label": "3.7s table_exit: ID 4 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2703.801,
+        "clip_timestamp_s": 3.804,
+        "frame_index": 81033,
+        "track_id": 6,
+        "canonical_table_id": 6,
+        "merged_track_ids": [
+          6
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.012,
+        "room_coverage_ratio": 0.026,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 10,
+        "label": "3.8s table_entry: ID 6 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "frame_index": 81038,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.052,
+        "room_coverage_ratio": 0.113,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 43,
+        "label": "4.0s table_exit: ID 1 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "frame_index": 81038,
+        "track_id": 5,
+        "canonical_table_id": 5,
+        "merged_track_ids": [
+          5
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.571,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.009,
+        "room_coverage_ratio": 0.018,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 7,
+        "label": "4.0s table_exit: ID 5 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2704.101,
+        "clip_timestamp_s": 4.104,
+        "frame_index": 81042,
+        "track_id": 6,
+        "canonical_table_id": 6,
+        "merged_track_ids": [
+          6
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.012,
+        "room_coverage_ratio": 0.026,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 10,
+        "label": "4.1s table_exit: ID 6 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2704.869,
+        "clip_timestamp_s": 4.872,
+        "frame_index": 81065,
+        "track_id": 3,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.667,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.077,
+        "room_coverage_ratio": 0.165,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 63,
+        "label": "4.9s table_exit: ID 3 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2708.372,
+        "clip_timestamp_s": 8.375,
+        "frame_index": 81170,
+        "track_id": 11,
+        "canonical_table_id": 7,
+        "merged_track_ids": [
+          11
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.029,
+        "room_coverage_ratio": 0.063,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 24,
+        "label": "8.4s table_entry: ID 11 device_prep during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2709.373,
+        "clip_timestamp_s": 9.376,
+        "frame_index": 81200,
+        "track_id": 11,
+        "canonical_table_id": 7,
+        "merged_track_ids": [
+          11
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.029,
+        "room_coverage_ratio": 0.063,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 24,
+        "label": "9.4s table_exit: ID 11 device_prep during Closure / finish"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 2712.043,
+        "clip_timestamp_s": 12.045,
+        "frame_index": 81280,
+        "track_id": 13,
+        "canonical_table_id": 9,
+        "merged_track_ids": [
+          13
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.565,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.028,
+        "room_coverage_ratio": 0.06,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 23,
+        "label": "12.0s table_entry: ID 13 table_operator during Closure / finish"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 2712.91,
+        "clip_timestamp_s": 12.913,
+        "frame_index": 81306,
+        "track_id": 13,
+        "canonical_table_id": 9,
+        "merged_track_ids": [
+          13
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.565,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.028,
+        "room_coverage_ratio": 0.06,
+        "tracking_available_rate": 0.464,
+        "observed_table_frames": 23,
+        "label": "12.9s table_exit: ID 13 table_operator during Closure / finish"
+      }
+    ],
+    "stage_table_coverage": [
+      {
+        "stage_segment_index": 0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "stage_start_frame": 80919,
+        "stage_end_frame": 80995,
+        "stage_start_s": 2699.997,
+        "stage_end_s": 2702.533,
+        "stage_clip_start_s": 0.0,
+        "stage_clip_end_s": 2.536,
+        "stage_duration_s": 2.569,
+        "stage_room_view_frames": 77,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 28,
+        "first_seen_frame": 80968,
+        "last_seen_frame": 80995,
+        "first_seen_s": 2701.632,
+        "last_seen_s": 2702.533,
+        "first_seen_clip_s": 1.635,
+        "last_seen_clip_s": 2.536,
+        "coverage_ratio": 0.364,
+        "room_coverage_ratio": 0.364,
+        "estimated_table_duration_s": 0.934,
+        "entered_during_stage": true,
+        "exited_during_stage": false,
+        "role_counts": {
+          "table_operator": 28
+        },
+        "spans_full_stage": false,
+        "label": "Post-deploy assessment: ID 1 table_operator 36%"
+      },
+      {
+        "stage_segment_index": 0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "stage_start_frame": 80919,
+        "stage_end_frame": 80995,
+        "stage_start_s": 2699.997,
+        "stage_end_s": 2702.533,
+        "stage_clip_start_s": 0.0,
+        "stage_clip_end_s": 2.536,
+        "stage_duration_s": 2.569,
+        "stage_room_view_frames": 77,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 1,
+        "first_seen_frame": 80993,
+        "last_seen_frame": 80993,
+        "first_seen_s": 2702.466,
+        "last_seen_s": 2702.466,
+        "first_seen_clip_s": 2.469,
+        "last_seen_clip_s": 2.469,
+        "coverage_ratio": 0.013,
+        "room_coverage_ratio": 0.013,
+        "estimated_table_duration_s": 0.033,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "device_prep": 1
+        },
+        "spans_full_stage": false,
+        "label": "Post-deploy assessment: ID 2 device_prep 1%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 43,
+        "first_seen_frame": 80996,
+        "last_seen_frame": 81038,
+        "first_seen_s": 2702.567,
+        "last_seen_s": 2703.968,
+        "first_seen_clip_s": 2.569,
+        "last_seen_clip_s": 3.971,
+        "coverage_ratio": 0.052,
+        "room_coverage_ratio": 0.113,
+        "estimated_table_duration_s": 1.435,
+        "entered_during_stage": false,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 43
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 1 table_operator 5%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 0.8,
+        "observed_table_frames": 5,
+        "first_seen_frame": 80998,
+        "last_seen_frame": 81002,
+        "first_seen_s": 2702.633,
+        "last_seen_s": 2702.767,
+        "first_seen_clip_s": 2.636,
+        "last_seen_clip_s": 2.769,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 0.013,
+        "estimated_table_duration_s": 0.167,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "device_prep": 4,
+          "table_operator": 1
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 2 device_prep 1%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 3,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.667,
+        "observed_table_frames": 63,
+        "first_seen_frame": 80996,
+        "last_seen_frame": 81065,
+        "first_seen_s": 2702.567,
+        "last_seen_s": 2704.869,
+        "first_seen_clip_s": 2.569,
+        "last_seen_clip_s": 4.872,
+        "coverage_ratio": 0.077,
+        "room_coverage_ratio": 0.165,
+        "estimated_table_duration_s": 2.102,
+        "entered_during_stage": false,
+        "exited_during_stage": true,
+        "role_counts": {
+          "access_operator": 21,
+          "table_operator": 42
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 3 table_operator 8%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 4,
+        "canonical_table_id": 4,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 3,
+        "first_seen_frame": 81028,
+        "last_seen_frame": 81030,
+        "first_seen_s": 2703.634,
+        "last_seen_s": 2703.701,
+        "first_seen_clip_s": 3.637,
+        "last_seen_clip_s": 3.704,
+        "coverage_ratio": 0.004,
+        "room_coverage_ratio": 0.008,
+        "estimated_table_duration_s": 0.1,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 3
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 4 table_operator 0%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 5,
+        "canonical_table_id": 5,
+        "merged_track_ids": [
+          5
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.571,
+        "observed_table_frames": 7,
+        "first_seen_frame": 81028,
+        "last_seen_frame": 81038,
+        "first_seen_s": 2703.634,
+        "last_seen_s": 2703.968,
+        "first_seen_clip_s": 3.637,
+        "last_seen_clip_s": 3.971,
+        "coverage_ratio": 0.009,
+        "room_coverage_ratio": 0.018,
+        "estimated_table_duration_s": 0.234,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "imaging": 3,
+          "table_operator": 4
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 5 table_operator 1%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 6,
+        "canonical_table_id": 6,
+        "merged_track_ids": [
+          6
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 10,
+        "first_seen_frame": 81033,
+        "last_seen_frame": 81042,
+        "first_seen_s": 2703.801,
+        "last_seen_s": 2704.101,
+        "first_seen_clip_s": 3.804,
+        "last_seen_clip_s": 4.104,
+        "coverage_ratio": 0.012,
+        "room_coverage_ratio": 0.026,
+        "estimated_table_duration_s": 0.334,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 10
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 6 table_operator 1%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 11,
+        "canonical_table_id": 7,
+        "merged_track_ids": [
+          11
+        ],
+        "dominant_role": "device_prep",
+        "table_team_role": "device_prep",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 24,
+        "first_seen_frame": 81170,
+        "last_seen_frame": 81200,
+        "first_seen_s": 2708.372,
+        "last_seen_s": 2709.373,
+        "first_seen_clip_s": 8.375,
+        "last_seen_clip_s": 9.376,
+        "coverage_ratio": 0.029,
+        "room_coverage_ratio": 0.063,
+        "estimated_table_duration_s": 0.801,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "device_prep": 24
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 11 device_prep 3%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 12,
+        "canonical_table_id": 8,
+        "merged_track_ids": [
+          12
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 1,
+        "first_seen_frame": 81204,
+        "last_seen_frame": 81204,
+        "first_seen_s": 2709.507,
+        "last_seen_s": 2709.507,
+        "first_seen_clip_s": 9.51,
+        "last_seen_clip_s": 9.51,
+        "coverage_ratio": 0.001,
+        "room_coverage_ratio": 0.003,
+        "estimated_table_duration_s": 0.033,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 1
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 12 table_operator 0%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "stage_start_frame": 80996,
+        "stage_end_frame": 81817,
+        "stage_start_s": 2702.567,
+        "stage_end_s": 2729.961,
+        "stage_clip_start_s": 2.569,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 27.427,
+        "stage_room_view_frames": 381,
+        "stage_non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "track_id": 13,
+        "canonical_table_id": 9,
+        "merged_track_ids": [
+          13
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.565,
+        "observed_table_frames": 23,
+        "first_seen_frame": 81280,
+        "last_seen_frame": 81306,
+        "first_seen_s": 2712.043,
+        "last_seen_s": 2712.91,
+        "first_seen_clip_s": 12.045,
+        "last_seen_clip_s": 12.913,
+        "coverage_ratio": 0.028,
+        "room_coverage_ratio": 0.06,
+        "estimated_table_duration_s": 0.767,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "imaging": 10,
+          "table_operator": 13
+        },
+        "spans_full_stage": false,
+        "label": "Closure / finish: ID 13 table_operator 3%"
+      }
+    ],
+    "stage_handoff_summary": [
+      {
+        "stage_segment_index": 0,
+        "previous_stage": null,
+        "previous_stage_label": null,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "start_frame": 80919,
+        "end_frame": 80995,
+        "start_s": 2699.997,
+        "end_s": 2702.533,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "room_view_frames": 77,
+        "non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "active_table_track_count": 2,
+        "lead_track_id": 1,
+        "lead_role": "table_operator",
+        "lead_dominant_role": "table_operator",
+        "lead_table_team_role": "table_operator",
+        "lead_table_team_role_confidence": 1.0,
+        "lead_observed_table_frames": 28,
+        "continued_track_ids": [],
+        "new_track_ids": [
+          1,
+          2
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          1,
+          2
+        ],
+        "within_stage_exit_track_ids": [
+          2
+        ],
+        "handoff_type": "initial_table_roster",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "coverage_ratio": 0.364,
+            "room_coverage_ratio": 0.364,
+            "first_seen_s": 2701.632,
+            "last_seen_s": 2702.533,
+            "first_seen_clip_s": 1.635,
+            "last_seen_clip_s": 2.536,
+            "label": "ID 1 table_operator 28 frames 1.6-2.5s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.013,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.466,
+            "last_seen_s": 2702.466,
+            "first_seen_clip_s": 2.469,
+            "last_seen_clip_s": 2.469,
+            "label": "ID 2 device_prep 1 frames 2.5-2.5s"
+          }
+        ],
+        "continued_table_roster": [],
+        "new_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "coverage_ratio": 0.364,
+            "room_coverage_ratio": 0.364,
+            "first_seen_s": 2701.632,
+            "last_seen_s": 2702.533,
+            "first_seen_clip_s": 1.635,
+            "last_seen_clip_s": 2.536,
+            "label": "ID 1 table_operator 28 frames 1.6-2.5s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.013,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.466,
+            "last_seen_s": 2702.466,
+            "first_seen_clip_s": 2.469,
+            "last_seen_clip_s": 2.469,
+            "label": "ID 2 device_prep 1 frames 2.5-2.5s"
+          }
+        ],
+        "dropped_table_roster": [],
+        "label": "Post-deploy assessment: initial_table_roster; lead ID 1 table_operator; active table tracks=2"
+      },
+      {
+        "stage_segment_index": 1,
+        "previous_stage": "post_deploy_assessment",
+        "previous_stage_label": "Post-deploy assessment",
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "start_frame": 80996,
+        "end_frame": 81817,
+        "start_s": 2702.567,
+        "end_s": 2729.961,
+        "clip_start_s": 2.569,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "room_view_frames": 381,
+        "non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "active_table_track_count": 9,
+        "lead_track_id": 3,
+        "lead_role": "table_operator",
+        "lead_dominant_role": "table_operator",
+        "lead_table_team_role": "table_operator",
+        "lead_table_team_role_confidence": 0.667,
+        "lead_observed_table_frames": 63,
+        "continued_track_ids": [
+          1,
+          2
+        ],
+        "new_track_ids": [
+          3,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          2,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "handoff_type": "roster_added",
+        "active_table_roster": [
+          {
+            "track_id": 3,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.667,
+            "observed_table_frames": 63,
+            "coverage_ratio": 0.077,
+            "room_coverage_ratio": 0.165,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2704.869,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 4.872,
+            "label": "ID 3 table_operator 63 frames 2.6-4.9s"
+          },
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "coverage_ratio": 0.052,
+            "room_coverage_ratio": 0.113,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 1 table_operator 43 frames 2.6-4.0s"
+          },
+          {
+            "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.029,
+            "room_coverage_ratio": 0.063,
+            "first_seen_s": 2708.372,
+            "last_seen_s": 2709.373,
+            "first_seen_clip_s": 8.375,
+            "last_seen_clip_s": 9.376,
+            "label": "ID 11 device_prep 24 frames 8.4-9.4s"
+          },
+          {
+            "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "coverage_ratio": 0.028,
+            "room_coverage_ratio": 0.06,
+            "first_seen_s": 2712.043,
+            "last_seen_s": 2712.91,
+            "first_seen_clip_s": 12.045,
+            "last_seen_clip_s": 12.913,
+            "label": "ID 13 table_operator 23 frames 12.0-12.9s"
+          },
+          {
+            "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "coverage_ratio": 0.012,
+            "room_coverage_ratio": 0.026,
+            "first_seen_s": 2703.801,
+            "last_seen_s": 2704.101,
+            "first_seen_clip_s": 3.804,
+            "last_seen_clip_s": 4.104,
+            "label": "ID 6 table_operator 10 frames 3.8-4.1s"
+          },
+          {
+            "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "coverage_ratio": 0.009,
+            "room_coverage_ratio": 0.018,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 5 table_operator 7 frames 3.6-4.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.633,
+            "last_seen_s": 2702.767,
+            "first_seen_clip_s": 2.636,
+            "last_seen_clip_s": 2.769,
+            "label": "ID 2 device_prep 5 frames 2.6-2.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.008,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.701,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.704,
+            "label": "ID 4 table_operator 3 frames 3.6-3.7s"
+          },
+          {
+            "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.001,
+            "room_coverage_ratio": 0.003,
+            "first_seen_s": 2709.507,
+            "last_seen_s": 2709.507,
+            "first_seen_clip_s": 9.51,
+            "last_seen_clip_s": 9.51,
+            "label": "ID 12 table_operator 1 frames 9.5-9.5s"
+          }
+        ],
+        "continued_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "coverage_ratio": 0.052,
+            "room_coverage_ratio": 0.113,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 1 table_operator 43 frames 2.6-4.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.633,
+            "last_seen_s": 2702.767,
+            "first_seen_clip_s": 2.636,
+            "last_seen_clip_s": 2.769,
+            "label": "ID 2 device_prep 5 frames 2.6-2.8s"
+          }
+        ],
+        "new_table_roster": [
+          {
+            "track_id": 3,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.667,
+            "observed_table_frames": 63,
+            "coverage_ratio": 0.077,
+            "room_coverage_ratio": 0.165,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2704.869,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 4.872,
+            "label": "ID 3 table_operator 63 frames 2.6-4.9s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.008,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.701,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.704,
+            "label": "ID 4 table_operator 3 frames 3.6-3.7s"
+          },
+          {
+            "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "coverage_ratio": 0.009,
+            "room_coverage_ratio": 0.018,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 5 table_operator 7 frames 3.6-4.0s"
+          },
+          {
+            "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "coverage_ratio": 0.012,
+            "room_coverage_ratio": 0.026,
+            "first_seen_s": 2703.801,
+            "last_seen_s": 2704.101,
+            "first_seen_clip_s": 3.804,
+            "last_seen_clip_s": 4.104,
+            "label": "ID 6 table_operator 10 frames 3.8-4.1s"
+          },
+          {
+            "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.029,
+            "room_coverage_ratio": 0.063,
+            "first_seen_s": 2708.372,
+            "last_seen_s": 2709.373,
+            "first_seen_clip_s": 8.375,
+            "last_seen_clip_s": 9.376,
+            "label": "ID 11 device_prep 24 frames 8.4-9.4s"
+          },
+          {
+            "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.001,
+            "room_coverage_ratio": 0.003,
+            "first_seen_s": 2709.507,
+            "last_seen_s": 2709.507,
+            "first_seen_clip_s": 9.51,
+            "last_seen_clip_s": 9.51,
+            "label": "ID 12 table_operator 1 frames 9.5-9.5s"
+          },
+          {
+            "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "coverage_ratio": 0.028,
+            "room_coverage_ratio": 0.06,
+            "first_seen_s": 2712.043,
+            "last_seen_s": 2712.91,
+            "first_seen_clip_s": 12.045,
+            "last_seen_clip_s": 12.913,
+            "label": "ID 13 table_operator 23 frames 12.0-12.9s"
+          }
+        ],
+        "dropped_table_roster": [],
+        "label": "Closure / finish: roster_added; lead ID 3 table_operator; active table tracks=9"
+      }
+    ],
+    "stage_roster_summary": [
+      {
+        "stage_segment_index": 0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "start_s": 2699.997,
+        "end_s": 2702.533,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "tracking_available_rate": 1.0,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.278,
+        "peak_table_count": 2,
+        "active_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2
+        ],
+        "continued_track_ids": [],
+        "new_track_ids": [
+          1,
+          2
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          1,
+          2
+        ],
+        "within_stage_exit_track_ids": [
+          2
+        ],
+        "handoff_type": "initial_table_roster",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "coverage_ratio": 0.364,
+            "room_coverage_ratio": 0.364,
+            "first_seen_s": 2701.632,
+            "last_seen_s": 2702.533,
+            "first_seen_clip_s": 1.635,
+            "last_seen_clip_s": 2.536,
+            "label": "ID 1 table_operator 28 frames 1.6-2.5s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.013,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.466,
+            "last_seen_s": 2702.466,
+            "first_seen_clip_s": 2.469,
+            "last_seen_clip_s": 2.469,
+            "label": "ID 2 device_prep 1 frames 2.5-2.5s"
+          }
+        ],
+        "roster_summary": "ID 1 table_operator 28 frames 1.6-2.5s; ID 2 device_prep 1 frames 2.5-2.5s",
+        "label": "Post-deploy assessment: peak table 2; 2 table IDs; initial_table_roster; ID 1 table_operator 28 frames 1.6-2.5s; ID 2 device_prep 1 frames 2.5-2.5s"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "start_s": 2702.567,
+        "end_s": 2729.961,
+        "clip_start_s": 2.569,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "tracking_available_rate": 0.464,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.464,
+        "mean_confidence": 0.289,
+        "peak_table_count": 4,
+        "active_table_track_count": 9,
+        "canonical_table_identity_count": 9,
+        "lead_track_id": 3,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          3,
+          1,
+          11,
+          13,
+          6,
+          5,
+          2,
+          4,
+          12
+        ],
+        "continued_track_ids": [
+          1,
+          2
+        ],
+        "new_track_ids": [
+          3,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          2,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "handoff_type": "roster_added",
+        "active_table_roster": [
+          {
+            "track_id": 3,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.667,
+            "observed_table_frames": 63,
+            "coverage_ratio": 0.077,
+            "room_coverage_ratio": 0.165,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2704.869,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 4.872,
+            "label": "ID 3 table_operator 63 frames 2.6-4.9s"
+          },
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "coverage_ratio": 0.052,
+            "room_coverage_ratio": 0.113,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 1 table_operator 43 frames 2.6-4.0s"
+          },
+          {
+            "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.029,
+            "room_coverage_ratio": 0.063,
+            "first_seen_s": 2708.372,
+            "last_seen_s": 2709.373,
+            "first_seen_clip_s": 8.375,
+            "last_seen_clip_s": 9.376,
+            "label": "ID 11 device_prep 24 frames 8.4-9.4s"
+          },
+          {
+            "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "coverage_ratio": 0.028,
+            "room_coverage_ratio": 0.06,
+            "first_seen_s": 2712.043,
+            "last_seen_s": 2712.91,
+            "first_seen_clip_s": 12.045,
+            "last_seen_clip_s": 12.913,
+            "label": "ID 13 table_operator 23 frames 12.0-12.9s"
+          },
+          {
+            "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "coverage_ratio": 0.012,
+            "room_coverage_ratio": 0.026,
+            "first_seen_s": 2703.801,
+            "last_seen_s": 2704.101,
+            "first_seen_clip_s": 3.804,
+            "last_seen_clip_s": 4.104,
+            "label": "ID 6 table_operator 10 frames 3.8-4.1s"
+          },
+          {
+            "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "coverage_ratio": 0.009,
+            "room_coverage_ratio": 0.018,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 5 table_operator 7 frames 3.6-4.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.633,
+            "last_seen_s": 2702.767,
+            "first_seen_clip_s": 2.636,
+            "last_seen_clip_s": 2.769,
+            "label": "ID 2 device_prep 5 frames 2.6-2.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.008,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.701,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.704,
+            "label": "ID 4 table_operator 3 frames 3.6-3.7s"
+          },
+          {
+            "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.001,
+            "room_coverage_ratio": 0.003,
+            "first_seen_s": 2709.507,
+            "last_seen_s": 2709.507,
+            "first_seen_clip_s": 9.51,
+            "last_seen_clip_s": 9.51,
+            "label": "ID 12 table_operator 1 frames 9.5-9.5s"
+          }
+        ],
+        "roster_summary": "ID 3 table_operator 63 frames 2.6-4.9s; ID 1 table_operator 43 frames 2.6-4.0s; ID 11 device_prep 24 frames 8.4-9.4s; ID 13 table_operator 23 frames 12.0-12.9s; ID 6 table_operator 10 frames 3.8-4.1s; ID 5 table_operator 7 frames 3.6-4.0s",
+        "label": "Closure / finish: peak table 4; 9 table IDs; roster_added; ID 3 table_operator 63 frames 2.6-4.9s; ID 1 table_operator 43 frames 2.6-4.0s; ID 11 device_prep 24 frames 8.4-9.4s; ID 13 table_operator 23 frames 12.0-12.9s; ID 6 table_operator 10 frames 3.8-4.1s; ID 5 table_operator 7 frames 3.6-4.0s"
+      }
+    ],
+    "stage_evidence_summary": [
+      {
+        "stage_segment_index": 0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "start_frame": 80919,
+        "end_frame": 80995,
+        "start_s": 2699.997,
+        "end_s": 2702.533,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "frames": 77,
+        "room_view_frames": 77,
+        "non_room_view_frames": 0,
+        "observable_rate": 1.0,
+        "mean_confidence": 0.278,
+        "min_confidence": 0.2,
+        "max_confidence": 0.34,
+        "evidence_level": "weak_visual_support",
+        "dominant_signal": "stillness",
+        "mean_table_signal": 0.126,
+        "mean_access_signal": 0.0,
+        "mean_imaging_signal": 0.0,
+        "mean_device_signal": 0.136,
+        "mean_anesthesia_signal": 0.0,
+        "mean_stillness_signal": 0.939,
+        "mean_crowd_signal": 0.148,
+        "support_label": "observable=100%, confidence=0.28, strongest=stillness:0.94",
+        "label": "Post-deploy assessment: weak_visual_support; observable=100%, confidence=0.28, strongest=stillness:0.94"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "start_frame": 80996,
+        "end_frame": 81817,
+        "start_s": 2702.567,
+        "end_s": 2729.961,
+        "clip_start_s": 2.569,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "frames": 822,
+        "room_view_frames": 381,
+        "non_room_view_frames": 441,
+        "observable_rate": 0.464,
+        "mean_confidence": 0.289,
+        "min_confidence": 0.18,
+        "max_confidence": 0.53,
+        "evidence_level": "weak_visual_support",
+        "dominant_signal": "stillness",
+        "mean_table_signal": 0.097,
+        "mean_access_signal": 0.013,
+        "mean_imaging_signal": 0.036,
+        "mean_device_signal": 0.063,
+        "mean_anesthesia_signal": 0.009,
+        "mean_stillness_signal": 0.987,
+        "mean_crowd_signal": 0.082,
+        "support_label": "observable=46%, confidence=0.29, strongest=stillness:0.99",
+        "label": "Closure / finish: weak_visual_support; observable=46%, confidence=0.29, strongest=stillness:0.99"
+      }
+    ],
+    "procedure_milestones": [
+      {
+        "milestone_index": 0,
+        "stage": "room_prep_drape",
+        "stage_label": "Room prep / drape",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Room prep / drape: not observed in this clip"
+      },
+      {
+        "milestone_index": 1,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Access / sheathing: not observed in this clip"
+      },
+      {
+        "milestone_index": 2,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Angio alignment / crossing: not observed in this clip"
+      },
+      {
+        "milestone_index": 3,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Balloon valvuloplasty: not observed in this clip"
+      },
+      {
+        "milestone_index": 4,
+        "stage": "valve_delivery_positioning",
+        "stage_label": "Valve delivery / positioning",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Valve delivery / positioning: not observed in this clip"
+      },
+      {
+        "milestone_index": 5,
+        "stage": "valve_deployment",
+        "stage_label": "Valve deployment",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Valve deployment: not observed in this clip"
+      },
+      {
+        "milestone_index": 6,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "observed_in_clip": true,
+        "milestone_status": "observed_prior",
+        "is_current_observed_stage": false,
+        "first_observed_s": 2699.997,
+        "last_observed_s": 2702.533,
+        "duration_s": 2.569,
+        "segment_count": 1,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.278,
+        "peak_table_count": 2,
+        "unique_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "support_label": "observed_prior; evidence=weak_visual_support; observable=100%; confidence=0.28; table_peak=2; table_people=2",
+        "label": "Post-deploy assessment: observed_prior; evidence=weak_visual_support; observable=100%; confidence=0.28; table_peak=2; table_people=2"
+      },
+      {
+        "milestone_index": 7,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "observed_in_clip": true,
+        "milestone_status": "current_observed",
+        "is_current_observed_stage": true,
+        "first_observed_s": 2702.567,
+        "last_observed_s": 2729.961,
+        "duration_s": 27.427,
+        "segment_count": 1,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.464,
+        "mean_confidence": 0.289,
+        "peak_table_count": 4,
+        "unique_table_track_count": 9,
+        "canonical_table_identity_count": 9,
+        "support_label": "current_observed; evidence=weak_visual_support; observable=46%; confidence=0.29; table_peak=4; table_people=9",
+        "label": "Closure / finish: current_observed; evidence=weak_visual_support; observable=46%; confidence=0.29; table_peak=4; table_people=9"
+      }
+    ],
+    "procedure_event_timeline": [
+      {
+        "event_type": "stage_started",
+        "timestamp_s": 2699.997,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 80919,
+        "end_s": 2702.533,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 0,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [],
+        "roster": [],
+        "source": "stage_timeline",
+        "label": "0.0s stage started: Post-deploy assessment"
+      },
+      {
+        "event_type": "view_started",
+        "timestamp_s": 2699.997,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 80919,
+        "end_s": 2715.246,
+        "clip_end_s": 15.249,
+        "duration_s": 15.282,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 4,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [],
+        "roster": [],
+        "source": "view_segments",
+        "label": "0.0s room view started"
+      },
+      {
+        "event_type": "table_handoff",
+        "timestamp_s": 2699.997,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 80919,
+        "end_s": 2702.533,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": "initial_table_roster",
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "coverage_ratio": 0.364,
+            "room_coverage_ratio": 0.364,
+            "first_seen_s": 2701.632,
+            "last_seen_s": 2702.533,
+            "first_seen_clip_s": 1.635,
+            "last_seen_clip_s": 2.536,
+            "label": "ID 1 table_operator 28 frames 1.6-2.5s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.013,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.466,
+            "last_seen_s": 2702.466,
+            "first_seen_clip_s": 2.469,
+            "last_seen_clip_s": 2.469,
+            "label": "ID 2 device_prep 1 frames 2.5-2.5s"
+          }
+        ],
+        "source": "stage_handoff_summary",
+        "label": "Post-deploy assessment: initial_table_roster; lead ID 1 table_operator; active table tracks=2"
+      },
+      {
+        "event_type": "table_peak",
+        "timestamp_s": 2702.466,
+        "clip_timestamp_s": 2.469,
+        "frame_index": 80993,
+        "end_s": 2702.466,
+        "clip_end_s": 2.469,
+        "duration_s": 0.0,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 29,
+            "table_presence_ratio": 0.897,
+            "label": "ID 1 table_operator table=90%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 20,
+            "table_presence_ratio": 0.05,
+            "label": "ID 2 device_prep table=5%"
+          }
+        ],
+        "source": "peak_table_roster",
+        "label": "2.469s table peak: 2 active during Post-deploy assessment"
+      },
+      {
+        "event_type": "stage_started",
+        "timestamp_s": 2702.567,
+        "clip_timestamp_s": 2.569,
+        "frame_index": 80996,
+        "end_s": 2729.961,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          3
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 32,
+            "table_presence_ratio": 0.906,
+            "label": "ID 1 table_operator table=91%"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "unassigned",
+            "table_team_role": "unassigned",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 7,
+            "table_presence_ratio": 0.143,
+            "label": "ID 3 unassigned table=14%"
+          }
+        ],
+        "source": "stage_timeline",
+        "label": "2.6s stage started: Closure / finish"
+      },
+      {
+        "event_type": "table_handoff",
+        "timestamp_s": 2702.567,
+        "clip_timestamp_s": 2.569,
+        "frame_index": 80996,
+        "end_s": 2729.961,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 9,
+        "track_id": 3,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.667,
+        "handoff_type": "roster_added",
+        "table_track_ids": [
+          3,
+          1,
+          11,
+          13,
+          6,
+          5,
+          2,
+          4,
+          12
+        ],
+        "roster": [
+          {
+            "track_id": 3,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.667,
+            "observed_table_frames": 63,
+            "coverage_ratio": 0.077,
+            "room_coverage_ratio": 0.165,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2704.869,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 4.872,
+            "label": "ID 3 table_operator 63 frames 2.6-4.9s"
+          },
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "coverage_ratio": 0.052,
+            "room_coverage_ratio": 0.113,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 1 table_operator 43 frames 2.6-4.0s"
+          },
+          {
+            "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.029,
+            "room_coverage_ratio": 0.063,
+            "first_seen_s": 2708.372,
+            "last_seen_s": 2709.373,
+            "first_seen_clip_s": 8.375,
+            "last_seen_clip_s": 9.376,
+            "label": "ID 11 device_prep 24 frames 8.4-9.4s"
+          },
+          {
+            "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "coverage_ratio": 0.028,
+            "room_coverage_ratio": 0.06,
+            "first_seen_s": 2712.043,
+            "last_seen_s": 2712.91,
+            "first_seen_clip_s": 12.045,
+            "last_seen_clip_s": 12.913,
+            "label": "ID 13 table_operator 23 frames 12.0-12.9s"
+          },
+          {
+            "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "coverage_ratio": 0.012,
+            "room_coverage_ratio": 0.026,
+            "first_seen_s": 2703.801,
+            "last_seen_s": 2704.101,
+            "first_seen_clip_s": 3.804,
+            "last_seen_clip_s": 4.104,
+            "label": "ID 6 table_operator 10 frames 3.8-4.1s"
+          },
+          {
+            "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "coverage_ratio": 0.009,
+            "room_coverage_ratio": 0.018,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.971,
+            "label": "ID 5 table_operator 7 frames 3.6-4.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.633,
+            "last_seen_s": 2702.767,
+            "first_seen_clip_s": 2.636,
+            "last_seen_clip_s": 2.769,
+            "label": "ID 2 device_prep 5 frames 2.6-2.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.008,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.701,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.704,
+            "label": "ID 4 table_operator 3 frames 3.6-3.7s"
+          },
+          {
+            "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.001,
+            "room_coverage_ratio": 0.003,
+            "first_seen_s": 2709.507,
+            "last_seen_s": 2709.507,
+            "first_seen_clip_s": 9.51,
+            "last_seen_clip_s": 9.51,
+            "label": "ID 12 table_operator 1 frames 9.5-9.5s"
+          }
+        ],
+        "source": "stage_handoff_summary",
+        "label": "Closure / finish: roster_added; lead ID 3 table_operator; active table tracks=9"
+      },
+      {
+        "event_type": "table_peak",
+        "timestamp_s": 2703.968,
+        "clip_timestamp_s": 3.971,
+        "frame_index": 81038,
+        "end_s": 2703.968,
+        "clip_end_s": 3.971,
+        "duration_s": 0.0,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 4,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          3,
+          5,
+          6
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 74,
+            "table_presence_ratio": 0.959,
+            "label": "ID 1 table_operator table=96%"
+          },
+          {
+            "track_id": 3,
+            "dominant_role": "access_operator",
+            "table_team_role": "access_operator",
+            "table_team_role_confidence": 0.583,
+            "frames_seen": 42,
+            "table_presence_ratio": 0.857,
+            "label": "ID 3 access_operator table=86%"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "imaging",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "frames_seen": 22,
+            "table_presence_ratio": 0.318,
+            "label": "ID 5 table_operator (dominant imaging) table=32%"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 6,
+            "table_presence_ratio": 1.0,
+            "label": "ID 6 table_operator table=100%"
+          }
+        ],
+        "source": "peak_table_roster",
+        "label": "3.971s table peak: 4 active during Closure / finish"
+      },
+      {
+        "event_type": "view_started",
+        "timestamp_s": 2715.279,
+        "clip_timestamp_s": 15.282,
+        "frame_index": 81377,
+        "end_s": 2729.961,
+        "clip_end_s": 29.963,
+        "duration_s": 14.715,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "view": "non_room",
+        "tracking_available": false,
+        "table_count": 0,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [],
+        "roster": [],
+        "source": "view_segments",
+        "label": "15.3s non_room view started"
+      }
+    ],
+    "stage_staffing_summary": [
+      {
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "segment_count": 1,
+        "start_frame": 80919,
+        "end_frame": 80995,
+        "start_s": 2699.997,
+        "end_s": 2702.533,
+        "clip_start_s": 0.0,
+        "clip_end_s": 2.536,
+        "duration_s": 2.569,
+        "frames": 77,
+        "room_view_frames": 77,
+        "non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "mean_table_count": 0.377,
+        "mean_room_table_count": 0.377,
+        "peak_table_count": 2,
+        "table_occupancy_rate": 0.364,
+        "room_table_occupancy_rate": 0.364,
+        "table_count_distribution": {
+          "0": 49,
+          "1": 27,
+          "2": 1
+        },
+        "role_counts": {
+          "access_operator": 0,
+          "anesthesia": 0,
+          "device_prep": 21,
+          "entry_supply": 1,
+          "imaging": 0,
+          "table_operator": 28
+        },
+        "unique_table_track_count": 2,
+        "canonical_table_identity_count": 1,
+        "table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "stage_table_presence_ratio": 0.364,
+            "estimated_table_duration_s": 0.934,
+            "first_frame": 80968,
+            "last_frame": 80995,
+            "first_s": 2701.632,
+            "last_s": 2702.533,
+            "role_counts": {
+              "table_operator": 28
+            },
+            "label": "ID 1 table_operator frames=28"
+          }
+        ]
+      },
+      {
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "segment_count": 1,
+        "start_frame": 80996,
+        "end_frame": 81817,
+        "start_s": 2702.567,
+        "end_s": 2729.961,
+        "clip_start_s": 2.569,
+        "clip_end_s": 29.963,
+        "duration_s": 27.427,
+        "frames": 822,
+        "room_view_frames": 381,
+        "non_room_view_frames": 441,
+        "tracking_available_rate": 0.464,
+        "mean_table_count": 0.218,
+        "mean_room_table_count": 0.47,
+        "peak_table_count": 4,
+        "table_occupancy_rate": 0.144,
+        "room_table_occupancy_rate": 0.31,
+        "table_count_distribution": {
+          "0": 704,
+          "1": 78,
+          "2": 25,
+          "3": 9,
+          "4": 6
+        },
+        "role_counts": {
+          "access_operator": 21,
+          "anesthesia": 4,
+          "device_prep": 103,
+          "entry_supply": 0,
+          "imaging": 60,
+          "table_operator": 117
+        },
+        "unique_table_track_count": 9,
+        "canonical_table_identity_count": 8,
+        "table_roster": [
+          {
+            "track_id": 3,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.667,
+            "observed_table_frames": 63,
+            "stage_table_presence_ratio": 0.077,
+            "estimated_table_duration_s": 2.102,
+            "first_frame": 80996,
+            "last_frame": 81065,
+            "first_s": 2702.567,
+            "last_s": 2704.869,
+            "role_counts": {
+              "access_operator": 21,
+              "table_operator": 42
+            },
+            "label": "ID 3 table_operator frames=63"
+          },
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "stage_table_presence_ratio": 0.052,
+            "estimated_table_duration_s": 1.435,
+            "first_frame": 80996,
+            "last_frame": 81038,
+            "first_s": 2702.567,
+            "last_s": 2703.968,
+            "role_counts": {
+              "table_operator": 43
+            },
+            "label": "ID 1 table_operator frames=43"
+          },
+          {
+            "track_id": 11,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "stage_table_presence_ratio": 0.029,
+            "estimated_table_duration_s": 0.801,
+            "first_frame": 81170,
+            "last_frame": 81200,
+            "first_s": 2708.372,
+            "last_s": 2709.373,
+            "role_counts": {
+              "device_prep": 24
+            },
+            "label": "ID 11 device_prep frames=24"
+          },
+          {
+            "track_id": 13,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "stage_table_presence_ratio": 0.028,
+            "estimated_table_duration_s": 0.767,
+            "first_frame": 81280,
+            "last_frame": 81306,
+            "first_s": 2712.043,
+            "last_s": 2712.91,
+            "role_counts": {
+              "imaging": 10,
+              "table_operator": 13
+            },
+            "label": "ID 13 table_operator frames=23"
+          },
+          {
+            "track_id": 6,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "stage_table_presence_ratio": 0.012,
+            "estimated_table_duration_s": 0.334,
+            "first_frame": 81033,
+            "last_frame": 81042,
+            "first_s": 2703.801,
+            "last_s": 2704.101,
+            "role_counts": {
+              "table_operator": 10
+            },
+            "label": "ID 6 table_operator frames=10"
+          },
+          {
+            "track_id": 5,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "stage_table_presence_ratio": 0.009,
+            "estimated_table_duration_s": 0.234,
+            "first_frame": 81028,
+            "last_frame": 81038,
+            "first_s": 2703.634,
+            "last_s": 2703.968,
+            "role_counts": {
+              "imaging": 3,
+              "table_operator": 4
+            },
+            "label": "ID 5 table_operator frames=7"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "stage_table_presence_ratio": 0.006,
+            "estimated_table_duration_s": 0.167,
+            "first_frame": 80998,
+            "last_frame": 81002,
+            "first_s": 2702.633,
+            "last_s": 2702.767,
+            "role_counts": {
+              "device_prep": 4,
+              "table_operator": 1
+            },
+            "label": "ID 2 device_prep frames=5"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "stage_table_presence_ratio": 0.004,
+            "estimated_table_duration_s": 0.1,
+            "first_frame": 81028,
+            "last_frame": 81030,
+            "first_s": 2703.634,
+            "last_s": 2703.701,
+            "role_counts": {
+              "table_operator": 3
+            },
+            "label": "ID 4 table_operator frames=3"
+          }
+        ]
+      }
+    ],
+    "low_confidence_segments": [
+      {
+        "start_frame": 80919,
+        "end_frame": 80995,
+        "start_s": 2699.9973,
+        "end_s": 2702.5331666666666,
+        "min_confidence": 0.2,
+        "max_confidence": 0.34
+      },
+      {
+        "start_frame": 80999,
+        "end_frame": 80999,
+        "start_s": 2702.6666333333333,
+        "end_s": 2702.6666333333333,
+        "min_confidence": 0.424,
+        "max_confidence": 0.424
+      },
+      {
+        "start_frame": 81010,
+        "end_frame": 81017,
+        "start_s": 2703.0336666666667,
+        "end_s": 2703.2672333333335,
+        "min_confidence": 0.319,
+        "max_confidence": 0.447
+      },
+      {
+        "start_frame": 81024,
+        "end_frame": 81817,
+        "start_s": 2703.5008000000003,
+        "end_s": 2729.9605666666666,
+        "min_confidence": 0.18,
+        "max_confidence": 0.42
+      }
+    ],
+    "quality_flags": [
+      {
+        "code": "rapid_stage_progression",
+        "message": "Stage changes are dense for the clip duration; this may be edited footage or an unseeded slice rather than a continuous case.",
+        "stage_count": 2,
+        "duration_s": 29.963
+      },
+      {
+        "code": "early_terminal_stage",
+        "message": "The timeline reached closure early in the clip; the footage may be edited, montage-like, or too visually ambiguous for procedure chronology.",
+        "closure_start_s": 2702.567,
+        "duration_s": 29.963
+      },
+      {
+        "code": "low_stage_confidence",
+        "message": "Procedure-stage inference is visually weak for a substantial portion of the clip; treat stage labels as seeded or held context in those frames.",
+        "confidence_threshold": 0.45,
+        "frames": 880,
+        "ratio": 0.979
+      },
+      {
+        "code": "non_room_view",
+        "message": "A substantial portion of the clip appears to be fluoroscopy or another non-room view; staff/table tracking is suppressed for those frames.",
+        "frames": 441,
+        "ratio": 0.491
+      }
+    ]
+  }
+}

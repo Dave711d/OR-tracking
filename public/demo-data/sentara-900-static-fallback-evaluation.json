@@ -1,0 +1,3671 @@
+{
+  "case": "sentara_900_static_table_fallback",
+  "generated_from": "outputs/tavr_static_stage_support/sentara_900_static_table_fallback/result.json",
+  "timebase": {
+    "timebase": "source",
+    "fps": 29.97,
+    "source_start_frame": 26973,
+    "source_start_s": 899.999,
+    "source_end_frame": 27871,
+    "source_end_s": 929.962,
+    "clip_start_frame": 0,
+    "clip_start_s": 0.0,
+    "clip_end_frame": 898,
+    "clip_end_s": 29.963,
+    "source_offset_s": 899.999
+  },
+  "evaluation_config": {
+    "roi": [
+      0.0,
+      0.46,
+      0.31,
+      0.89
+    ],
+    "initial_stage": "access_sheathing",
+    "min_area": 300,
+    "max_frames": 900,
+    "source_start_s": 900.0,
+    "static_table_fallback": true
+  },
+  "score_summary": {
+    "stage_score": 1.0,
+    "table_count_score": 1.0,
+    "stage_table_coverage_score": 1.0,
+    "table_transition_score": 1.0,
+    "stage_roster_score": 1.0,
+    "stage_evidence_score": 1.0,
+    "procedure_milestone_score": 1.0,
+    "procedure_status_score": 1.0,
+    "operator_packet_score": 1.0,
+    "table_team_score": 1.0,
+    "table_identity_group_score": 1.0,
+    "event_timeline_score": 1.0,
+    "roster_snapshot_score": 1.0,
+    "quality_flag_score": 1.0
+  },
+  "label_score_timebase": {
+    "label_timebase": "clip",
+    "default_timebase": "clip"
+  },
+  "tavr": {
+    "timebase_summary": [
+      {
+        "timebase": "source",
+        "fps": 29.97,
+        "source_start_frame": 26973,
+        "source_end_frame": 27871,
+        "source_start_s": 899.999,
+        "source_end_s": 929.962,
+        "clip_start_frame": 0,
+        "clip_end_frame": 898,
+        "clip_start_s": 0.0,
+        "clip_end_s": 29.963,
+        "source_offset_s": 899.999
+      }
+    ],
+    "procedure_status_summary": [
+      {
+        "timebase": "source",
+        "source_start_frame": 26973,
+        "source_end_frame": 27871,
+        "source_start_s": 899.999,
+        "source_end_s": 929.962,
+        "clip_start_frame": 0,
+        "clip_end_frame": 898,
+        "clip_start_s": 0.0,
+        "clip_end_s": 29.963,
+        "source_offset_s": 899.999,
+        "current_stage": "bav_optional",
+        "current_stage_label": "Balloon valvuloplasty",
+        "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "weak_visual_support",
+        "current_stage_evidence_label": "weak visual support",
+        "next_stage": "valve_delivery_positioning",
+        "next_stage_label": "Valve delivery / positioning",
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.006,
+        "mean_confidence": 0.203,
+        "current_view": "non_room",
+        "tracking_available": false,
+        "current_table_count": 0,
+        "current_table_track_ids": [],
+        "current_table_roster": [],
+        "effective_table_source": "last_observed_room_view",
+        "effective_table_s": 904.17,
+        "effective_table_clip_s": 4.171,
+        "effective_table_age_from_clip_end_s": 25.792,
+        "effective_table_stage": "bav_optional",
+        "effective_table_stage_label": "Balloon valvuloplasty",
+        "effective_table_count": 3,
+        "effective_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "effective_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 105,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 98,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 5,
+            "table_presence_ratio": 1.0,
+            "label": "ID 4 table_operator table=100%"
+          }
+        ],
+        "last_observed_table_s": 904.17,
+        "last_observed_clip_s": 4.171,
+        "last_observed_age_from_clip_end_s": 25.792,
+        "last_observed_stage": "bav_optional",
+        "last_observed_stage_label": "Balloon valvuloplasty",
+        "last_observed_table_count": 3,
+        "last_observed_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "last_observed_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 105,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 98,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 5,
+            "table_presence_ratio": 1.0,
+            "label": "ID 4 table_operator table=100%"
+          }
+        ],
+        "peak_table_s": 904.17,
+        "peak_table_clip_s": 4.171,
+        "peak_table_stage": "bav_optional",
+        "peak_table_stage_label": "Balloon valvuloplasty",
+        "peak_table_count": 3,
+        "peak_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "peak_table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 105,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 98,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 5,
+            "table_presence_ratio": 1.0,
+            "label": "ID 4 table_operator table=100%"
+          }
+        ],
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_summary": "Current weakly supported stage: Balloon valvuloplasty (weak visual support, confidence 0.20, observable 1%); tracking not available; at table now: none; table status: last observed room view ID 1 table_operator table=100%; ID 2 table_operator table=100%; ID 4 table_operator table=100%; last observed table: ID 1 table_operator table=100%; ID 2 table_operator table=100%; ID 4 table_operator table=100%; next: Valve delivery / positioning; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view"
+      }
+    ],
+    "operator_stage_packet": [
+      {
+        "packet_index": 0,
+        "stage_segment_index": 0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_status": "observed_prior",
+        "stage_evidence_status": "moderate_visual_support",
+        "stage_evidence_label": "moderate visual support",
+        "is_current_stage": false,
+        "next_stage": null,
+        "next_stage_label": null,
+        "start_s": 899.999,
+        "end_s": 903.002,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.388,
+        "tracking_available_rate": 1.0,
+        "handoff_type": "initial_table_roster",
+        "peak_table_count": 2,
+        "active_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2
+        ],
+        "continued_track_ids": [],
+        "new_track_ids": [
+          1,
+          2
+        ],
+        "dropped_track_ids": [],
+        "effective_table_source": null,
+        "effective_table_count": null,
+        "effective_table_track_ids": [],
+        "roster_summary": "ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s",
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_packet": "Observed stage: Access / sheathing 899.999s-903.002s; evidence moderate visual support, confidence 0.39, observable 100%; handoff initial table roster; peak table 2; active IDs 1, 2; new IDs 1, 2; dropped IDs none; roster ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+      },
+      {
+        "packet_index": 1,
+        "stage_segment_index": 1,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_status": "observed_prior",
+        "stage_evidence_status": "moderate_visual_support",
+        "stage_evidence_label": "moderate visual support",
+        "is_current_stage": false,
+        "next_stage": null,
+        "next_stage_label": null,
+        "start_s": 903.035,
+        "end_s": 904.003,
+        "clip_start_s": 3.036,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.363,
+        "tracking_available_rate": 1.0,
+        "handoff_type": "roster_added",
+        "peak_table_count": 3,
+        "active_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "continued_track_ids": [
+          1,
+          2
+        ],
+        "new_track_ids": [
+          4
+        ],
+        "dropped_track_ids": [],
+        "effective_table_source": null,
+        "effective_table_count": null,
+        "effective_table_track_ids": [],
+        "roster_summary": "ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s",
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_packet": "Observed stage: Angio alignment / crossing 903.035s-904.003s; evidence moderate visual support, confidence 0.36, observable 100%; handoff roster added; peak table 3; active IDs 1, 2, 4; new IDs 4; dropped IDs none; roster ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+      },
+      {
+        "packet_index": 2,
+        "stage_segment_index": 2,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_status": "current_observed",
+        "stage_evidence_status": "weak_visual_support",
+        "stage_evidence_label": "weak visual support",
+        "is_current_stage": true,
+        "next_stage": "valve_delivery_positioning",
+        "next_stage_label": "Valve delivery / positioning",
+        "start_s": 904.036,
+        "end_s": 929.962,
+        "clip_start_s": 4.037,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.006,
+        "mean_confidence": 0.203,
+        "tracking_available_rate": 0.006,
+        "handoff_type": "roster_continued",
+        "peak_table_count": 3,
+        "active_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "continued_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "new_track_ids": [],
+        "dropped_track_ids": [],
+        "effective_table_source": "last_observed_room_view",
+        "effective_table_count": 3,
+        "effective_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "roster_summary": "ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s",
+        "quality_flag_codes": [
+          "rapid_stage_progression",
+          "low_stage_confidence",
+          "non_room_view"
+        ],
+        "operator_packet": "Current stage: Balloon valvuloplasty 904.036s-929.962s; evidence weak visual support, confidence 0.20, observable 1%; handoff roster continued; peak table 3; active IDs 1, 2, 4; new IDs none; dropped IDs none; roster ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s; latest table status last observed room view 3 IDs 1, 2, 4; next Valve delivery / positioning; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+      }
+    ],
+    "table_team_summary": [
+      {
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "team_status": "recent_last_observed",
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": true,
+        "is_last_observed_table_member": true,
+        "is_peak_table_member": true,
+        "first_seen_frame": 26973,
+        "last_seen_frame": 27098,
+        "first_seen_s": 899.999,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 0.0,
+        "last_seen_clip_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "frames_seen": 105,
+        "observed_table_frames": 105,
+        "table_frames": 105,
+        "table_presence_ratio": 1.0,
+        "table_observed_duration_s": 4.204,
+        "interval_count": 1,
+        "dominant_stage": "access_sheathing",
+        "dominant_stage_label": "Access / sheathing",
+        "stage_counts": {
+          "access_sheathing": 76,
+          "angio_alignment_crossing": 24,
+          "bav_optional": 5
+        },
+        "role_counts": {
+          "table_operator": 108
+        },
+        "label": "ID 1 table_operator recent last observed; table=100%; last=25.8s ago; dominant=Access / sheathing"
+      },
+      {
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "team_status": "recent_last_observed",
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": true,
+        "is_last_observed_table_member": true,
+        "is_peak_table_member": true,
+        "first_seen_frame": 26973,
+        "last_seen_frame": 27098,
+        "first_seen_s": 899.999,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 0.0,
+        "last_seen_clip_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "frames_seen": 98,
+        "observed_table_frames": 98,
+        "table_frames": 98,
+        "table_presence_ratio": 1.0,
+        "table_observed_duration_s": 4.204,
+        "interval_count": 1,
+        "dominant_stage": "access_sheathing",
+        "dominant_stage_label": "Access / sheathing",
+        "stage_counts": {
+          "access_sheathing": 72,
+          "angio_alignment_crossing": 21,
+          "bav_optional": 5
+        },
+        "role_counts": {
+          "table_operator": 101
+        },
+        "label": "ID 2 table_operator recent last observed; table=100%; last=25.8s ago; dominant=Access / sheathing"
+      },
+      {
+        "track_id": 3,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3,
+          4
+        ],
+        "team_status": "recent_last_observed",
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "is_current_table_member": false,
+        "is_effective_table_member": true,
+        "is_last_observed_table_member": true,
+        "is_peak_table_member": true,
+        "first_seen_frame": 27064,
+        "last_seen_frame": 27098,
+        "first_seen_s": 903.035,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 3.036,
+        "last_seen_clip_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "frames_seen": 8,
+        "observed_table_frames": 5,
+        "table_frames": 5,
+        "table_presence_ratio": 0.625,
+        "table_observed_duration_s": 0.367,
+        "interval_count": 1,
+        "dominant_stage": "bav_optional",
+        "dominant_stage_label": "Balloon valvuloplasty",
+        "stage_counts": {
+          "angio_alignment_crossing": 2,
+          "bav_optional": 3
+        },
+        "role_counts": {
+          "table_operator": 8
+        },
+        "label": "ID 3 table_operator recent last observed; table=62%; last=25.8s ago; dominant=Balloon valvuloplasty"
+      }
+    ],
+    "table_identity_groups": [
+      {
+        "canonical_table_id": 1,
+        "track_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 26973,
+        "last_seen_frame": 27098,
+        "first_seen_s": 899.999,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 0.0,
+        "last_seen_clip_s": 4.171,
+        "observed_table_frames": 105,
+        "role_counts": {
+          "table_operator": 105
+        },
+        "stage_counts": {
+          "access_sheathing": 76,
+          "angio_alignment_crossing": 24,
+          "bav_optional": 5
+        }
+      },
+      {
+        "canonical_table_id": 2,
+        "track_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 26973,
+        "last_seen_frame": 27098,
+        "first_seen_s": 899.999,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 0.0,
+        "last_seen_clip_s": 4.171,
+        "observed_table_frames": 98,
+        "role_counts": {
+          "table_operator": 98
+        },
+        "stage_counts": {
+          "access_sheathing": 72,
+          "angio_alignment_crossing": 21,
+          "bav_optional": 5
+        }
+      },
+      {
+        "canonical_table_id": 3,
+        "track_id": 4,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 27088,
+        "last_seen_frame": 27098,
+        "first_seen_s": 903.836,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 3.837,
+        "last_seen_clip_s": 4.171,
+        "observed_table_frames": 5,
+        "role_counts": {
+          "table_operator": 5
+        },
+        "stage_counts": {
+          "angio_alignment_crossing": 2,
+          "bav_optional": 3
+        }
+      }
+    ],
+    "stage_timeline": [
+      {
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "start_frame": 26973,
+        "end_frame": 27063,
+        "start_s": 899.9991,
+        "end_s": 903.0021,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.003,
+        "peak_table_count": 2,
+        "peak_table_roster": {
+          "frame_index": 27063,
+          "timestamp_s": 903.002,
+          "clip_timestamp_s": 3.003,
+          "age_from_clip_end_s": 0.0,
+          "stage": "access_sheathing",
+          "stage_label": "Access / sheathing",
+          "table_count": 2,
+          "roster": [
+            {
+              "track_id": 1,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 76,
+              "table_presence_ratio": 1.0,
+              "label": "ID 1 table_operator table=100%"
+            },
+            {
+              "track_id": 2,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 72,
+              "table_presence_ratio": 1.0,
+              "label": "ID 2 table_operator table=100%"
+            }
+          ]
+        },
+        "table_presence_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 76,
+            "interval_duration_s": 3.036,
+            "start_s": 899.999,
+            "end_s": 903.002,
+            "clip_start_s": 0.0,
+            "clip_end_s": 3.003,
+            "label": "ID 1 table_operator 900.0-903.0s"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 72,
+            "interval_duration_s": 3.036,
+            "start_s": 899.999,
+            "end_s": 903.002,
+            "clip_start_s": 0.0,
+            "clip_end_s": 3.003,
+            "label": "ID 2 table_operator 900.0-903.0s"
+          }
+        ],
+        "table_roster": [
+          "ID 1 table_operator table=100%",
+          "ID 2 table_operator table=100%"
+        ],
+        "note": "Access-site work and sheath/wire setup, usually groin-focused for transfemoral cases."
+      },
+      {
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "start_frame": 27064,
+        "end_frame": 27093,
+        "start_s": 903.0354666666667,
+        "end_s": 904.0031,
+        "clip_start_s": 3.036366666666667,
+        "clip_end_s": 4.0040000000000004,
+        "peak_table_count": 3,
+        "peak_table_roster": {
+          "frame_index": 27088,
+          "timestamp_s": 903.836,
+          "clip_timestamp_s": 3.837,
+          "age_from_clip_end_s": 0.167,
+          "stage": "angio_alignment_crossing",
+          "stage_label": "Angio alignment / crossing",
+          "table_count": 3,
+          "roster": [
+            {
+              "track_id": 1,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 100,
+              "table_presence_ratio": 1.0,
+              "label": "ID 1 table_operator table=100%"
+            },
+            {
+              "track_id": 2,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 93,
+              "table_presence_ratio": 1.0,
+              "label": "ID 2 table_operator table=100%"
+            },
+            {
+              "track_id": 4,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 1,
+              "table_presence_ratio": 1.0,
+              "label": "ID 4 table_operator table=100%"
+            }
+          ]
+        },
+        "table_presence_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "interval_duration_s": 0.834,
+            "start_s": 903.035,
+            "end_s": 903.836,
+            "clip_start_s": 3.036,
+            "clip_end_s": 3.837,
+            "label": "ID 1 table_operator 903.0-903.8s"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 21,
+            "interval_duration_s": 0.834,
+            "start_s": 903.035,
+            "end_s": 903.836,
+            "clip_start_s": 3.036,
+            "clip_end_s": 3.837,
+            "label": "ID 2 table_operator 903.0-903.8s"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 2,
+            "interval_duration_s": 0.067,
+            "start_s": 903.836,
+            "end_s": 903.87,
+            "clip_start_s": 3.837,
+            "clip_end_s": 3.871,
+            "label": "ID 4 table_operator 903.8-903.9s"
+          }
+        ],
+        "table_roster": [],
+        "note": "Monitor/C-arm focus, aortography alignment, and valve crossing work."
+      },
+      {
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "start_frame": 27094,
+        "end_frame": 27871,
+        "start_s": 904.0364666666667,
+        "end_s": 929.9623666666666,
+        "clip_start_s": 4.037366666666666,
+        "clip_end_s": 29.963266666666666,
+        "peak_table_count": 3,
+        "peak_table_roster": {
+          "frame_index": 27098,
+          "timestamp_s": 904.17,
+          "clip_timestamp_s": 4.171,
+          "age_from_clip_end_s": 25.792,
+          "stage": "bav_optional",
+          "stage_label": "Balloon valvuloplasty",
+          "table_count": 3,
+          "roster": [
+            {
+              "track_id": 1,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 105,
+              "table_presence_ratio": 1.0,
+              "label": "ID 1 table_operator table=100%"
+            },
+            {
+              "track_id": 2,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 98,
+              "table_presence_ratio": 1.0,
+              "label": "ID 2 table_operator table=100%"
+            },
+            {
+              "track_id": 4,
+              "dominant_role": "table_operator",
+              "table_team_role": "table_operator",
+              "table_team_role_confidence": 1.0,
+              "frames_seen": 5,
+              "table_presence_ratio": 1.0,
+              "label": "ID 4 table_operator table=100%"
+            }
+          ]
+        },
+        "table_presence_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "interval_duration_s": 0.167,
+            "start_s": 904.036,
+            "end_s": 904.17,
+            "clip_start_s": 4.037,
+            "clip_end_s": 4.171,
+            "label": "ID 1 table_operator 904.0-904.2s"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "interval_duration_s": 0.167,
+            "start_s": 904.036,
+            "end_s": 904.17,
+            "clip_start_s": 4.037,
+            "clip_end_s": 4.171,
+            "label": "ID 2 table_operator 904.0-904.2s"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "interval_duration_s": 0.1,
+            "start_s": 904.103,
+            "end_s": 904.17,
+            "clip_start_s": 4.104,
+            "clip_end_s": 4.171,
+            "label": "ID 4 table_operator 904.1-904.2s"
+          }
+        ],
+        "table_roster": [],
+        "note": "Optional pre-dilation; visually confusable with post-dilation or deployment."
+      }
+    ],
+    "track_role_report": [
+      {
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "frames_seen": 105,
+        "first_frame": 26973,
+        "last_frame": 27098,
+        "table_frames": 105,
+        "table_presence_ratio": 1.0,
+        "role_counts": {
+          "table_operator": 105
+        }
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "table_operator",
+        "frames_seen": 98,
+        "first_frame": 26973,
+        "last_frame": 27098,
+        "table_frames": 98,
+        "table_presence_ratio": 1.0,
+        "role_counts": {
+          "table_operator": 98
+        }
+      },
+      {
+        "track_id": 4,
+        "dominant_role": "table_operator",
+        "frames_seen": 5,
+        "first_frame": 27088,
+        "last_frame": 27098,
+        "table_frames": 5,
+        "table_presence_ratio": 1.0,
+        "role_counts": {
+          "table_operator": 5
+        }
+      },
+      {
+        "track_id": 3,
+        "dominant_role": "imaging",
+        "frames_seen": 3,
+        "first_frame": 27064,
+        "last_frame": 27066,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "imaging": 3
+        }
+      },
+      {
+        "track_id": 5,
+        "dominant_role": "imaging",
+        "frames_seen": 2,
+        "first_frame": 27096,
+        "last_frame": 27097,
+        "table_frames": 0,
+        "table_presence_ratio": 0.0,
+        "role_counts": {
+          "imaging": 2
+        }
+      }
+    ],
+    "current_table_roster": [],
+    "last_observed_table_roster": {
+      "frame_index": 27098,
+      "timestamp_s": 904.17,
+      "clip_timestamp_s": 4.171,
+      "age_from_clip_end_s": 25.792,
+      "stage": "bav_optional",
+      "stage_label": "Balloon valvuloplasty",
+      "table_count": 3,
+      "roster": [
+        {
+          "track_id": 1,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 105,
+          "table_presence_ratio": 1.0,
+          "label": "ID 1 table_operator table=100%"
+        },
+        {
+          "track_id": 2,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 98,
+          "table_presence_ratio": 1.0,
+          "label": "ID 2 table_operator table=100%"
+        },
+        {
+          "track_id": 4,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 5,
+          "table_presence_ratio": 1.0,
+          "label": "ID 4 table_operator table=100%"
+        }
+      ]
+    },
+    "peak_table_roster": {
+      "frame_index": 27098,
+      "timestamp_s": 904.17,
+      "clip_timestamp_s": 4.171,
+      "age_from_clip_end_s": 25.792,
+      "stage": "bav_optional",
+      "stage_label": "Balloon valvuloplasty",
+      "table_count": 3,
+      "roster": [
+        {
+          "track_id": 1,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 105,
+          "table_presence_ratio": 1.0,
+          "label": "ID 1 table_operator table=100%"
+        },
+        {
+          "track_id": 2,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 98,
+          "table_presence_ratio": 1.0,
+          "label": "ID 2 table_operator table=100%"
+        },
+        {
+          "track_id": 4,
+          "dominant_role": "table_operator",
+          "table_team_role": "table_operator",
+          "table_team_role_confidence": 1.0,
+          "frames_seen": 5,
+          "table_presence_ratio": 1.0,
+          "label": "ID 4 table_operator table=100%"
+        }
+      ]
+    },
+    "table_roster_snapshots": [
+      {
+        "snapshot_type": "last_observed",
+        "frame_index": 27098,
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "table_count": 3,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 105,
+        "table_presence_ratio": 1.0,
+        "label": "ID 1 table_operator table=100%"
+      },
+      {
+        "snapshot_type": "last_observed",
+        "frame_index": 27098,
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "table_count": 3,
+        "track_id": 2,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 98,
+        "table_presence_ratio": 1.0,
+        "label": "ID 2 table_operator table=100%"
+      },
+      {
+        "snapshot_type": "last_observed",
+        "frame_index": 27098,
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "table_count": 3,
+        "track_id": 4,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 5,
+        "table_presence_ratio": 1.0,
+        "label": "ID 4 table_operator table=100%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 27098,
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "table_count": 3,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 105,
+        "table_presence_ratio": 1.0,
+        "label": "ID 1 table_operator table=100%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 27098,
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "table_count": 3,
+        "track_id": 2,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 98,
+        "table_presence_ratio": 1.0,
+        "label": "ID 2 table_operator table=100%"
+      },
+      {
+        "snapshot_type": "peak",
+        "frame_index": 27098,
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "age_from_clip_end_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "table_count": 3,
+        "track_id": 4,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "frames_seen": 5,
+        "table_presence_ratio": 1.0,
+        "label": "ID 4 table_operator table=100%"
+      }
+    ],
+    "table_presence_roster": [
+      {
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "frames_seen": 105,
+        "table_frames": 105,
+        "table_presence_ratio": 1.0,
+        "first_frame": 26973,
+        "last_frame": 27098,
+        "label": "ID 1 table_operator table=100%"
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "table_operator",
+        "frames_seen": 98,
+        "table_frames": 98,
+        "table_presence_ratio": 1.0,
+        "first_frame": 26973,
+        "last_frame": 27098,
+        "label": "ID 2 table_operator table=100%"
+      },
+      {
+        "track_id": 4,
+        "dominant_role": "table_operator",
+        "frames_seen": 5,
+        "table_frames": 5,
+        "table_presence_ratio": 1.0,
+        "first_frame": 27088,
+        "last_frame": 27098,
+        "label": "ID 4 table_operator table=100%"
+      }
+    ],
+    "table_presence_intervals": [
+      {
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "access_sheathing",
+        "start_frame": 26973,
+        "end_frame": 27098,
+        "start_s": 899.999,
+        "end_s": 904.17,
+        "clip_start_s": 0.0,
+        "clip_end_s": 4.171,
+        "first_cx": 270,
+        "first_cy": 160,
+        "last_cx": 270,
+        "last_cy": 172,
+        "first_area": 3857.0,
+        "last_area": 3559.5,
+        "observed_table_frames": 105,
+        "interval_duration_s": 4.204,
+        "role_counts": {
+          "table_operator": 105
+        },
+        "stage_counts": {
+          "access_sheathing": 76,
+          "angio_alignment_crossing": 24,
+          "bav_optional": 5
+        },
+        "label": "ID 1 table_operator 900.0-904.2s"
+      },
+      {
+        "track_id": 2,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "access_sheathing",
+        "start_frame": 26973,
+        "end_frame": 27098,
+        "start_s": 899.999,
+        "end_s": 904.17,
+        "clip_start_s": 0.0,
+        "clip_end_s": 4.171,
+        "first_cx": 267,
+        "first_cy": 98,
+        "last_cx": 270,
+        "last_cy": 95,
+        "first_area": 423.5,
+        "last_area": 2155.0,
+        "observed_table_frames": 98,
+        "interval_duration_s": 4.204,
+        "role_counts": {
+          "table_operator": 98
+        },
+        "stage_counts": {
+          "access_sheathing": 72,
+          "angio_alignment_crossing": 21,
+          "bav_optional": 5
+        },
+        "label": "ID 2 table_operator 900.0-904.2s"
+      },
+      {
+        "track_id": 4,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "dominant_stage": "bav_optional",
+        "start_frame": 27088,
+        "end_frame": 27098,
+        "start_s": 903.836,
+        "end_s": 904.17,
+        "clip_start_s": 3.837,
+        "clip_end_s": 4.171,
+        "first_cx": 195,
+        "first_cy": 146,
+        "last_cx": 198,
+        "last_cy": 151,
+        "first_area": 242.5,
+        "last_area": 264.0,
+        "observed_table_frames": 5,
+        "interval_duration_s": 0.367,
+        "role_counts": {
+          "table_operator": 5
+        },
+        "stage_counts": {
+          "angio_alignment_crossing": 2,
+          "bav_optional": 3
+        },
+        "label": "ID 4 table_operator 903.8-904.2s"
+      }
+    ],
+    "view_segments": [
+      {
+        "view": "room",
+        "is_room_view": true,
+        "tracking_available": true,
+        "start_frame": 26973,
+        "end_frame": 27098,
+        "start_s": 899.999,
+        "end_s": 904.17,
+        "clip_start_s": 0.0,
+        "clip_end_s": 4.171,
+        "duration_s": 4.204,
+        "frames": 126,
+        "mean_colorfulness": 37.607,
+        "mean_table_count": 1.651,
+        "peak_table_count": 3,
+        "dominant_stage": "access_sheathing",
+        "stage_counts": {
+          "access_sheathing": 91,
+          "angio_alignment_crossing": 30,
+          "bav_optional": 5
+        },
+        "label": "room view 0.0-4.2s"
+      },
+      {
+        "view": "non_room",
+        "is_room_view": false,
+        "tracking_available": false,
+        "start_frame": 27099,
+        "end_frame": 27871,
+        "start_s": 904.203,
+        "end_s": 929.962,
+        "clip_start_s": 4.204,
+        "clip_end_s": 29.963,
+        "duration_s": 25.792,
+        "frames": 773,
+        "mean_colorfulness": 0.952,
+        "mean_table_count": 0.0,
+        "peak_table_count": 0,
+        "dominant_stage": "bav_optional",
+        "stage_counts": {
+          "bav_optional": 773
+        },
+        "label": "non_room view 4.2-30.0s"
+      }
+    ],
+    "table_transition_events": [
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 899.999,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 26973,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_segment_index": 0,
+        "coverage_ratio": 0.835,
+        "room_coverage_ratio": 0.835,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 76,
+        "label": "0.0s table_present_at_stage_start: ID 1 table_operator during Access / sheathing"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 899.999,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 26973,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_segment_index": 0,
+        "coverage_ratio": 0.791,
+        "room_coverage_ratio": 0.791,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 72,
+        "label": "0.0s table_present_at_stage_start: ID 2 table_operator during Access / sheathing"
+      },
+      {
+        "event_type": "table_present_at_stage_end",
+        "timestamp_s": 903.002,
+        "clip_timestamp_s": 3.003,
+        "frame_index": 27063,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_segment_index": 0,
+        "coverage_ratio": 0.835,
+        "room_coverage_ratio": 0.835,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 76,
+        "label": "3.0s table_present_at_stage_end: ID 1 table_operator during Access / sheathing"
+      },
+      {
+        "event_type": "table_present_at_stage_end",
+        "timestamp_s": 903.002,
+        "clip_timestamp_s": 3.003,
+        "frame_index": 27063,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_segment_index": 0,
+        "coverage_ratio": 0.791,
+        "room_coverage_ratio": 0.791,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 72,
+        "label": "3.0s table_present_at_stage_end: ID 2 table_operator during Access / sheathing"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 903.035,
+        "clip_timestamp_s": 3.036,
+        "frame_index": 27064,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.8,
+        "room_coverage_ratio": 0.8,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 24,
+        "label": "3.0s table_present_at_stage_start: ID 1 table_operator during Angio alignment / crossing"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 903.035,
+        "clip_timestamp_s": 3.036,
+        "frame_index": 27064,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.7,
+        "room_coverage_ratio": 0.7,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 21,
+        "label": "3.0s table_present_at_stage_start: ID 2 table_operator during Angio alignment / crossing"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 903.836,
+        "clip_timestamp_s": 3.837,
+        "frame_index": 27088,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.8,
+        "room_coverage_ratio": 0.8,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 24,
+        "label": "3.8s table_exit: ID 1 table_operator during Angio alignment / crossing"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 903.836,
+        "clip_timestamp_s": 3.837,
+        "frame_index": 27088,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_segment_index": 1,
+        "coverage_ratio": 0.7,
+        "room_coverage_ratio": 0.7,
+        "tracking_available_rate": 1.0,
+        "observed_table_frames": 21,
+        "label": "3.8s table_exit: ID 2 table_operator during Angio alignment / crossing"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 904.036,
+        "clip_timestamp_s": 4.037,
+        "frame_index": 27094,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_segment_index": 2,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 1.0,
+        "tracking_available_rate": 0.006,
+        "observed_table_frames": 5,
+        "label": "4.0s table_present_at_stage_start: ID 1 table_operator during Balloon valvuloplasty"
+      },
+      {
+        "event_type": "table_present_at_stage_start",
+        "timestamp_s": 904.036,
+        "clip_timestamp_s": 4.037,
+        "frame_index": 27094,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_segment_index": 2,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 1.0,
+        "tracking_available_rate": 0.006,
+        "observed_table_frames": 5,
+        "label": "4.0s table_present_at_stage_start: ID 2 table_operator during Balloon valvuloplasty"
+      },
+      {
+        "event_type": "table_entry",
+        "timestamp_s": 904.103,
+        "clip_timestamp_s": 4.104,
+        "frame_index": 27096,
+        "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_segment_index": 2,
+        "coverage_ratio": 0.004,
+        "room_coverage_ratio": 0.6,
+        "tracking_available_rate": 0.006,
+        "observed_table_frames": 3,
+        "label": "4.1s table_entry: ID 4 table_operator during Balloon valvuloplasty"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "frame_index": 27098,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_segment_index": 2,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 1.0,
+        "tracking_available_rate": 0.006,
+        "observed_table_frames": 5,
+        "label": "4.2s table_exit: ID 1 table_operator during Balloon valvuloplasty"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "frame_index": 27098,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_segment_index": 2,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 1.0,
+        "tracking_available_rate": 0.006,
+        "observed_table_frames": 5,
+        "label": "4.2s table_exit: ID 2 table_operator during Balloon valvuloplasty"
+      },
+      {
+        "event_type": "table_exit",
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "frame_index": 27098,
+        "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_segment_index": 2,
+        "coverage_ratio": 0.004,
+        "room_coverage_ratio": 0.6,
+        "tracking_available_rate": 0.006,
+        "observed_table_frames": 3,
+        "label": "4.2s table_exit: ID 4 table_operator during Balloon valvuloplasty"
+      }
+    ],
+    "stage_table_coverage": [
+      {
+        "stage_segment_index": 0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_start_frame": 26973,
+        "stage_end_frame": 27063,
+        "stage_start_s": 899.999,
+        "stage_end_s": 903.002,
+        "stage_clip_start_s": 0.0,
+        "stage_clip_end_s": 3.003,
+        "stage_duration_s": 3.036,
+        "stage_room_view_frames": 91,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 76,
+        "first_seen_frame": 26973,
+        "last_seen_frame": 27063,
+        "first_seen_s": 899.999,
+        "last_seen_s": 903.002,
+        "first_seen_clip_s": 0.0,
+        "last_seen_clip_s": 3.003,
+        "coverage_ratio": 0.835,
+        "room_coverage_ratio": 0.835,
+        "estimated_table_duration_s": 2.536,
+        "entered_during_stage": false,
+        "exited_during_stage": false,
+        "role_counts": {
+          "table_operator": 76
+        },
+        "spans_full_stage": true,
+        "label": "Access / sheathing: ID 1 table_operator 84%"
+      },
+      {
+        "stage_segment_index": 0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "stage_start_frame": 26973,
+        "stage_end_frame": 27063,
+        "stage_start_s": 899.999,
+        "stage_end_s": 903.002,
+        "stage_clip_start_s": 0.0,
+        "stage_clip_end_s": 3.003,
+        "stage_duration_s": 3.036,
+        "stage_room_view_frames": 91,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 72,
+        "first_seen_frame": 26973,
+        "last_seen_frame": 27063,
+        "first_seen_s": 899.999,
+        "last_seen_s": 903.002,
+        "first_seen_clip_s": 0.0,
+        "last_seen_clip_s": 3.003,
+        "coverage_ratio": 0.791,
+        "room_coverage_ratio": 0.791,
+        "estimated_table_duration_s": 2.402,
+        "entered_during_stage": false,
+        "exited_during_stage": false,
+        "role_counts": {
+          "table_operator": 72
+        },
+        "spans_full_stage": true,
+        "label": "Access / sheathing: ID 2 table_operator 79%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_start_frame": 27064,
+        "stage_end_frame": 27093,
+        "stage_start_s": 903.035,
+        "stage_end_s": 904.003,
+        "stage_clip_start_s": 3.036,
+        "stage_clip_end_s": 4.004,
+        "stage_duration_s": 1.001,
+        "stage_room_view_frames": 30,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 24,
+        "first_seen_frame": 27064,
+        "last_seen_frame": 27088,
+        "first_seen_s": 903.035,
+        "last_seen_s": 903.836,
+        "first_seen_clip_s": 3.036,
+        "last_seen_clip_s": 3.837,
+        "coverage_ratio": 0.8,
+        "room_coverage_ratio": 0.8,
+        "estimated_table_duration_s": 0.801,
+        "entered_during_stage": false,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 24
+        },
+        "spans_full_stage": false,
+        "label": "Angio alignment / crossing: ID 1 table_operator 80%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_start_frame": 27064,
+        "stage_end_frame": 27093,
+        "stage_start_s": 903.035,
+        "stage_end_s": 904.003,
+        "stage_clip_start_s": 3.036,
+        "stage_clip_end_s": 4.004,
+        "stage_duration_s": 1.001,
+        "stage_room_view_frames": 30,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 21,
+        "first_seen_frame": 27064,
+        "last_seen_frame": 27088,
+        "first_seen_s": 903.035,
+        "last_seen_s": 903.836,
+        "first_seen_clip_s": 3.036,
+        "last_seen_clip_s": 3.837,
+        "coverage_ratio": 0.7,
+        "room_coverage_ratio": 0.7,
+        "estimated_table_duration_s": 0.701,
+        "entered_during_stage": false,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 21
+        },
+        "spans_full_stage": false,
+        "label": "Angio alignment / crossing: ID 2 table_operator 70%"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "stage_start_frame": 27064,
+        "stage_end_frame": 27093,
+        "stage_start_s": 903.035,
+        "stage_end_s": 904.003,
+        "stage_clip_start_s": 3.036,
+        "stage_clip_end_s": 4.004,
+        "stage_duration_s": 1.001,
+        "stage_room_view_frames": 30,
+        "stage_non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 2,
+        "first_seen_frame": 27088,
+        "last_seen_frame": 27089,
+        "first_seen_s": 903.836,
+        "last_seen_s": 903.87,
+        "first_seen_clip_s": 3.837,
+        "last_seen_clip_s": 3.871,
+        "coverage_ratio": 0.067,
+        "room_coverage_ratio": 0.067,
+        "estimated_table_duration_s": 0.067,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 2
+        },
+        "spans_full_stage": false,
+        "label": "Angio alignment / crossing: ID 4 table_operator 7%"
+      },
+      {
+        "stage_segment_index": 2,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_start_frame": 27094,
+        "stage_end_frame": 27871,
+        "stage_start_s": 904.036,
+        "stage_end_s": 929.962,
+        "stage_clip_start_s": 4.037,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 25.959,
+        "stage_room_view_frames": 5,
+        "stage_non_room_view_frames": 773,
+        "tracking_available_rate": 0.006,
+        "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 5,
+        "first_seen_frame": 27094,
+        "last_seen_frame": 27098,
+        "first_seen_s": 904.036,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 4.037,
+        "last_seen_clip_s": 4.171,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 1.0,
+        "estimated_table_duration_s": 0.167,
+        "entered_during_stage": false,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 5
+        },
+        "spans_full_stage": false,
+        "label": "Balloon valvuloplasty: ID 1 table_operator 1%"
+      },
+      {
+        "stage_segment_index": 2,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_start_frame": 27094,
+        "stage_end_frame": 27871,
+        "stage_start_s": 904.036,
+        "stage_end_s": 929.962,
+        "stage_clip_start_s": 4.037,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 25.959,
+        "stage_room_view_frames": 5,
+        "stage_non_room_view_frames": 773,
+        "tracking_available_rate": 0.006,
+        "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 5,
+        "first_seen_frame": 27094,
+        "last_seen_frame": 27098,
+        "first_seen_s": 904.036,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 4.037,
+        "last_seen_clip_s": 4.171,
+        "coverage_ratio": 0.006,
+        "room_coverage_ratio": 1.0,
+        "estimated_table_duration_s": 0.167,
+        "entered_during_stage": false,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 5
+        },
+        "spans_full_stage": false,
+        "label": "Balloon valvuloplasty: ID 2 table_operator 1%"
+      },
+      {
+        "stage_segment_index": 2,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "stage_start_frame": 27094,
+        "stage_end_frame": 27871,
+        "stage_start_s": 904.036,
+        "stage_end_s": 929.962,
+        "stage_clip_start_s": 4.037,
+        "stage_clip_end_s": 29.963,
+        "stage_duration_s": 25.959,
+        "stage_room_view_frames": 5,
+        "stage_non_room_view_frames": 773,
+        "tracking_available_rate": 0.006,
+        "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "observed_table_frames": 3,
+        "first_seen_frame": 27096,
+        "last_seen_frame": 27098,
+        "first_seen_s": 904.103,
+        "last_seen_s": 904.17,
+        "first_seen_clip_s": 4.104,
+        "last_seen_clip_s": 4.171,
+        "coverage_ratio": 0.004,
+        "room_coverage_ratio": 0.6,
+        "estimated_table_duration_s": 0.1,
+        "entered_during_stage": true,
+        "exited_during_stage": true,
+        "role_counts": {
+          "table_operator": 3
+        },
+        "spans_full_stage": false,
+        "label": "Balloon valvuloplasty: ID 4 table_operator 0%"
+      }
+    ],
+    "stage_handoff_summary": [
+      {
+        "stage_segment_index": 0,
+        "previous_stage": null,
+        "previous_stage_label": null,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "start_frame": 26973,
+        "end_frame": 27063,
+        "start_s": 899.999,
+        "end_s": 903.002,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "room_view_frames": 91,
+        "non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "active_table_track_count": 2,
+        "lead_track_id": 1,
+        "lead_role": "table_operator",
+        "lead_dominant_role": "table_operator",
+        "lead_table_team_role": "table_operator",
+        "lead_table_team_role_confidence": 1.0,
+        "lead_observed_table_frames": 76,
+        "continued_track_ids": [],
+        "new_track_ids": [
+          1,
+          2
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [],
+        "within_stage_exit_track_ids": [],
+        "handoff_type": "initial_table_roster",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 76,
+            "coverage_ratio": 0.835,
+            "room_coverage_ratio": 0.835,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 72,
+            "coverage_ratio": 0.791,
+            "room_coverage_ratio": 0.791,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+          }
+        ],
+        "continued_table_roster": [],
+        "new_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 76,
+            "coverage_ratio": 0.835,
+            "room_coverage_ratio": 0.835,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 72,
+            "coverage_ratio": 0.791,
+            "room_coverage_ratio": 0.791,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+          }
+        ],
+        "dropped_table_roster": [],
+        "label": "Access / sheathing: initial_table_roster; lead ID 1 table_operator; active table tracks=2"
+      },
+      {
+        "stage_segment_index": 1,
+        "previous_stage": "access_sheathing",
+        "previous_stage_label": "Access / sheathing",
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "start_frame": 27064,
+        "end_frame": 27093,
+        "start_s": 903.035,
+        "end_s": 904.003,
+        "clip_start_s": 3.036,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "room_view_frames": 30,
+        "non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "active_table_track_count": 3,
+        "lead_track_id": 1,
+        "lead_role": "table_operator",
+        "lead_dominant_role": "table_operator",
+        "lead_table_team_role": "table_operator",
+        "lead_table_team_role_confidence": 1.0,
+        "lead_observed_table_frames": 24,
+        "continued_track_ids": [
+          1,
+          2
+        ],
+        "new_track_ids": [
+          4
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          4
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "handoff_type": "roster_added",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.8,
+            "room_coverage_ratio": 0.8,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 21,
+            "coverage_ratio": 0.7,
+            "room_coverage_ratio": 0.7,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 2,
+            "coverage_ratio": 0.067,
+            "room_coverage_ratio": 0.067,
+            "first_seen_s": 903.836,
+            "last_seen_s": 903.87,
+            "first_seen_clip_s": 3.837,
+            "last_seen_clip_s": 3.871,
+            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+          }
+        ],
+        "continued_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.8,
+            "room_coverage_ratio": 0.8,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 21,
+            "coverage_ratio": 0.7,
+            "room_coverage_ratio": 0.7,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+          }
+        ],
+        "new_table_roster": [
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 2,
+            "coverage_ratio": 0.067,
+            "room_coverage_ratio": 0.067,
+            "first_seen_s": 903.836,
+            "last_seen_s": 903.87,
+            "first_seen_clip_s": 3.837,
+            "last_seen_clip_s": 3.871,
+            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+          }
+        ],
+        "dropped_table_roster": [],
+        "label": "Angio alignment / crossing: roster_added; lead ID 1 table_operator; active table tracks=3"
+      },
+      {
+        "stage_segment_index": 2,
+        "previous_stage": "angio_alignment_crossing",
+        "previous_stage_label": "Angio alignment / crossing",
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "start_frame": 27094,
+        "end_frame": 27871,
+        "start_s": 904.036,
+        "end_s": 929.962,
+        "clip_start_s": 4.037,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "room_view_frames": 5,
+        "non_room_view_frames": 773,
+        "tracking_available_rate": 0.006,
+        "active_table_track_count": 3,
+        "lead_track_id": 1,
+        "lead_role": "table_operator",
+        "lead_dominant_role": "table_operator",
+        "lead_table_team_role": "table_operator",
+        "lead_table_team_role_confidence": 1.0,
+        "lead_observed_table_frames": 5,
+        "continued_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "new_track_ids": [],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          4
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "handoff_type": "roster_continued",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.6,
+            "first_seen_s": 904.103,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.104,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+          }
+        ],
+        "continued_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.6,
+            "first_seen_s": 904.103,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.104,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+          }
+        ],
+        "new_table_roster": [],
+        "dropped_table_roster": [],
+        "label": "Balloon valvuloplasty: roster_continued; lead ID 1 table_operator; active table tracks=3"
+      }
+    ],
+    "stage_roster_summary": [
+      {
+        "stage_segment_index": 0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "start_s": 899.999,
+        "end_s": 903.002,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "tracking_available_rate": 1.0,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.388,
+        "peak_table_count": 2,
+        "active_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2
+        ],
+        "continued_track_ids": [],
+        "new_track_ids": [
+          1,
+          2
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [],
+        "within_stage_exit_track_ids": [],
+        "handoff_type": "initial_table_roster",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 76,
+            "coverage_ratio": 0.835,
+            "room_coverage_ratio": 0.835,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 72,
+            "coverage_ratio": 0.791,
+            "room_coverage_ratio": 0.791,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+          }
+        ],
+        "roster_summary": "ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s",
+        "label": "Access / sheathing: peak table 2; 2 table IDs; initial_table_roster; ID 1 table_operator 76 frames 0.0-3.0s; ID 2 table_operator 72 frames 0.0-3.0s"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "start_s": 903.035,
+        "end_s": 904.003,
+        "clip_start_s": 3.036,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "tracking_available_rate": 1.0,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.363,
+        "peak_table_count": 3,
+        "active_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "continued_track_ids": [
+          1,
+          2
+        ],
+        "new_track_ids": [
+          4
+        ],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          4
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "handoff_type": "roster_added",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.8,
+            "room_coverage_ratio": 0.8,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 21,
+            "coverage_ratio": 0.7,
+            "room_coverage_ratio": 0.7,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 2,
+            "coverage_ratio": 0.067,
+            "room_coverage_ratio": 0.067,
+            "first_seen_s": 903.836,
+            "last_seen_s": 903.87,
+            "first_seen_clip_s": 3.837,
+            "last_seen_clip_s": 3.871,
+            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+          }
+        ],
+        "roster_summary": "ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s",
+        "label": "Angio alignment / crossing: peak table 3; 3 table IDs; roster_added; ID 1 table_operator 24 frames 3.0-3.8s; ID 2 table_operator 21 frames 3.0-3.8s; ID 4 table_operator 2 frames 3.8-3.9s"
+      },
+      {
+        "stage_segment_index": 2,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "start_s": 904.036,
+        "end_s": 929.962,
+        "clip_start_s": 4.037,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "tracking_available_rate": 0.006,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.006,
+        "mean_confidence": 0.203,
+        "peak_table_count": 3,
+        "active_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "lead_track_id": 1,
+        "lead_table_team_role": "table_operator",
+        "active_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "continued_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "new_track_ids": [],
+        "dropped_track_ids": [],
+        "within_stage_entry_track_ids": [
+          4
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "handoff_type": "roster_continued",
+        "active_table_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.6,
+            "first_seen_s": 904.103,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.104,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+          }
+        ],
+        "roster_summary": "ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s",
+        "label": "Balloon valvuloplasty: peak table 3; 3 table IDs; roster_continued; ID 1 table_operator 5 frames 4.0-4.2s; ID 2 table_operator 5 frames 4.0-4.2s; ID 4 table_operator 3 frames 4.1-4.2s"
+      }
+    ],
+    "stage_evidence_summary": [
+      {
+        "stage_segment_index": 0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "start_frame": 26973,
+        "end_frame": 27063,
+        "start_s": 899.999,
+        "end_s": 903.002,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "frames": 91,
+        "room_view_frames": 91,
+        "non_room_view_frames": 0,
+        "observable_rate": 1.0,
+        "mean_confidence": 0.388,
+        "min_confidence": 0.24,
+        "max_confidence": 0.42,
+        "evidence_level": "moderate_visual_support",
+        "dominant_signal": "stillness",
+        "mean_table_signal": 0.821,
+        "mean_access_signal": 0.0,
+        "mean_imaging_signal": 0.0,
+        "mean_device_signal": 0.0,
+        "mean_anesthesia_signal": 0.0,
+        "mean_stillness_signal": 0.969,
+        "mean_crowd_signal": 0.325,
+        "support_label": "observable=100%, confidence=0.39, strongest=stillness:0.97",
+        "label": "Access / sheathing: moderate_visual_support; observable=100%, confidence=0.39, strongest=stillness:0.97"
+      },
+      {
+        "stage_segment_index": 1,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "start_frame": 27064,
+        "end_frame": 27093,
+        "start_s": 903.035,
+        "end_s": 904.003,
+        "clip_start_s": 3.036,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "frames": 30,
+        "room_view_frames": 30,
+        "non_room_view_frames": 0,
+        "observable_rate": 1.0,
+        "mean_confidence": 0.363,
+        "min_confidence": 0.22,
+        "max_confidence": 0.57,
+        "evidence_level": "moderate_visual_support",
+        "dominant_signal": "stillness",
+        "mean_table_signal": 0.778,
+        "mean_access_signal": 0.0,
+        "mean_imaging_signal": 0.05,
+        "mean_device_signal": 0.0,
+        "mean_anesthesia_signal": 0.0,
+        "mean_stillness_signal": 0.942,
+        "mean_crowd_signal": 0.333,
+        "support_label": "observable=100%, confidence=0.36, strongest=stillness:0.94",
+        "label": "Angio alignment / crossing: moderate_visual_support; observable=100%, confidence=0.36, strongest=stillness:0.94"
+      },
+      {
+        "stage_segment_index": 2,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "start_frame": 27094,
+        "end_frame": 27871,
+        "start_s": 904.036,
+        "end_s": 929.962,
+        "clip_start_s": 4.037,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "frames": 778,
+        "room_view_frames": 5,
+        "non_room_view_frames": 773,
+        "observable_rate": 0.006,
+        "mean_confidence": 0.203,
+        "min_confidence": 0.2,
+        "max_confidence": 0.718,
+        "evidence_level": "weak_visual_support",
+        "dominant_signal": "stillness",
+        "mean_table_signal": 0.006,
+        "mean_access_signal": 0.0,
+        "mean_imaging_signal": 0.001,
+        "mean_device_signal": 0.0,
+        "mean_anesthesia_signal": 0.0,
+        "mean_stillness_signal": 0.999,
+        "mean_crowd_signal": 0.004,
+        "support_label": "observable=1%, confidence=0.20, strongest=stillness:1.00",
+        "label": "Balloon valvuloplasty: weak_visual_support; observable=1%, confidence=0.20, strongest=stillness:1.00"
+      }
+    ],
+    "procedure_milestones": [
+      {
+        "milestone_index": 0,
+        "stage": "room_prep_drape",
+        "stage_label": "Room prep / drape",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Room prep / drape: not observed in this clip"
+      },
+      {
+        "milestone_index": 1,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "observed_in_clip": true,
+        "milestone_status": "observed_prior",
+        "is_current_observed_stage": false,
+        "first_observed_s": 899.999,
+        "last_observed_s": 903.002,
+        "duration_s": 3.036,
+        "segment_count": 1,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.388,
+        "peak_table_count": 2,
+        "unique_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "support_label": "observed_prior; evidence=moderate_visual_support; observable=100%; confidence=0.39; table_peak=2; table_people=2",
+        "label": "Access / sheathing: observed_prior; evidence=moderate_visual_support; observable=100%; confidence=0.39; table_peak=2; table_people=2"
+      },
+      {
+        "milestone_index": 2,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "observed_in_clip": true,
+        "milestone_status": "observed_prior",
+        "is_current_observed_stage": false,
+        "first_observed_s": 903.035,
+        "last_observed_s": 904.003,
+        "duration_s": 1.001,
+        "segment_count": 1,
+        "evidence_level": "moderate_visual_support",
+        "observable_rate": 1.0,
+        "mean_confidence": 0.363,
+        "peak_table_count": 3,
+        "unique_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "support_label": "observed_prior; evidence=moderate_visual_support; observable=100%; confidence=0.36; table_peak=3; table_people=3",
+        "label": "Angio alignment / crossing: observed_prior; evidence=moderate_visual_support; observable=100%; confidence=0.36; table_peak=3; table_people=3"
+      },
+      {
+        "milestone_index": 3,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "observed_in_clip": true,
+        "milestone_status": "current_observed",
+        "is_current_observed_stage": true,
+        "first_observed_s": 904.036,
+        "last_observed_s": 929.962,
+        "duration_s": 25.959,
+        "segment_count": 1,
+        "evidence_level": "weak_visual_support",
+        "observable_rate": 0.006,
+        "mean_confidence": 0.203,
+        "peak_table_count": 3,
+        "unique_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "support_label": "current_observed; evidence=weak_visual_support; observable=1%; confidence=0.20; table_peak=3; table_people=3",
+        "label": "Balloon valvuloplasty: current_observed; evidence=weak_visual_support; observable=1%; confidence=0.20; table_peak=3; table_people=3"
+      },
+      {
+        "milestone_index": 4,
+        "stage": "valve_delivery_positioning",
+        "stage_label": "Valve delivery / positioning",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Valve delivery / positioning: not observed in this clip"
+      },
+      {
+        "milestone_index": 5,
+        "stage": "valve_deployment",
+        "stage_label": "Valve deployment",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Valve deployment: not observed in this clip"
+      },
+      {
+        "milestone_index": 6,
+        "stage": "post_deploy_assessment",
+        "stage_label": "Post-deploy assessment",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Post-deploy assessment: not observed in this clip"
+      },
+      {
+        "milestone_index": 7,
+        "stage": "closure_finish",
+        "stage_label": "Closure / finish",
+        "observed_in_clip": false,
+        "milestone_status": "not_observed_in_clip",
+        "is_current_observed_stage": false,
+        "first_observed_s": null,
+        "last_observed_s": null,
+        "duration_s": 0.0,
+        "segment_count": 0,
+        "evidence_level": null,
+        "observable_rate": null,
+        "mean_confidence": null,
+        "peak_table_count": 0,
+        "unique_table_track_count": 0,
+        "canonical_table_identity_count": 0,
+        "support_label": "",
+        "label": "Closure / finish: not observed in this clip"
+      }
+    ],
+    "procedure_event_timeline": [
+      {
+        "event_type": "stage_started",
+        "timestamp_s": 899.999,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 26973,
+        "end_s": 903.002,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 1,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 1,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          }
+        ],
+        "source": "stage_timeline",
+        "label": "0.0s stage started: Access / sheathing"
+      },
+      {
+        "event_type": "view_started",
+        "timestamp_s": 899.999,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 26973,
+        "end_s": 904.17,
+        "clip_end_s": 4.171,
+        "duration_s": 4.204,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 3,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [],
+        "roster": [],
+        "source": "view_segments",
+        "label": "0.0s room view started"
+      },
+      {
+        "event_type": "table_handoff",
+        "timestamp_s": 899.999,
+        "clip_timestamp_s": 0.0,
+        "frame_index": 26973,
+        "end_s": 903.002,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": "initial_table_roster",
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 76,
+            "coverage_ratio": 0.835,
+            "room_coverage_ratio": 0.835,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 1 table_operator 76 frames 0.0-3.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 72,
+            "coverage_ratio": 0.791,
+            "room_coverage_ratio": 0.791,
+            "first_seen_s": 899.999,
+            "last_seen_s": 903.002,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 3.003,
+            "label": "ID 2 table_operator 72 frames 0.0-3.0s"
+          }
+        ],
+        "source": "stage_handoff_summary",
+        "label": "Access / sheathing: initial_table_roster; lead ID 1 table_operator; active table tracks=2"
+      },
+      {
+        "event_type": "table_peak",
+        "timestamp_s": 903.002,
+        "clip_timestamp_s": 3.003,
+        "frame_index": 27063,
+        "end_s": 903.002,
+        "clip_end_s": 3.003,
+        "duration_s": 0.0,
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 76,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 72,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          }
+        ],
+        "source": "peak_table_roster",
+        "label": "3.003s table peak: 2 active during Access / sheathing"
+      },
+      {
+        "event_type": "stage_started",
+        "timestamp_s": 903.035,
+        "clip_timestamp_s": 3.036,
+        "frame_index": 27064,
+        "end_s": 904.003,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 77,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 73,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          }
+        ],
+        "source": "stage_timeline",
+        "label": "3.0s stage started: Angio alignment / crossing"
+      },
+      {
+        "event_type": "table_handoff",
+        "timestamp_s": 903.035,
+        "clip_timestamp_s": 3.036,
+        "frame_index": 27064,
+        "end_s": 904.003,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 3,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": "roster_added",
+        "table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.8,
+            "room_coverage_ratio": 0.8,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 1 table_operator 24 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 21,
+            "coverage_ratio": 0.7,
+            "room_coverage_ratio": 0.7,
+            "first_seen_s": 903.035,
+            "last_seen_s": 903.836,
+            "first_seen_clip_s": 3.036,
+            "last_seen_clip_s": 3.837,
+            "label": "ID 2 table_operator 21 frames 3.0-3.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 2,
+            "coverage_ratio": 0.067,
+            "room_coverage_ratio": 0.067,
+            "first_seen_s": 903.836,
+            "last_seen_s": 903.87,
+            "first_seen_clip_s": 3.837,
+            "last_seen_clip_s": 3.871,
+            "label": "ID 4 table_operator 2 frames 3.8-3.9s"
+          }
+        ],
+        "source": "stage_handoff_summary",
+        "label": "Angio alignment / crossing: roster_added; lead ID 1 table_operator; active table tracks=3"
+      },
+      {
+        "event_type": "table_peak",
+        "timestamp_s": 903.836,
+        "clip_timestamp_s": 3.837,
+        "frame_index": 27088,
+        "end_s": 903.836,
+        "clip_end_s": 3.837,
+        "duration_s": 0.0,
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 3,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 100,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 93,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 1,
+            "table_presence_ratio": 1.0,
+            "label": "ID 4 table_operator table=100%"
+          }
+        ],
+        "source": "peak_table_roster",
+        "label": "3.837s table peak: 3 active during Angio alignment / crossing"
+      },
+      {
+        "event_type": "stage_started",
+        "timestamp_s": 904.036,
+        "clip_timestamp_s": 4.037,
+        "frame_index": 27094,
+        "end_s": 929.962,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 2,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 101,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 94,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          }
+        ],
+        "source": "stage_timeline",
+        "label": "4.0s stage started: Balloon valvuloplasty"
+      },
+      {
+        "event_type": "table_handoff",
+        "timestamp_s": 904.036,
+        "clip_timestamp_s": 4.037,
+        "frame_index": 27094,
+        "end_s": 929.962,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 3,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": "roster_continued",
+        "table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 1 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 1.0,
+            "first_seen_s": 904.036,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.037,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 2 table_operator 5 frames 4.0-4.2s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.6,
+            "first_seen_s": 904.103,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 4.104,
+            "last_seen_clip_s": 4.171,
+            "label": "ID 4 table_operator 3 frames 4.1-4.2s"
+          }
+        ],
+        "source": "stage_handoff_summary",
+        "label": "Balloon valvuloplasty: roster_continued; lead ID 1 table_operator; active table tracks=3"
+      },
+      {
+        "event_type": "table_peak",
+        "timestamp_s": 904.17,
+        "clip_timestamp_s": 4.171,
+        "frame_index": 27098,
+        "end_s": 904.17,
+        "clip_end_s": 4.171,
+        "duration_s": 0.0,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "view": "room",
+        "tracking_available": true,
+        "table_count": 3,
+        "track_id": 1,
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "handoff_type": null,
+        "table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 105,
+            "table_presence_ratio": 1.0,
+            "label": "ID 1 table_operator table=100%"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 98,
+            "table_presence_ratio": 1.0,
+            "label": "ID 2 table_operator table=100%"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "frames_seen": 5,
+            "table_presence_ratio": 1.0,
+            "label": "ID 4 table_operator table=100%"
+          }
+        ],
+        "source": "peak_table_roster",
+        "label": "4.171s table peak: 3 active during Balloon valvuloplasty"
+      },
+      {
+        "event_type": "view_started",
+        "timestamp_s": 904.203,
+        "clip_timestamp_s": 4.204,
+        "frame_index": 27099,
+        "end_s": 929.962,
+        "clip_end_s": 29.963,
+        "duration_s": 25.792,
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "view": "non_room",
+        "tracking_available": false,
+        "table_count": 0,
+        "track_id": null,
+        "dominant_role": null,
+        "table_team_role": null,
+        "table_team_role_confidence": null,
+        "handoff_type": null,
+        "table_track_ids": [],
+        "roster": [],
+        "source": "view_segments",
+        "label": "4.2s non_room view started"
+      }
+    ],
+    "stage_staffing_summary": [
+      {
+        "stage": "access_sheathing",
+        "stage_label": "Access / sheathing",
+        "segment_count": 1,
+        "start_frame": 26973,
+        "end_frame": 27063,
+        "start_s": 899.999,
+        "end_s": 903.002,
+        "clip_start_s": 0.0,
+        "clip_end_s": 3.003,
+        "duration_s": 3.036,
+        "frames": 91,
+        "room_view_frames": 91,
+        "non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "mean_table_count": 1.626,
+        "mean_room_table_count": 1.626,
+        "peak_table_count": 2,
+        "table_occupancy_rate": 0.835,
+        "room_table_occupancy_rate": 0.835,
+        "table_count_distribution": {
+          "0": 15,
+          "1": 4,
+          "2": 72
+        },
+        "role_counts": {
+          "access_operator": 0,
+          "anesthesia": 0,
+          "device_prep": 0,
+          "entry_supply": 0,
+          "imaging": 0,
+          "table_operator": 148
+        },
+        "unique_table_track_count": 2,
+        "canonical_table_identity_count": 2,
+        "table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 76,
+            "stage_table_presence_ratio": 0.835,
+            "estimated_table_duration_s": 2.536,
+            "first_frame": 26973,
+            "last_frame": 27063,
+            "first_s": 899.999,
+            "last_s": 903.002,
+            "role_counts": {
+              "table_operator": 76
+            },
+            "label": "ID 1 table_operator frames=76"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 72,
+            "stage_table_presence_ratio": 0.791,
+            "estimated_table_duration_s": 2.402,
+            "first_frame": 26973,
+            "last_frame": 27063,
+            "first_s": 899.999,
+            "last_s": 903.002,
+            "role_counts": {
+              "table_operator": 72
+            },
+            "label": "ID 2 table_operator frames=72"
+          }
+        ]
+      },
+      {
+        "stage": "angio_alignment_crossing",
+        "stage_label": "Angio alignment / crossing",
+        "segment_count": 1,
+        "start_frame": 27064,
+        "end_frame": 27093,
+        "start_s": 903.035,
+        "end_s": 904.003,
+        "clip_start_s": 3.036,
+        "clip_end_s": 4.004,
+        "duration_s": 1.001,
+        "frames": 30,
+        "room_view_frames": 30,
+        "non_room_view_frames": 0,
+        "tracking_available_rate": 1.0,
+        "mean_table_count": 1.567,
+        "mean_room_table_count": 1.567,
+        "peak_table_count": 3,
+        "table_occupancy_rate": 0.833,
+        "room_table_occupancy_rate": 0.833,
+        "table_count_distribution": {
+          "0": 5,
+          "1": 4,
+          "2": 20,
+          "3": 1
+        },
+        "role_counts": {
+          "access_operator": 0,
+          "anesthesia": 0,
+          "device_prep": 0,
+          "entry_supply": 0,
+          "imaging": 3,
+          "table_operator": 47
+        },
+        "unique_table_track_count": 3,
+        "canonical_table_identity_count": 2,
+        "table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "stage_table_presence_ratio": 0.8,
+            "estimated_table_duration_s": 0.801,
+            "first_frame": 27064,
+            "last_frame": 27088,
+            "first_s": 903.035,
+            "last_s": 903.836,
+            "role_counts": {
+              "table_operator": 24
+            },
+            "label": "ID 1 table_operator frames=24"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 21,
+            "stage_table_presence_ratio": 0.7,
+            "estimated_table_duration_s": 0.701,
+            "first_frame": 27064,
+            "last_frame": 27088,
+            "first_s": 903.035,
+            "last_s": 903.836,
+            "role_counts": {
+              "table_operator": 21
+            },
+            "label": "ID 2 table_operator frames=21"
+          }
+        ]
+      },
+      {
+        "stage": "bav_optional",
+        "stage_label": "Balloon valvuloplasty",
+        "segment_count": 1,
+        "start_frame": 27094,
+        "end_frame": 27871,
+        "start_s": 904.036,
+        "end_s": 929.962,
+        "clip_start_s": 4.037,
+        "clip_end_s": 29.963,
+        "duration_s": 25.959,
+        "frames": 778,
+        "room_view_frames": 5,
+        "non_room_view_frames": 773,
+        "tracking_available_rate": 0.006,
+        "mean_table_count": 0.017,
+        "mean_room_table_count": 2.6,
+        "peak_table_count": 3,
+        "table_occupancy_rate": 0.006,
+        "room_table_occupancy_rate": 1.0,
+        "table_count_distribution": {
+          "0": 773,
+          "2": 2,
+          "3": 3
+        },
+        "role_counts": {
+          "access_operator": 0,
+          "anesthesia": 0,
+          "device_prep": 0,
+          "entry_supply": 0,
+          "imaging": 2,
+          "table_operator": 13
+        },
+        "unique_table_track_count": 3,
+        "canonical_table_identity_count": 3,
+        "table_roster": [
+          {
+            "track_id": 1,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "stage_table_presence_ratio": 0.006,
+            "estimated_table_duration_s": 0.167,
+            "first_frame": 27094,
+            "last_frame": 27098,
+            "first_s": 904.036,
+            "last_s": 904.17,
+            "role_counts": {
+              "table_operator": 5
+            },
+            "label": "ID 1 table_operator frames=5"
+          },
+          {
+            "track_id": 2,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "stage_table_presence_ratio": 0.006,
+            "estimated_table_duration_s": 0.167,
+            "first_frame": 27094,
+            "last_frame": 27098,
+            "first_s": 904.036,
+            "last_s": 904.17,
+            "role_counts": {
+              "table_operator": 5
+            },
+            "label": "ID 2 table_operator frames=5"
+          },
+          {
+            "track_id": 4,
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "stage_table_presence_ratio": 0.004,
+            "estimated_table_duration_s": 0.1,
+            "first_frame": 27096,
+            "last_frame": 27098,
+            "first_s": 904.103,
+            "last_s": 904.17,
+            "role_counts": {
+              "table_operator": 3
+            },
+            "label": "ID 4 table_operator frames=3"
+          }
+        ]
+      }
+    ],
+    "low_confidence_segments": [
+      {
+        "start_frame": 26973,
+        "end_frame": 27063,
+        "start_s": 899.9991,
+        "end_s": 903.0021,
+        "min_confidence": 0.24,
+        "max_confidence": 0.42
+      },
+      {
+        "start_frame": 27067,
+        "end_frame": 27093,
+        "start_s": 903.1355666666667,
+        "end_s": 904.0031,
+        "min_confidence": 0.22,
+        "max_confidence": 0.38
+      },
+      {
+        "start_frame": 27099,
+        "end_frame": 27871,
+        "start_s": 904.2033,
+        "end_s": 929.9623666666666,
+        "min_confidence": 0.2,
+        "max_confidence": 0.2
+      }
+    ],
+    "quality_flags": [
+      {
+        "code": "rapid_stage_progression",
+        "message": "Stage changes are dense for the clip duration; this may be edited footage or an unseeded slice rather than a continuous case.",
+        "stage_count": 3,
+        "duration_s": 29.963
+      },
+      {
+        "code": "low_stage_confidence",
+        "message": "Procedure-stage inference is visually weak for a substantial portion of the clip; treat stage labels as seeded or held context in those frames.",
+        "confidence_threshold": 0.45,
+        "frames": 891,
+        "ratio": 0.991
+      },
+      {
+        "code": "non_room_view",
+        "message": "A substantial portion of the clip appears to be fluoroscopy or another non-room view; staff/table tracking is suppressed for those frames.",
+        "frames": 773,
+        "ratio": 0.86
+      }
+    ]
+  }
+}

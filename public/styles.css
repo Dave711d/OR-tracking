@@ -156,6 +156,10 @@ video {
   text-transform: uppercase;
 }
 
+.controls .replay-control {
+  grid-column: span 2;
+}
+
 input[type="range"] {
   width: 100%;
 }
@@ -433,6 +437,10 @@ select {
 @media (max-width: 560px) {
   .app-shell {
     padding: 8px;
+  }
+
+  .controls .replay-control {
+    grid-column: auto;
   }
 
   .topbar,

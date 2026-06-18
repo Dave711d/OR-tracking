@@ -372,6 +372,22 @@ opt-in fallback fixture separately when refining low-motion room-view tracking:
 python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.json --output-dir outputs/tavr_static_table_fallback_suite
 ```
 
+## Public Replay Artifacts
+
+The Vercel static demo can replay compact backend artifacts without shipping the
+full source videos. After refreshing the real-footage suites, export the public
+JSON bundle with:
+
+```bash
+python3 export_public_demo_data.py
+```
+
+The selector in `public/app.js` currently covers the 900s weak-support access
+window, the 1800s deployment/table-hold window, the 2400s fluoroscopy-held
+context window, the 2700s closure weak-support window, and the opt-in 900s
+static-fallback review artifact. This lets the online prototype show both
+positive table-roster evidence and honest weak/held/non-room cases.
+
 The current local Sentara suite covers:
 
 - `sentara_900_room_to_fluoro_low_motion`: short room-view stretch with sparse

@@ -4,6 +4,7 @@ const overlay = document.querySelector("#overlayCanvas");
 const emptyState = document.querySelector("#emptyState");
 const playButton = document.querySelector("#playButton");
 const syntheticButton = document.querySelector("#syntheticButton");
+const evaluationDemoSelect = document.querySelector("#evaluationDemoSelect");
 const evaluationDemoButton = document.querySelector("#evaluationDemoButton");
 const resetButton = document.querySelector("#resetButton");
 const staticFallbackInput = document.querySelector("#staticFallback");
@@ -175,7 +176,34 @@ const TAVR_STAGE_LOOKUP = new Map(
 const BROWSER_STAGE_MIN_SECONDS = 1.0;
 const BROWSER_STAGE_MIN_CONFIDENCE = 0.42;
 const BROWSER_STAGE_ADVANCE_MARGIN = 0.06;
-const EVALUATION_DEMO_URL = "/demo-data/sentara-1800-evaluation.json";
+const EVALUATION_DEMOS = [
+  {
+    id: "sentara_900_room_to_fluoro_low_motion",
+    label: "900s access weak support",
+    url: "/demo-data/sentara-900-evaluation.json",
+  },
+  {
+    id: "sentara_1800_mixed_room",
+    label: "1800s deployment table hold",
+    url: "/demo-data/sentara-1800-evaluation.json",
+    default: true,
+  },
+  {
+    id: "sentara_2400_fluoro_negative",
+    label: "2400s fluoro held context",
+    url: "/demo-data/sentara-2400-evaluation.json",
+  },
+  {
+    id: "sentara_2700_room_post",
+    label: "2700s closure weak support",
+    url: "/demo-data/sentara-2700-evaluation.json",
+  },
+  {
+    id: "sentara_900_static_table_fallback",
+    label: "900s static fallback review",
+    url: "/demo-data/sentara-900-static-fallback-evaluation.json",
+  },
+];
 
 let previousFrame = null;
 let activityHistory = [];
@@ -193,6 +221,7 @@ let syntheticStartedAt = 0;
 let evaluationReplayRequestId = 0;
 
 populateInitialStageOptions();
+populateEvaluationDemoOptions();
 
 input.addEventListener("change", () => {
   const file = input.files?.[0];
@@ -245,22 +274,23 @@ window.addEventListener("resize", resizeOverlay);
 
 async function loadEvaluationDemo() {
   const requestId = ++evaluationReplayRequestId;
+  const demoMeta = selectedEvaluationDemo();
   cancelAnimationFrame(rafId);
   syntheticMode = false;
   video.pause();
   resetMetrics({ keepEvaluationReplayRequest: true });
   video.hidden = true;
   emptyState.hidden = false;
-  setEmptyState("Loading evaluated demo", "Sentara TAVR backend artifact");
+  setEmptyState("Loading evaluated demo", demoMeta.label);
 
   try {
-    const response = await fetch(EVALUATION_DEMO_URL);
+    const response = await fetch(demoMeta.url);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
     const payload = await response.json();
     if (requestId !== evaluationReplayRequestId) return;
-    renderEvaluationReplay(normalizeEvaluationPayload(payload));
+    renderEvaluationReplay(normalizeEvaluationPayload(payload, demoMeta));
   } catch (error) {
     if (requestId !== evaluationReplayRequestId) return;
     setEmptyState("Demo artifact unavailable", String(error.message || error));
@@ -269,7 +299,7 @@ async function loadEvaluationDemo() {
   }
 }
 
-function normalizeEvaluationPayload(payload) {
+function normalizeEvaluationPayload(payload, demoMeta = {}) {
   const tavr = payload.tavr || {};
   const events = [
     ...asArray(tavr.procedure_event_timeline).map((event) => ({
@@ -281,12 +311,13 @@ function normalizeEvaluationPayload(payload) {
       source_table: "table_transition_events",
     })),
   ].sort((a, b) => (
-    Number(a.timestamp_s ?? 0) - Number(b.timestamp_s ?? 0) ||
+    eventTimeSeconds(a) - eventTimeSeconds(b) ||
     String(a.event_type || "").localeCompare(String(b.event_type || ""))
   ));
 
   return {
     caseName: payload.case || "evaluated_tavr_case",
+    demoLabel: demoMeta.label || String(payload.case || "evaluated TAVR case").replaceAll("_", " "),
     scoreSummary: payload.score_summary || {},
     timebase: payload.timebase || asArray(tavr.timebase_summary)[0] || null,
     status: asArray(tavr.procedure_status_summary)[0] || null,
@@ -309,7 +340,7 @@ function renderEvaluationReplay(demo) {
   const teamCount = demo.team.length || tableCount;
 
   clearCanvas();
-  setEmptyState("Evaluated TAVR demo loaded", demo.caseName.replaceAll("_", " "));
+  setEmptyState("Evaluated TAVR demo loaded", demo.demoLabel);
   stageMetric.textContent = `${stageLabel} (${status.evidence_level || "evaluated"})`;
   countMetric.textContent = String(teamCount);
   tableSideMetric.textContent = String(tableCount);
@@ -337,6 +368,35 @@ function populateInitialStageOptions() {
     option.textContent = stage.label;
     initialStageInput.append(option);
   });
+}
+
+function populateEvaluationDemoOptions() {
+  EVALUATION_DEMOS.forEach((demo) => {
+    const option = document.createElement("option");
+    option.value = demo.id;
+    option.textContent = demo.label;
+    option.selected = Boolean(demo.default);
+    evaluationDemoSelect.append(option);
+  });
+}
+
+function selectedEvaluationDemo() {
+  return (
+    EVALUATION_DEMOS.find((demo) => demo.id === evaluationDemoSelect.value) ||
+    EVALUATION_DEMOS.find((demo) => demo.default) ||
+    EVALUATION_DEMOS[0]
+  );
+}
+
+function eventTimeSeconds(event) {
+  return Number(
+    event.timestamp_s ??
+    event.clip_timestamp_s ??
+    event.clip_start_s ??
+    event.source_timestamp_s ??
+    event.source_start_s ??
+    0,
+  );
 }
 
 function tick() {
