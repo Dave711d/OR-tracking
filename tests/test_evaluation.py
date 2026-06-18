@@ -902,6 +902,198 @@ def test_exact_procedure_status_canonical_people_rejects_extra_people() -> None:
     assert candidate["expected_current_canonical_table_ids"] == [actual_ids[0]]
 
 
+def test_table_person_status_score_maps_labeled_person_to_status_rosters() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "access_sheathing",
+            [18],
+            centroids_by_track={18: (100, 100)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [18],
+            centroids_by_track={18: (102, 101)},
+        ),
+        _table_metric(2, 0.2, "valve_deployment", []),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [21],
+            centroids_by_track={21: (106, 103)},
+        ),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_person_status_expectations": [
+                {
+                    "status_id": "deployment_snapshot",
+                    "source": "operator_snapshot",
+                    "timestamp_s": 0.3,
+                    "tolerance_s": 0.01,
+                    "stage": "valve_deployment",
+                    "required_snapshot_reasons": ["clip_end"],
+                    "persons": [
+                        {
+                            "person_id": "gt_table_operator",
+                            "expected_canonical_table_ids": [1],
+                            "required_in": [
+                                "current",
+                                "effective",
+                                "last_observed",
+                                "peak",
+                            ],
+                            "max_canonical_table_ids": 1,
+                        }
+                    ],
+                    "expected_current_person_ids": ["gt_table_operator"],
+                    "expected_effective_person_ids": ["gt_table_operator"],
+                    "expected_last_observed_person_ids": ["gt_table_operator"],
+                    "expected_peak_person_ids": ["gt_table_operator"],
+                }
+            ]
+        },
+    )
+
+    expectation = score["table_person_status_score"]["expectations"][0]
+    candidate = expectation["matched_candidates"][0]
+    assert score["table_person_status_score"]["pass_rate"] == 1.0
+    assert candidate["candidate_source"] == "operator_status_snapshots"
+    assert candidate["persons"][0]["membership"]["current"] is True
+    assert candidate["rosters"]["effective"]["expected_person_ids"] == [
+        "gt_table_operator"
+    ]
+    assert candidate["rosters"]["effective"]["actual_canonical_table_ids"] == [1]
+
+
+def test_table_person_status_score_rejects_extra_effective_person() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+        _table_metric(2, 0.2, "valve_deployment", [7, 8]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_person_status_expectations": [
+                {
+                    "status_id": "only_left_expected",
+                    "source": "procedure_status",
+                    "stage": "valve_deployment",
+                    "persons": [
+                        {
+                            "person_id": "gt_left_table",
+                            "expected_canonical_table_ids": [1],
+                            "required_in": ["effective"],
+                        }
+                    ],
+                    "expected_effective_person_ids": ["gt_left_table"],
+                }
+            ]
+        },
+    )
+
+    expectation = score["table_person_status_score"]["expectations"][0]
+    candidate = expectation["matched_candidates"][0]
+    assert score["table_person_status_score"]["pass_rate"] == 0.0
+    assert candidate["effective_table_canonical_ids"] == [1, 2]
+    assert candidate["rosters"]["effective"]["extra_canonical_table_ids"] == [2]
+    assert (
+        candidate["rosters"]["effective"]["checks"][
+            "expected_effective_person_ids"
+        ]
+        is False
+    )
+
+
+def test_table_person_status_score_accepts_observed_id_from_accepted_set() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_person_status_expectations": [
+                {
+                    "status_id": "accepted_identity_alternative",
+                    "source": "procedure_status",
+                    "stage": "valve_deployment",
+                    "persons": [
+                        {
+                            "person_id": "gt_table_operator",
+                            "accepted_canonical_table_ids": [1, 2],
+                            "required_in": ["current", "effective", "peak"],
+                            "max_canonical_table_ids": 1,
+                        }
+                    ],
+                    "expected_current_person_ids": ["gt_table_operator"],
+                    "expected_effective_person_ids": ["gt_table_operator"],
+                    "expected_peak_person_ids": ["gt_table_operator"],
+                }
+            ]
+        },
+    )
+
+    expectation = score["table_person_status_score"]["expectations"][0]
+    candidate = expectation["matched_candidates"][0]
+    person = candidate["persons"][0]
+    assert score["table_person_status_score"]["pass_rate"] == 1.0
+    assert person["canonical_table_ids"] == [1]
+    assert person["identity_canonical_table_ids"] == [1, 2]
+    assert person["checks"]["max_canonical_table_ids"] is True
+    assert person["membership"]["current"] is True
+    assert candidate["rosters"]["current"]["expected_canonical_table_ids"] == [1]
+    assert candidate["rosters"]["current"]["extra_canonical_table_ids"] == []
+
+
+def test_table_person_status_score_rejects_unmapped_forbidden_person_id() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_person_status_expectations": [
+                {
+                    "status_id": "mistyped_forbidden_person",
+                    "source": "procedure_status",
+                    "stage": "valve_deployment",
+                    "persons": [
+                        {
+                            "person_id": "gt_table_operator",
+                            "expected_canonical_table_ids": [1],
+                            "required_in": ["current"],
+                        }
+                    ],
+                    "forbidden_current_person_ids": ["typo_table_operator"],
+                }
+            ]
+        },
+    )
+
+    expectation = score["table_person_status_score"]["expectations"][0]
+    candidate = expectation["matched_candidates"][0]
+    current_roster = candidate["rosters"]["current"]
+    assert score["table_person_status_score"]["pass_rate"] == 0.0
+    assert current_roster["unmapped_forbidden_person_ids"] == [
+        "typo_table_operator"
+    ]
+    assert (
+        current_roster["checks"]["mapped_forbidden_current_person_ids"] is False
+    )
+
+
 def test_exact_operator_packet_canonical_people_rejects_extra_people() -> None:
     metrics = [
         _table_metric(0, 0.0, "valve_deployment", [7, 8]),

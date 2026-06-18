@@ -290,6 +290,12 @@ The label file can include:
   `max_extra_canonical_table_ids` is set. Use `person_id` as the ground-truth
   handle; tracker IDs are regression mappings that should be updated after
   visual review.
+- `table_person_status_expectations`: human-labelled table-person roster
+  checks at an operator snapshot or the procedure status summary. Use stable
+  `person_id` values with tracker mappings, then require or forbid those people
+  in the `current`, `effective`, `last_observed`, and `peak` table rosters. Exact
+  roster fields such as `expected_effective_person_ids` fail both missed people
+  and extra tracked people.
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
@@ -410,7 +416,7 @@ public clips, broadcast timestamps, or future labelled theatre footage.
 Use the manifest runner to score several clips with one command:
 
 ```bash
-python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite
+python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite_person_status_verify
 ```
 
 The default suite is manifest-driven rather than shell-string-driven. Each case
@@ -418,7 +424,7 @@ declares a clip path, label path, ROI, starting stage, frame limit, optional
 `source_start_s` for pre-cut case-clock metadata, and tracking configuration.
 Cases can set `"static_table_fallback": true` in their `config` object for
 opt-in low-motion room-view review. The runner writes per-case JSON plus
-`outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
+`outputs/tavr_suite_person_status_verify/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
 status summaries, table-team summaries, procedure milestones, stage staffing,
 operator status snapshots, operator stage packets, stage table coverage, stage
@@ -428,14 +434,15 @@ table identity groups, table presence intervals, quality flags, and
 low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured
 threshold, including `operator_packet_pass_rate`,
-`table_person_interval_pass_rate`, `table_identity_group_pass_rate`, and
-`table_transition_pass_rate` when those expectations are labelled.
+`table_person_interval_pass_rate`, `table_person_status_pass_rate`,
+`table_identity_group_pass_rate`, and `table_transition_pass_rate` when those
+expectations are labelled.
 
 The default suite keeps static fallback off as a conservative baseline. Run the
 opt-in fallback fixture separately when refining low-motion room-view tracking:
 
 ```bash
-python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.json --output-dir outputs/tavr_static_table_fallback_suite
+python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.json --output-dir outputs/tavr_static_person_status_verify
 ```
 
 Run the deterministic full-workflow suite when you need a compact regression
@@ -446,17 +453,20 @@ rapid-progression quality flag:
 ```bash
 # Optional when changing the fixture generator; the MP4 is committed.
 python download_sample.py --tavr-fixture --output samples/synthetic_tavr_sample.mp4
-python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output-dir outputs/tavr_synthetic_suite
+python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output-dir outputs/tavr_synthetic_person_status_verify
 ```
 
 ## Public Replay Artifacts
 
 The Vercel static demo can replay compact backend artifacts without shipping the
-full source videos. After refreshing the real-footage suites and the synthetic
-full-workflow suite, export the public JSON bundle with:
+full source videos. After refreshing `outputs/tavr_suite_person_status_verify`,
+`outputs/tavr_static_person_status_verify`, and
+`outputs/tavr_synthetic_person_status_verify`, export the public JSON bundle
+with:
 
 ```bash
 python3 export_public_demo_data.py
+python3 export_public_demo_data.py --check
 ```
 
 The selector in `public/app.js` currently covers the 900s weak-support access

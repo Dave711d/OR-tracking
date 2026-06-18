@@ -659,6 +659,10 @@ def score_tavr_metrics(
             scoring_metrics,
             labels.get("table_person_interval_expectations", []),
         ),
+        "table_person_status_score": _table_person_status_score(
+            scoring_metrics,
+            labels.get("table_person_status_expectations", []),
+        ),
         "stage_staffing_score": _stage_staffing_score(
             scoring_metrics,
             labels.get("stage_staffing_expectations", []),
@@ -4376,6 +4380,459 @@ def _expectation_duration_s(expectation: Dict[str, Any]) -> float:
     if "start_s" not in expectation or "end_s" not in expectation:
         return 0.0
     return max(0.0, float(expectation["end_s"]) - float(expectation["start_s"]))
+
+
+def _table_person_status_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    passed = 0
+    scored_expectations = []
+    for expectation_index, expectation in enumerate(expectations):
+        candidates = _table_person_status_candidate_rows(metrics, expectation)
+        scored_candidates = [
+            _score_table_person_status_candidate(
+                row,
+                expectation,
+                expectation_index,
+            )
+            for row in candidates
+        ]
+        required_reasons = _operator_snapshot_required_reasons(expectation)
+        if required_reasons:
+            for scored in scored_candidates:
+                snapshot_reasons = set(scored.get("snapshot_reason", []))
+                scored["checks"]["required_snapshot_reasons"] = (
+                    required_reasons.issubset(snapshot_reasons)
+                )
+                scored["passed"] = scored["passed"] and scored["checks"][
+                    "required_snapshot_reasons"
+                ]
+        expectation_pass = any(candidate["passed"] for candidate in scored_candidates)
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "status_id": expectation.get("status_id")
+                or expectation.get("id")
+                or f"status_{expectation_index + 1}",
+                "source": _table_person_status_source(expectation),
+                "timestamp_s": expectation.get("timestamp_s", expectation.get("at_s")),
+                "start_s": expectation.get("start_s"),
+                "end_s": expectation.get("end_s"),
+                "stage": expectation.get("stage", expectation.get("current_stage")),
+                "required_snapshot_reasons": sorted(required_reasons),
+                "matched_candidates": scored_candidates,
+                "matched_count": len(scored_candidates),
+                "passed_candidate_count": sum(
+                    1 for candidate in scored_candidates if candidate["passed"]
+                ),
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
+def _table_person_status_candidate_rows(
+    metrics: Sequence[FrameMetrics],
+    expectation: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    source = _table_person_status_source(expectation)
+    if source == "procedure_status":
+        return [
+            {"candidate_source": "procedure_status_summary", **row}
+            for row in procedure_status_summary(metrics)
+        ]
+    return [
+        {"candidate_source": "operator_status_snapshots", **row}
+        for row in _operator_snapshot_candidate_rows(metrics, expectation)
+    ]
+
+
+def _table_person_status_source(expectation: Dict[str, Any]) -> str:
+    source = str(
+        expectation.get(
+            "source",
+            expectation.get("status_source", ""),
+        )
+    )
+    if source in {"procedure", "procedure_status", "procedure_status_summary"}:
+        return "procedure_status"
+    if source in {"snapshot", "operator_snapshot", "operator_status_snapshots"}:
+        return "operator_status_snapshot"
+    if (
+        "timestamp_s" in expectation
+        or "at_s" in expectation
+        or "start_s" in expectation
+        or "end_s" in expectation
+        or "required_snapshot_reasons" in expectation
+        or "snapshot_reason" in expectation
+    ):
+        return "operator_status_snapshot"
+    return "procedure_status"
+
+
+def _score_table_person_status_candidate(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+    expectation_index: int,
+) -> Dict[str, Any]:
+    current_stage = expectation.get("current_stage", expectation.get("stage"))
+    current_view = expectation.get("current_view")
+    tracking_available = expectation.get("tracking_available")
+    effective_table_source = expectation.get("effective_table_source")
+    persons = _table_person_specs(expectation, expectation_index)
+    person_results = [
+        _score_table_status_person(person, row)
+        for person in persons
+    ]
+    person_map = _person_status_id_map(person_results)
+    roster_results = {
+        roster_name: _score_table_person_status_roster(
+            row,
+            expectation,
+            roster_name,
+            person_map,
+        )
+        for roster_name in ("current", "effective", "last_observed", "peak")
+    }
+    checks = {
+        "current_stage": (
+            current_stage is None or row.get("current_stage") == current_stage
+        ),
+        "current_view": current_view is None or row.get("current_view") == current_view,
+        "tracking_available": (
+            tracking_available is None
+            or bool(row.get("tracking_available")) == bool(tracking_available)
+        ),
+        "effective_table_source": (
+            effective_table_source is None
+            or row.get("effective_table_source") == effective_table_source
+        ),
+        "all_persons_passed": all(person["passed"] for person in person_results),
+    }
+    for roster_name, result in roster_results.items():
+        checks.update(result["checks"])
+    return {
+        "candidate_source": row.get("candidate_source"),
+        "snapshot_index": row.get("snapshot_index"),
+        "snapshot_reason": row.get("snapshot_reason", []),
+        "frame_index": row.get("frame_index"),
+        "timestamp_s": row.get("timestamp_s"),
+        "clip_timestamp_s": row.get("clip_timestamp_s"),
+        "current_stage": row.get("current_stage"),
+        "current_view": row.get("current_view"),
+        "tracking_available": row.get("tracking_available"),
+        "effective_table_source": row.get("effective_table_source"),
+        "current_table_canonical_ids": row.get("current_table_canonical_ids", []),
+        "effective_table_canonical_ids": row.get("effective_table_canonical_ids", []),
+        "last_observed_table_canonical_ids": row.get(
+            "last_observed_table_canonical_ids",
+            [],
+        ),
+        "peak_table_canonical_ids": row.get("peak_table_canonical_ids", []),
+        "persons": person_results,
+        "rosters": roster_results,
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _score_table_status_person(
+    person: Dict[str, Any],
+    row: Dict[str, Any],
+) -> Dict[str, Any]:
+    person_id = str(person.get("person_id") or person.get("id") or "person")
+    expected_ids = _expected_int_set(
+        person,
+        "expected_canonical_table_ids",
+        "expected_table_canonical_ids",
+    )
+    required_ids = _expected_int_set(
+        person,
+        "required_canonical_table_ids",
+        "required_table_canonical_ids",
+    ) or set()
+    accepted_ids = _expected_int_set(
+        person,
+        "accepted_canonical_table_ids",
+        "accepted_table_canonical_ids",
+    )
+    identity_ids = expected_ids or required_ids or accepted_ids or set()
+    matching_ids = accepted_ids or expected_ids or required_ids or set()
+    required_in = _expected_text_fragments(person.get("required_in"))
+    forbidden_in = _expected_text_fragments(person.get("forbidden_in"))
+    roster_canonical_ids = {
+        roster_name: (
+            _status_roster_canonical_ids(row, roster_name) & matching_ids
+        )
+        if matching_ids
+        else set()
+        for roster_name in ("current", "effective", "last_observed", "peak")
+    }
+    matched_canonical_ids = {
+        canonical_id
+        for roster_ids in roster_canonical_ids.values()
+        for canonical_id in roster_ids
+    }
+    strict_membership_ids = expected_ids or required_ids
+    roster_membership = {
+        roster_name: (
+            strict_membership_ids.issubset(
+                _status_roster_canonical_ids(row, roster_name)
+            )
+            if strict_membership_ids
+            else bool(roster_canonical_ids[roster_name])
+        )
+        for roster_name in roster_canonical_ids
+    }
+    max_canonical_ids = person.get("max_canonical_table_ids")
+    checks = {
+        "has_canonical_mapping": bool(identity_ids),
+        "expected_canonical_table_ids": (
+            expected_ids is None or matched_canonical_ids == expected_ids
+        ),
+        "required_canonical_table_ids": required_ids.issubset(
+            matched_canonical_ids
+        ),
+        "accepted_canonical_table_ids": (
+            accepted_ids is None or matched_canonical_ids.issubset(accepted_ids)
+        ),
+        "max_canonical_table_ids": (
+            max_canonical_ids is None
+            or len(matched_canonical_ids) <= int(max_canonical_ids)
+        ),
+    }
+    for roster_name in required_in:
+        checks[f"required_in_{roster_name}"] = bool(
+            roster_membership.get(roster_name)
+        )
+    for roster_name in forbidden_in:
+        checks[f"forbidden_in_{roster_name}"] = not bool(
+            roster_membership.get(roster_name)
+        )
+    return {
+        "person_id": person_id,
+        "label": person.get("label"),
+        "canonical_table_ids": sorted(matched_canonical_ids),
+        "identity_canonical_table_ids": sorted(identity_ids),
+        "roster_canonical_table_ids": {
+            roster_name: sorted(roster_ids)
+            for roster_name, roster_ids in roster_canonical_ids.items()
+        },
+        "expected_canonical_table_ids": (
+            sorted(expected_ids) if expected_ids is not None else None
+        ),
+        "required_canonical_table_ids": sorted(required_ids),
+        "accepted_canonical_table_ids": (
+            sorted(accepted_ids) if accepted_ids is not None else None
+        ),
+        "required_in": required_in,
+        "forbidden_in": forbidden_in,
+        "membership": roster_membership,
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _score_table_person_status_roster(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+    roster_name: str,
+    person_map: Dict[str, set[int]],
+) -> Dict[str, Any]:
+    actual_ids = _status_roster_canonical_ids(row, roster_name)
+    expected_person_ids = _expected_person_id_set(
+        expectation,
+        f"expected_{roster_name}_person_ids",
+    )
+    required_person_ids = _expected_person_id_set(
+        expectation,
+        f"required_{roster_name}_person_ids",
+    )
+    forbidden_person_ids = _expected_person_id_set(
+        expectation,
+        f"forbidden_{roster_name}_person_ids",
+    )
+    expected_ids = _canonical_ids_for_person_ids(
+        expected_person_ids,
+        person_map,
+        roster_name=roster_name,
+    )
+    required_ids = (
+        _canonical_ids_for_person_ids(
+            required_person_ids,
+            person_map,
+            roster_name=roster_name,
+        )
+        or set()
+    )
+    forbidden_ids = (
+        _canonical_ids_for_person_ids(
+            forbidden_person_ids,
+            person_map,
+            roster_name=roster_name,
+            fallback_to_roster_observed=False,
+        )
+        or set()
+    )
+    unmapped_expected_person_ids = _unmapped_person_ids(
+        expected_person_ids,
+        person_map,
+    )
+    unmapped_required_person_ids = _unmapped_person_ids(
+        required_person_ids,
+        person_map,
+    )
+    unmapped_forbidden_person_ids = _unmapped_person_ids(
+        forbidden_person_ids,
+        person_map,
+    )
+    extra_ids = sorted(actual_ids - expected_ids) if expected_ids is not None else []
+    missing_ids = sorted(expected_ids - actual_ids) if expected_ids is not None else []
+    checks = {
+        f"mapped_expected_{roster_name}_person_ids": (
+            not unmapped_expected_person_ids
+        ),
+        f"mapped_required_{roster_name}_person_ids": (
+            not unmapped_required_person_ids
+        ),
+        f"mapped_forbidden_{roster_name}_person_ids": (
+            not unmapped_forbidden_person_ids
+        ),
+        f"expected_{roster_name}_person_ids": (
+            expected_ids is None or actual_ids == expected_ids
+        ),
+        f"required_{roster_name}_person_ids": required_ids.issubset(actual_ids),
+        f"forbidden_{roster_name}_person_ids": not (forbidden_ids & actual_ids),
+    }
+    return {
+        "actual_canonical_table_ids": sorted(actual_ids),
+        "expected_person_ids": sorted(expected_person_ids)
+        if expected_person_ids is not None
+        else None,
+        "required_person_ids": sorted(required_person_ids)
+        if required_person_ids is not None
+        else None,
+        "forbidden_person_ids": sorted(forbidden_person_ids)
+        if forbidden_person_ids is not None
+        else None,
+        "unmapped_expected_person_ids": unmapped_expected_person_ids,
+        "unmapped_required_person_ids": unmapped_required_person_ids,
+        "unmapped_forbidden_person_ids": unmapped_forbidden_person_ids,
+        "expected_canonical_table_ids": sorted(expected_ids)
+        if expected_ids is not None
+        else None,
+        "required_canonical_table_ids": sorted(required_ids),
+        "forbidden_canonical_table_ids": sorted(forbidden_ids),
+        "extra_canonical_table_ids": extra_ids,
+        "missing_canonical_table_ids": missing_ids,
+        "checks": checks,
+    }
+
+
+def _person_status_id_map(
+    person_results: Sequence[Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    return {
+        str(person["person_id"]): {
+            "canonical_table_ids": {
+                int(value) for value in person.get("canonical_table_ids", [])
+            },
+            "identity_canonical_table_ids": {
+                int(value)
+                for value in person.get("identity_canonical_table_ids", [])
+            },
+            "roster_canonical_table_ids": {
+                roster_name: {int(value) for value in roster_ids}
+                for roster_name, roster_ids in (
+                    person.get("roster_canonical_table_ids") or {}
+                ).items()
+            },
+        }
+        for person in person_results
+    }
+
+
+def _expected_person_id_set(
+    expectation: Dict[str, Any],
+    key: str,
+) -> Optional[set[str]]:
+    if key not in expectation:
+        return None
+    values = expectation.get(key, [])
+    if isinstance(values, str):
+        return {values}
+    return {str(value) for value in values}
+
+
+def _canonical_ids_for_person_ids(
+    person_ids: Optional[set[str]],
+    person_map: Dict[str, Dict[str, Any]],
+    *,
+    roster_name: str | None = None,
+    fallback_to_roster_observed: bool = True,
+) -> set[int] | None:
+    if person_ids is None:
+        return None
+    canonical_ids: set[int] = set()
+    for person_id in person_ids:
+        person_info = person_map.get(str(person_id))
+        if not person_info:
+            continue
+        roster_ids = set()
+        if roster_name is not None and fallback_to_roster_observed:
+            roster_ids = set(
+                person_info.get("roster_canonical_table_ids", {}).get(
+                    roster_name,
+                    set(),
+                )
+            )
+        canonical_ids.update(
+            roster_ids
+            or person_info.get("identity_canonical_table_ids", set())
+            or person_info.get("canonical_table_ids", set())
+        )
+    return canonical_ids
+
+
+def _unmapped_person_ids(
+    person_ids: Optional[set[str]],
+    person_map: Dict[str, Dict[str, Any]],
+) -> List[str]:
+    if person_ids is None:
+        return []
+    return sorted(
+        str(person_id)
+        for person_id in person_ids
+        if not (
+            person_map.get(str(person_id), {}).get("identity_canonical_table_ids")
+            or person_map.get(str(person_id), {}).get("canonical_table_ids")
+        )
+    )
+
+
+def _status_roster_canonical_ids(
+    row: Dict[str, Any],
+    roster_name: str,
+) -> set[int]:
+    key_by_name = {
+        "current": "current_table_canonical_ids",
+        "effective": "effective_table_canonical_ids",
+        "last_observed": "last_observed_table_canonical_ids",
+        "peak": "peak_table_canonical_ids",
+    }
+    return {
+        int(value)
+        for value in row.get(key_by_name[roster_name], [])
+    }
 
 
 def _stage_staffing_score(

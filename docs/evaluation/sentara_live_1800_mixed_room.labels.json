@@ -81,6 +81,42 @@
       "max_extra_canonical_table_ids": 0
     }
   ],
+  "table_person_status_expectations": [
+    {
+      "status_id": "late_deployment_peak_snapshot",
+      "annotation_source": "tracker_derived_bootstrap_review",
+      "source": "operator_snapshot",
+      "timestamp_s": 24.758,
+      "tolerance_s": 0.05,
+      "stage": "valve_deployment",
+      "required_snapshot_reasons": ["peak_table"],
+      "persons": [
+        {"person_id": "gt_1800_late_table_operator_a", "expected_canonical_table_ids": [8], "required_in": ["current", "effective", "last_observed", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_1800_late_anesthesia", "expected_canonical_table_ids": [9], "required_in": ["current", "effective", "last_observed", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_1800_late_table_operator_b", "expected_canonical_table_ids": [10], "required_in": ["current", "effective", "last_observed", "peak"], "max_canonical_table_ids": 1}
+      ],
+      "expected_current_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_anesthesia", "gt_1800_late_table_operator_b"],
+      "expected_effective_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_anesthesia", "gt_1800_late_table_operator_b"],
+      "expected_last_observed_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_anesthesia", "gt_1800_late_table_operator_b"],
+      "expected_peak_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_anesthesia", "gt_1800_late_table_operator_b"]
+    },
+    {
+      "status_id": "final_recent_room_hold",
+      "annotation_source": "tracker_derived_bootstrap_review",
+      "source": "procedure_status",
+      "stage": "valve_deployment",
+      "effective_table_source": "recent_room_view_hold",
+      "persons": [
+        {"person_id": "gt_1800_late_table_operator_a", "expected_canonical_table_ids": [8], "required_in": ["effective", "last_observed", "peak"], "forbidden_in": ["current"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_1800_late_anesthesia", "expected_canonical_table_ids": [9], "required_in": ["peak"], "forbidden_in": ["current", "effective", "last_observed"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_1800_late_table_operator_b", "expected_canonical_table_ids": [10], "required_in": ["effective", "last_observed", "peak"], "forbidden_in": ["current"], "max_canonical_table_ids": 1}
+      ],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_table_operator_b"],
+      "expected_last_observed_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_table_operator_b"],
+      "expected_peak_person_ids": ["gt_1800_late_table_operator_a", "gt_1800_late_anesthesia", "gt_1800_late_table_operator_b"]
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "valve_deployment",

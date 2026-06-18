@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 
+from export_public_demo_data import PUBLIC_DEMO_CASES
 from or_tracking.tracker import ROLE_ZONE_PRIORITY
 from or_tracking.tavr import TAVR_STAGE_ORDER
 
@@ -46,6 +47,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_coverage_rows": 8,
         "min_presence_intervals": 13,
         "table_person_interval_score": 1.0,
+        "table_person_status_score": 1.0,
         "min_events": 12,
     },
     {
@@ -105,6 +107,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_coverage_rows": 3,
         "min_presence_intervals": 3,
         "table_person_interval_score": 1.0,
+        "table_person_status_score": 1.0,
         "min_events": 11,
     },
     {
@@ -319,6 +322,21 @@ def test_static_demo_exporter_covers_all_public_tavr_replays() -> None:
         assert demo["file"] in exporter
 
 
+def test_static_demo_exporter_uses_status_verified_suite_outputs() -> None:
+    source_paths = {str(demo_case.source) for demo_case in PUBLIC_DEMO_CASES}
+
+    assert any("outputs/tavr_suite_person_status_verify/" in path for path in source_paths)
+    assert any(
+        "outputs/tavr_static_person_status_verify/" in path
+        for path in source_paths
+    )
+    assert any(
+        "outputs/tavr_synthetic_person_status_verify/" in path
+        for path in source_paths
+    )
+    assert not any("person_interval_verify" in path for path in source_paths)
+
+
 def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     for demo in PUBLIC_EVALUATION_DEMOS:
         payload = load_public_demo_payload(demo["file"])
@@ -331,6 +349,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         if "table_person_interval_score" in demo:
             assert payload["score_summary"]["table_person_interval_score"] == demo[
                 "table_person_interval_score"
+            ]
+        if "table_person_status_score" in demo:
+            assert payload["score_summary"]["table_person_status_score"] == demo[
+                "table_person_status_score"
             ]
         assert tavr["timebase_summary"]
         for key in [

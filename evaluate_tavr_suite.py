@@ -25,6 +25,7 @@ DEFAULT_THRESHOLDS = {
     "table_count_pass_rate": 1.0,
     "table_presence_pass_rate": 1.0,
     "table_person_interval_pass_rate": 1.0,
+    "table_person_status_pass_rate": 1.0,
     "stage_staffing_pass_rate": 1.0,
     "stage_table_coverage_pass_rate": 1.0,
     "table_transition_pass_rate": 1.0,
@@ -236,6 +237,11 @@ def _score_summary(
             "table_person_interval_pass_rate",
             label_score["table_person_interval_score"]["pass_rate"],
             thresholds["table_person_interval_pass_rate"],
+        ),
+        _threshold_check(
+            "table_person_status_pass_rate",
+            label_score["table_person_status_score"]["pass_rate"],
+            thresholds["table_person_status_pass_rate"],
         ),
         _threshold_check(
             "stage_staffing_pass_rate",

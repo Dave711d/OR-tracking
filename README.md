@@ -108,7 +108,7 @@ python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2700_30s.mp4 \
 To run the current multi-clip real-footage regression suite:
 
 ```bash
-python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite
+python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outputs/tavr_suite_person_status_verify
 ```
 
 To force the full canonical TAVR workflow through the same scored table,
@@ -118,7 +118,7 @@ generator:
 
 ```bash
 python download_sample.py --tavr-fixture --output samples/synthetic_tavr_sample.mp4
-python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output-dir outputs/tavr_synthetic_suite
+python evaluate_tavr_suite.py docs/evaluation/tavr_synthetic_suite.json --output-dir outputs/tavr_synthetic_person_status_verify
 ```
 
 The suite currently covers a mixed fluoroscopy-to-room clip, a fluoroscopy-only
@@ -129,6 +129,8 @@ thresholds, including `operator_packet_pass_rate`,
 `table_presence_pass_rate` for exact canonical table-person intervals, and
 `table_person_interval_pass_rate` for human-labelled table-person windows that
 detect missed people, extra tracker people, and identity fragmentation, and
+`table_person_status_pass_rate` for human-labelled current/effective/last/peak
+table rosters at operator status snapshots or the final procedure summary, and
 `table_identity_group_pass_rate` when packet, snapshot, or canonical
 table-person expectations are labelled.
 Operator snapshot expectations are scored only against exported

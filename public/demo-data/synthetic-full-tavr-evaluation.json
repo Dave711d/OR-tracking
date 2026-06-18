@@ -1,6 +1,6 @@
 {
   "case": "synthetic_full_tavr_workflow",
-  "generated_from": "outputs/tavr_synthetic_person_interval_verify/synthetic_full_tavr_workflow/result.json",
+  "generated_from": "outputs/tavr_synthetic_person_status_verify/synthetic_full_tavr_workflow/result.json",
   "timebase": {
     "timebase": "clip",
     "fps": 24.0,

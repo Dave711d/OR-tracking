@@ -83,6 +83,42 @@
       "max_extra_canonical_table_ids": 0
     }
   ],
+  "table_person_status_expectations": [
+    {
+      "status_id": "initial_room_static_snapshot",
+      "annotation_source": "tracker_derived_bootstrap_review",
+      "source": "operator_snapshot",
+      "timestamp_s": 4.171,
+      "tolerance_s": 0.05,
+      "stage": "access_sheathing",
+      "required_snapshot_reasons": ["peak_table", "last_observed_table"],
+      "persons": [
+        {"person_id": "gt_900_static_left_table", "expected_canonical_table_ids": [1], "required_in": ["current", "effective", "last_observed", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_900_static_right_table", "expected_canonical_table_ids": [2], "required_in": ["current", "effective", "last_observed", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_900_static_late_entrant", "expected_canonical_table_ids": [3], "required_in": ["current", "effective", "last_observed", "peak"], "max_canonical_table_ids": 1}
+      ],
+      "expected_current_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"],
+      "expected_effective_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"],
+      "expected_last_observed_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"],
+      "expected_peak_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"]
+    },
+    {
+      "status_id": "final_static_last_observed_hold",
+      "annotation_source": "tracker_derived_bootstrap_review",
+      "source": "procedure_status",
+      "stage": "access_sheathing",
+      "effective_table_source": "last_observed_room_view",
+      "persons": [
+        {"person_id": "gt_900_static_left_table", "expected_canonical_table_ids": [1], "required_in": ["effective", "last_observed", "peak"], "forbidden_in": ["current"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_900_static_right_table", "expected_canonical_table_ids": [2], "required_in": ["effective", "last_observed", "peak"], "forbidden_in": ["current"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_900_static_late_entrant", "expected_canonical_table_ids": [3], "required_in": ["effective", "last_observed", "peak"], "forbidden_in": ["current"], "max_canonical_table_ids": 1}
+      ],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"],
+      "expected_last_observed_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"],
+      "expected_peak_person_ids": ["gt_900_static_left_table", "gt_900_static_right_table", "gt_900_static_late_entrant"]
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "access_sheathing",
