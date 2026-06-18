@@ -17,6 +17,7 @@ const tableRoster = document.querySelector("#tableRoster");
 const operatorPacket = document.querySelector("#operatorPacket");
 const procedureStatus = document.querySelector("#procedureStatus");
 const tableTeamList = document.querySelector("#tableTeamList");
+const tableIdentityList = document.querySelector("#tableIdentityList");
 const stageCoverageList = document.querySelector("#stageCoverageList");
 const stageRosterList = document.querySelector("#stageRosterList");
 const milestoneList = document.querySelector("#milestoneList");
@@ -290,6 +291,7 @@ function normalizeEvaluationPayload(payload) {
     status: asArray(tavr.procedure_status_summary)[0] || null,
     packets: asArray(tavr.operator_stage_packet),
     team: asArray(tavr.table_team_summary),
+    identities: asArray(tavr.table_identity_groups),
     stageCoverage: asArray(tavr.stage_table_coverage),
     stageRosters: asArray(tavr.stage_roster_summary),
     milestones: asArray(tavr.procedure_milestones),
@@ -319,6 +321,7 @@ function renderEvaluationReplay(demo) {
   renderProcedureStatus(status, demo);
   renderBackendOperatorPacket(demo.packets, status);
   renderBackendTableTeam(demo.team);
+  renderBackendTableIdentities(demo.identities);
   renderBackendStageCoverage(demo.stageCoverage);
   renderBackendStageRoster(demo.stageRosters);
   renderBackendProcedureMilestones(demo.milestones);
@@ -1379,6 +1382,25 @@ function renderBackendTableTeam(rows = []) {
   appendOverflowRow(tableTeamList, rows.length, visibleRows.length, "people");
 }
 
+function renderBackendTableIdentities(rows = []) {
+  tableIdentityList.replaceChildren();
+  if (!rows.length) {
+    appendInfoRow(tableIdentityList, "None yet", "");
+    return;
+  }
+
+  const visibleRows = rows.slice(0, 8);
+  visibleRows.forEach((row) => {
+    const stageSummary = summarizeStageCounts(row.stage_counts);
+    appendInfoRow(
+      tableIdentityList,
+      `Canonical ${row.canonical_table_id}: ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
+      `${row.observed_table_frames ?? 0}f; raw ${formatIdList(row.merged_track_ids)}; ${stageSummary}`,
+    );
+  });
+  appendOverflowRow(tableIdentityList, rows.length, visibleRows.length, "identities");
+}
+
 function renderBackendStageCoverage(rows = []) {
   stageCoverageList.replaceChildren();
   if (!rows.length) {
@@ -1670,6 +1692,13 @@ function yesNo(value) {
   return value ? "yes" : "no";
 }
 
+function summarizeStageCounts(stageCounts = {}) {
+  const entries = Object.entries(stageCounts);
+  if (!entries.length) return "stage n/a";
+  const [stageKey, frames] = entries.sort((a, b) => Number(b[1]) - Number(a[1]))[0];
+  return `${TAVR_STAGE_LOOKUP.get(stageKey)?.label || stageKey} ${frames}f`;
+}
+
 function clearCanvas() {
   const rect = overlay.getBoundingClientRect();
   ctx.clearRect(0, 0, rect.width, rect.height);
@@ -1710,6 +1739,7 @@ function resetMetrics(options = {}) {
   renderStageRosterSummary();
   renderProcedureStatus();
   renderOperatorPacket();
+  renderBackendTableIdentities();
   renderProcedureMilestones();
   renderBackendProcedureEvents();
   renderBackendQualityFlags();

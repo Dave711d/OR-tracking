@@ -134,6 +134,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
         "procedure_status_summary",
         "operator_stage_packet",
         "table_team_summary",
+        "table_identity_groups",
         "stage_roster_summary",
         "stage_table_coverage",
         "procedure_event_timeline",
@@ -147,7 +148,13 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
     assert "effective_table_source" in status
     assert "canonical_table_identity_count" in packet
     assert "quality_flag_codes" in packet
+    assert payload["score_summary"]["table_identity_group_score"] == 1.0
     assert len(tavr["table_team_summary"]) > 8
+    assert len(tavr["table_identity_groups"]) >= 10
+    assert any(
+        len(row["merged_track_ids"]) > 1
+        for row in tavr["table_identity_groups"]
+    )
     assert len(tavr["stage_table_coverage"]) > 8
     assert (
         len(tavr["procedure_event_timeline"]) + len(tavr["table_transition_events"])
@@ -161,6 +168,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
 
     assert 'id="evaluationDemoButton"' in index_html
     assert 'id="procedureStatus"' in index_html
+    assert 'id="tableIdentityList"' in index_html
     assert 'id="eventTimelineList"' in index_html
     assert 'id="qualityFlagList"' in index_html
     assert "Evaluated demo" in index_html
@@ -171,6 +179,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderProcedureStatus" in app_js
     assert "function renderBackendOperatorPacket" in app_js
     assert "function renderBackendTableTeam" in app_js
+    assert "function renderBackendTableIdentities" in app_js
     assert "function renderBackendStageCoverage" in app_js
     assert "function renderBackendStageRoster" in app_js
     assert "function renderBackendProcedureEvents" in app_js
@@ -180,12 +189,16 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "requestId !== evaluationReplayRequestId" in app_js
     assert "function appendOverflowRow" in app_js
     assert "function syncEmptyStateToVideoSource" in app_js
+    assert "function summarizeStageCounts" in app_js
     assert "emptyState.hidden = Boolean(video.src)" in app_js
     assert "effective_table_source" in app_js
     assert "tracking_available_rate" in app_js
     assert "canonical_table_identity_count" in app_js
+    assert "table_identity_groups" in app_js
+    assert "merged_track_ids" in app_js
     assert "quality_flag_codes" in app_js
     assert "procedure_event_timeline" in app_js
     assert ".procedure-status-list" in styles
+    assert ".identity-list" in styles
     assert ".event-list" in styles
     assert ".quality-list" in styles

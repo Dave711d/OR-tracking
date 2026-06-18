@@ -9,6 +9,7 @@
     "stage_table_coverage_pass_rate": 1.0,
     "table_transition_pass_rate": 1.0,
     "operator_packet_pass_rate": 1.0,
+    "table_identity_group_pass_rate": 1.0,
     "quality_flag_pass_rate": 1.0
   },
   "cases": [

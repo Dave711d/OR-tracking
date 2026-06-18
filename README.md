@@ -105,8 +105,9 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outpu
 The suite currently covers a mixed fluoroscopy-to-room clip, a fluoroscopy-only
 negative clip, and a post-deployment/closure room clip from the public Sentara
 TAVR video. It fails if scored label sections fall below their configured
-thresholds, including `operator_packet_pass_rate` when packet expectations are
-labelled.
+thresholds, including `operator_packet_pass_rate` and
+`table_identity_group_pass_rate` when packet or canonical table-person
+expectations are labelled.
 
 For long cases, evaluate targeted slices while preserving source timestamps:
 

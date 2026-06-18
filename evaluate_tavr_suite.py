@@ -34,6 +34,7 @@ DEFAULT_THRESHOLDS = {
     "procedure_status_pass_rate": 1.0,
     "operator_packet_pass_rate": 1.0,
     "table_team_pass_rate": 1.0,
+    "table_identity_group_pass_rate": 1.0,
     "event_timeline_pass_rate": 1.0,
     "roster_snapshot_pass_rate": 1.0,
     "quality_flag_pass_rate": 1.0,
@@ -270,6 +271,11 @@ def _score_summary(
             "table_team_pass_rate",
             label_score["table_team_score"]["pass_rate"],
             thresholds["table_team_pass_rate"],
+        ),
+        _threshold_check(
+            "table_identity_group_pass_rate",
+            label_score["table_identity_group_score"]["pass_rate"],
+            thresholds["table_identity_group_pass_rate"],
         ),
         _threshold_check(
             "event_timeline_pass_rate",

@@ -300,6 +300,14 @@ The label file can include:
   minimum/maximum matching tracks, observed table frames, table-presence ratio,
   last-seen age from clip end, interval count, and current/effective/last/peak
   roster membership.
+- `table_identity_group_expectations`: expected canonical table-person groups
+  after raw track stitching, such as requiring zero groups in fluoroscopy-only
+  clips, requiring a fixed number of canonical table people in a room-visible
+  stage, or requiring fragmented raw IDs to merge into one auditable group.
+  Expectations can constrain operator-facing role, raw dominant role, canonical
+  group ID, representative raw track ID, merged raw track IDs, observed table
+  frames, stage-specific frames, first/last seen timing, and minimum/maximum
+  group counts.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can
@@ -333,10 +341,12 @@ status summaries, table-team summaries, procedure milestones, stage staffing,
 operator stage packets, stage table coverage, stage handoff summaries, stage
 roster summaries, stage evidence summaries,
 procedure event timelines, table roster snapshots, table transition events,
-table presence intervals, quality flags, and low-confidence segments. The
+table identity groups, table presence intervals, quality flags, and
+low-confidence segments. The
 command exits non-zero if any scored label section falls below its configured
-threshold, including `operator_packet_pass_rate` and
-`table_transition_pass_rate` when those expectations are labelled.
+threshold, including `operator_packet_pass_rate`,
+`table_identity_group_pass_rate`, and `table_transition_pass_rate` when those
+expectations are labelled.
 
 The default suite keeps static fallback off as a conservative baseline. Run the
 opt-in fallback fixture separately when refining low-motion room-view tracking:
@@ -365,21 +375,25 @@ The current local Sentara suite covers:
   during deployment. Event-timeline labels also verify the room-view return,
   table roster start, and deployment table peak. Stage evidence labels
   distinguish held non-room delivery-positioning context from strong
-  room-visible deployment evidence.
+  room-visible deployment evidence. Identity-group labels verify ten canonical
+  table people in deployment, seven table-operator groups, and a fragmented
+  lead table-operator group whose raw IDs merge into one auditable identity.
 - `sentara_2400_fluoro_negative`: fluoroscopy-only ROI that should produce no
   table staff, should be flagged `non_room_view`, and should emit non-room
-  timeline events with zero table count and zero table-transition events. Stage
-  evidence and stage-roster labels should remain `held_non_room` /
-  no-table-evidence.
+  timeline events with zero table count, zero table-transition events, and zero
+  canonical table-person groups. Stage evidence and stage-roster labels should
+  remain `held_non_room` / no-table-evidence.
 - `sentara_2700_room_post`: post-deployment / closure room-view segment with
   stage, table count, presence, staffing, room-view occupancy, quality, and
   post-deploy-to-closure handoff expectations. Event-timeline labels verify the
   closure stage start, closure roster addition, table peak, and later non-room
   transition. Table-transition labels verify post-deploy presence-at-end plus
   closure table entries and exits. Stage-roster labels verify the closure roster
-  addition with continued and new table-side tracks. Stage-evidence labels keep
-  both post-deploy and closure stages weak because the visual confidence is low
-  and closure is partly non-room.
+  addition with continued and new table-side tracks. Identity-group labels
+  verify nine canonical table people in the closure segment and preserve the
+  long-running post-deploy table operator as one auditable table-person group.
+  Stage-evidence labels keep both post-deploy and closure stages weak because
+  the visual confidence is low and closure is partly non-room.
 
 ## Caveats
 

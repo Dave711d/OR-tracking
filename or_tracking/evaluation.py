@@ -553,6 +553,10 @@ def score_tavr_metrics(
             tavr_metrics,
             labels.get("table_team_expectations", []),
         ),
+        "table_identity_group_score": _table_identity_group_score(
+            tavr_metrics,
+            labels.get("table_identity_group_expectations", []),
+        ),
         "event_timeline_score": _event_timeline_score(
             tavr_metrics,
             labels.get("event_timeline_expectations", []),
@@ -3741,6 +3745,69 @@ def _table_team_score(
     }
 
 
+def _table_identity_group_score(
+    metrics: Sequence[FrameMetrics],
+    expectations: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    if not expectations:
+        return {"expectations": [], "pass_rate": None}
+
+    groups = table_identity_groups(metrics)
+    passed = 0
+    scored_expectations = []
+    for expectation in expectations:
+        min_groups = int(
+            expectation.get(
+                "min_groups",
+                0 if "max_groups" in expectation else 1,
+            )
+        )
+        max_groups = expectation.get("max_groups")
+        candidates = [
+            group
+            for group in groups
+            if _identity_group_overlaps_expectation(group, expectation)
+        ]
+        scored_candidates = [
+            _score_table_identity_group_candidate(group, expectation)
+            for group in candidates
+        ]
+        matched_candidates = [
+            candidate for candidate in scored_candidates if candidate["passed"]
+        ]
+        matched_count = len(matched_candidates)
+        count_checks = {
+            "min_groups": matched_count >= min_groups,
+            "max_groups": (
+                max_groups is None or matched_count <= int(max_groups)
+            ),
+        }
+        expectation_pass = all(count_checks.values())
+        if expectation_pass:
+            passed += 1
+        scored_expectations.append(
+            {
+                "role": expectation.get("role"),
+                "table_team_role": expectation.get("table_team_role"),
+                "dominant_role": expectation.get("dominant_role"),
+                "stage": expectation.get("stage")
+                or expectation.get("required_stage"),
+                "min_groups": min_groups,
+                "max_groups": max_groups,
+                "matched_candidates": matched_candidates,
+                "matched_count": matched_count,
+                "candidate_count": len(scored_candidates),
+                "checks": count_checks,
+                "passed": expectation_pass,
+            }
+        )
+
+    return {
+        "expectations": scored_expectations,
+        "pass_rate": _ratio(passed, len(expectations)),
+    }
+
+
 def _event_timeline_score(
     metrics: Sequence[FrameMetrics],
     expectations: Sequence[Dict[str, Any]],
@@ -5088,6 +5155,128 @@ def _score_table_team_candidate(
         "table_presence_ratio": row["table_presence_ratio"],
         "interval_count": row["interval_count"],
         "label": row["label"],
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+def _identity_group_overlaps_expectation(
+    group: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> bool:
+    start_s = float(expectation.get("start_s", float("-inf")))
+    end_s = float(expectation.get("end_s", float("inf")))
+    return group["first_seen_s"] <= end_s and group["last_seen_s"] >= start_s
+
+
+def _score_table_identity_group_candidate(
+    group: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> Dict[str, Any]:
+    track_id = expectation.get("track_id")
+    canonical_table_id = expectation.get("canonical_table_id")
+    role = expectation.get("role") or expectation.get("table_team_role")
+    dominant_role = expectation.get("dominant_role")
+    required_merged_track_ids = {
+        int(track_id) for track_id in expectation.get("required_merged_track_ids", [])
+    }
+    required_stage = expectation.get("stage") or expectation.get("required_stage")
+    min_stage_frames = expectation.get("min_stage_frames")
+    max_stage_frames = expectation.get("max_stage_frames")
+    min_merged_track_count = expectation.get("min_merged_track_count")
+    max_merged_track_count = expectation.get("max_merged_track_count")
+    min_observed_table_frames = expectation.get("min_observed_table_frames")
+    max_observed_table_frames = expectation.get("max_observed_table_frames")
+    min_table_team_role_confidence = expectation.get(
+        "min_table_team_role_confidence"
+    )
+    min_first_seen_s = expectation.get("min_first_seen_s")
+    max_first_seen_s = expectation.get("max_first_seen_s")
+    min_last_seen_s = expectation.get("min_last_seen_s")
+    max_last_seen_s = expectation.get("max_last_seen_s")
+    merged_track_ids = {
+        int(track_id) for track_id in group.get("merged_track_ids", [])
+    }
+    stage_counts = group.get("stage_counts", {})
+    stage_frames = (
+        int(stage_counts.get(required_stage, 0))
+        if required_stage is not None
+        else None
+    )
+    checks = {
+        "track_id": track_id is None or group.get("track_id") == int(track_id),
+        "canonical_table_id": (
+            canonical_table_id is None
+            or group.get("canonical_table_id") == int(canonical_table_id)
+        ),
+        "table_team_role": role is None or group.get("table_team_role") == role,
+        "dominant_role": (
+            dominant_role is None or group.get("dominant_role") == dominant_role
+        ),
+        "required_merged_track_ids": required_merged_track_ids.issubset(
+            merged_track_ids
+        ),
+        "min_merged_track_count": (
+            min_merged_track_count is None
+            or len(merged_track_ids) >= int(min_merged_track_count)
+        ),
+        "max_merged_track_count": (
+            max_merged_track_count is None
+            or len(merged_track_ids) <= int(max_merged_track_count)
+        ),
+        "min_observed_table_frames": (
+            min_observed_table_frames is None
+            or group.get("observed_table_frames", 0)
+            >= int(min_observed_table_frames)
+        ),
+        "max_observed_table_frames": (
+            max_observed_table_frames is None
+            or group.get("observed_table_frames", 0)
+            <= int(max_observed_table_frames)
+        ),
+        "min_table_team_role_confidence": (
+            min_table_team_role_confidence is None
+            or group.get("table_team_role_confidence", 0.0)
+            >= float(min_table_team_role_confidence)
+        ),
+        "required_stage": required_stage is None or stage_frames > 0,
+        "min_stage_frames": (
+            min_stage_frames is None
+            or (stage_frames is not None and stage_frames >= int(min_stage_frames))
+        ),
+        "max_stage_frames": (
+            max_stage_frames is None
+            or (stage_frames is not None and stage_frames <= int(max_stage_frames))
+        ),
+        "min_first_seen_s": (
+            min_first_seen_s is None
+            or group.get("first_seen_s") >= float(min_first_seen_s)
+        ),
+        "max_first_seen_s": (
+            max_first_seen_s is None
+            or group.get("first_seen_s") <= float(max_first_seen_s)
+        ),
+        "min_last_seen_s": (
+            min_last_seen_s is None
+            or group.get("last_seen_s") >= float(min_last_seen_s)
+        ),
+        "max_last_seen_s": (
+            max_last_seen_s is None
+            or group.get("last_seen_s") <= float(max_last_seen_s)
+        ),
+    }
+    return {
+        "canonical_table_id": group.get("canonical_table_id"),
+        "track_id": group.get("track_id"),
+        "merged_track_ids": group.get("merged_track_ids", []),
+        "dominant_role": group.get("dominant_role"),
+        "table_team_role": group.get("table_team_role"),
+        "table_team_role_confidence": group.get("table_team_role_confidence"),
+        "first_seen_s": group.get("first_seen_s"),
+        "last_seen_s": group.get("last_seen_s"),
+        "observed_table_frames": group.get("observed_table_frames", 0),
+        "stage_counts": stage_counts,
+        "stage_frames": stage_frames,
         "checks": checks,
         "passed": all(checks.values()),
     }

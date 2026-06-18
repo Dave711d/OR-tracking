@@ -154,6 +154,11 @@
       "max_tracks": 0
     }
   ],
+  "table_identity_group_expectations": [
+    {
+      "max_groups": 0
+    }
+  ],
   "quality_flag_expectations": [
     {
       "code": "non_room_view",

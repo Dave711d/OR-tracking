@@ -1,6 +1,6 @@
 {
   "case": "sentara_1800_mixed_room",
-  "generated_from": "outputs/tavr_suite_table_transition_final/sentara_1800_mixed_room/result.json",
+  "generated_from": "outputs/tavr_identity_group_suite/sentara_1800_mixed_room/result.json",
   "evaluation_config": {
     "roi": [
       0.0,
@@ -25,6 +25,7 @@
     "procedure_status_score": 1.0,
     "operator_packet_score": 1.0,
     "table_team_score": 1.0,
+    "table_identity_group_score": 1.0,
     "event_timeline_score": 1.0,
     "roster_snapshot_score": 1.0,
     "quality_flag_score": 1.0
@@ -576,6 +577,222 @@
           "table_operator": 3
         },
         "label": "ID 4 table_operator historical seen; table=17%; last=20.9s ago; dominant=Valve deployment"
+      }
+    ],
+    "table_identity_groups": [
+      {
+        "canonical_table_id": 1,
+        "track_id": 1,
+        "merged_track_ids": [
+          1
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 240,
+        "last_seen_frame": 271,
+        "first_seen_s": 8.008,
+        "last_seen_s": 9.042,
+        "observed_table_frames": 32,
+        "role_counts": {
+          "table_operator": 32
+        },
+        "stage_counts": {
+          "valve_deployment": 32
+        }
+      },
+      {
+        "canonical_table_id": 2,
+        "track_id": 2,
+        "merged_track_ids": [
+          2
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 240,
+        "last_seen_frame": 268,
+        "first_seen_s": 8.008,
+        "last_seen_s": 8.942,
+        "observed_table_frames": 29,
+        "role_counts": {
+          "table_operator": 29
+        },
+        "stage_counts": {
+          "valve_deployment": 29
+        }
+      },
+      {
+        "canonical_table_id": 3,
+        "track_id": 8,
+        "merged_track_ids": [
+          8
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 262,
+        "last_seen_frame": 271,
+        "first_seen_s": 8.742,
+        "last_seen_s": 9.042,
+        "observed_table_frames": 10,
+        "role_counts": {
+          "table_operator": 10
+        },
+        "stage_counts": {
+          "valve_deployment": 10
+        }
+      },
+      {
+        "canonical_table_id": 4,
+        "track_id": 6,
+        "merged_track_ids": [
+          6
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 269,
+        "last_seen_frame": 271,
+        "first_seen_s": 8.976,
+        "last_seen_s": 9.042,
+        "observed_table_frames": 3,
+        "role_counts": {
+          "table_operator": 3
+        },
+        "stage_counts": {
+          "valve_deployment": 3
+        }
+      },
+      {
+        "canonical_table_id": 5,
+        "track_id": 13,
+        "merged_track_ids": [
+          13
+        ],
+        "dominant_role": "unassigned",
+        "table_team_role": "unassigned",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 358,
+        "last_seen_frame": 365,
+        "first_seen_s": 11.945,
+        "last_seen_s": 12.179,
+        "observed_table_frames": 8,
+        "role_counts": {
+          "unassigned": 8
+        },
+        "stage_counts": {
+          "valve_deployment": 8
+        }
+      },
+      {
+        "canonical_table_id": 6,
+        "track_id": 5,
+        "merged_track_ids": [
+          5
+        ],
+        "dominant_role": "entry_supply",
+        "table_team_role": "entry_supply",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 366,
+        "last_seen_frame": 394,
+        "first_seen_s": 12.212,
+        "last_seen_s": 13.146,
+        "observed_table_frames": 20,
+        "role_counts": {
+          "entry_supply": 20
+        },
+        "stage_counts": {
+          "valve_deployment": 20
+        }
+      },
+      {
+        "canonical_table_id": 7,
+        "track_id": 14,
+        "merged_track_ids": [
+          14
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 382,
+        "last_seen_frame": 390,
+        "first_seen_s": 12.746,
+        "last_seen_s": 13.013,
+        "observed_table_frames": 7,
+        "role_counts": {
+          "table_operator": 7
+        },
+        "stage_counts": {
+          "valve_deployment": 7
+        }
+      },
+      {
+        "canonical_table_id": 8,
+        "track_id": 18,
+        "merged_track_ids": [
+          18,
+          21,
+          22
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 1.0,
+        "first_seen_frame": 729,
+        "last_seen_frame": 789,
+        "first_seen_s": 24.324,
+        "last_seen_s": 26.326,
+        "observed_table_frames": 36,
+        "role_counts": {
+          "table_operator": 36
+        },
+        "stage_counts": {
+          "valve_deployment": 36
+        }
+      },
+      {
+        "canonical_table_id": 9,
+        "track_id": 16,
+        "merged_track_ids": [
+          16
+        ],
+        "dominant_role": "anesthesia",
+        "table_team_role": "anesthesia",
+        "table_team_role_confidence": 0.875,
+        "first_seen_frame": 730,
+        "last_seen_frame": 745,
+        "first_seen_s": 24.358,
+        "last_seen_s": 24.858,
+        "observed_table_frames": 16,
+        "role_counts": {
+          "anesthesia": 14,
+          "imaging": 2
+        },
+        "stage_counts": {
+          "valve_deployment": 16
+        }
+      },
+      {
+        "canonical_table_id": 10,
+        "track_id": 20,
+        "merged_track_ids": [
+          20
+        ],
+        "dominant_role": "table_operator",
+        "table_team_role": "table_operator",
+        "table_team_role_confidence": 0.944,
+        "first_seen_frame": 735,
+        "last_seen_frame": 752,
+        "first_seen_s": 24.524,
+        "last_seen_s": 25.092,
+        "observed_table_frames": 18,
+        "role_counts": {
+          "anesthesia": 1,
+          "table_operator": 17
+        },
+        "stage_counts": {
+          "valve_deployment": 18
+        }
       }
     ],
     "stage_roster_summary": [

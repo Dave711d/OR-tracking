@@ -307,6 +307,22 @@
       "require_in_peak_table_roster": true
     }
   ],
+  "table_identity_group_expectations": [
+    {
+      "stage": "access_sheathing",
+      "role": "table_operator",
+      "min_groups": 2,
+      "max_groups": 2,
+      "min_observed_table_frames": 90,
+      "min_stage_frames": 70
+    },
+    {
+      "role": "table_operator",
+      "min_groups": 3,
+      "max_groups": 3,
+      "min_observed_table_frames": 3
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

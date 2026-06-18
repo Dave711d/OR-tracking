@@ -268,6 +268,32 @@
       "stage": "valve_deployment"
     }
   ],
+  "table_identity_group_expectations": [
+    {
+      "stage": "valve_deployment",
+      "min_groups": 10,
+      "max_groups": 10,
+      "min_observed_table_frames": 3,
+      "min_stage_frames": 3
+    },
+    {
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "min_groups": 7,
+      "max_groups": 7,
+      "min_observed_table_frames": 3,
+      "min_stage_frames": 3
+    },
+    {
+      "track_id": 18,
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "required_merged_track_ids": [18, 21, 22],
+      "min_merged_track_count": 3,
+      "min_observed_table_frames": 30,
+      "min_stage_frames": 30
+    }
+  ],
   "roster_snapshot_expectations": [
     {
       "snapshot_type": "last_observed",

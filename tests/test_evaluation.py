@@ -817,6 +817,36 @@ def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
     assert deployment["unique_table_track_count"] == 3
     assert deployment["canonical_table_identity_count"] == 1
 
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_identity_group_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "min_groups": 1,
+                    "max_groups": 1,
+                    "required_merged_track_ids": [7, 8, 9],
+                    "min_merged_track_count": 3,
+                    "min_observed_table_frames": 6,
+                    "min_stage_frames": 6,
+                },
+                {
+                    "role": "anesthesia",
+                    "max_groups": 0,
+                },
+            ]
+        },
+    )
+
+    assert score["table_identity_group_score"]["pass_rate"] == 1.0
+    assert (
+        score["table_identity_group_score"]["expectations"][0]["matched_candidates"][0][
+            "merged_track_ids"
+        ]
+        == [7, 8, 9]
+    )
+
 
 def test_table_transition_events_report_stage_entries_and_exits() -> None:
     metrics = [
@@ -1296,6 +1326,23 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "min_observed_table_frames": 2,
             },
         ],
+        "table_identity_group_expectations": [
+            {
+                "stage": "valve_deployment",
+                "role": "table_operator",
+                "min_groups": 2,
+                "max_groups": 2,
+                "min_observed_table_frames": 2,
+                "min_stage_frames": 2,
+                "max_merged_track_count": 1,
+            },
+            {
+                "stage": "closure_finish",
+                "role": "table_operator",
+                "min_groups": 1,
+                "min_observed_table_frames": 1,
+            },
+        ],
         "event_timeline_expectations": [
             {
                 "event_type": "table_handoff",
@@ -1370,6 +1417,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["table_team_score"]["pass_rate"] == 1.0
     assert score["table_team_score"]["expectations"][0]["matched_count"] == 1
     assert score["table_team_score"]["expectations"][1]["matched_count"] == 1
+    assert score["table_identity_group_score"]["pass_rate"] == 1.0
+    assert score["table_identity_group_score"]["expectations"][0]["matched_count"] == 2
     assert score["event_timeline_score"]["pass_rate"] == 1.0
     assert score["event_timeline_score"]["expectations"][0]["matched_count"] == 1
     assert score["roster_snapshot_score"]["pass_rate"] == 1.0

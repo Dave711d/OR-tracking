@@ -196,6 +196,7 @@ select {
 .count-list div,
 .coverage-list div,
 .team-list div,
+.identity-list div,
 .stage-roster-list div,
 .operator-packet div,
 .procedure-status-list div,
@@ -282,6 +283,7 @@ select {
 
 .coverage-list,
 .team-list,
+.identity-list,
 .stage-roster-list,
 .operator-packet,
 .procedure-status-list,
@@ -294,6 +296,7 @@ select {
 
 .coverage-list div,
 .team-list div,
+.identity-list div,
 .stage-roster-list div,
 .operator-packet div,
 .procedure-status-list div,
@@ -306,6 +309,7 @@ select {
 
 .coverage-list span,
 .team-list span,
+.identity-list span,
 .stage-roster-list span,
 .operator-packet span,
 .procedure-status-list span,
@@ -321,6 +325,7 @@ select {
 .count-list b,
 .coverage-list b,
 .team-list b,
+.identity-list b,
 .stage-roster-list b,
 .operator-packet b,
 .procedure-status-list b,
@@ -333,6 +338,7 @@ select {
 
 .coverage-list b,
 .team-list b,
+.identity-list b,
 .stage-roster-list b,
 .operator-packet b,
 .procedure-status-list b,
@@ -395,6 +401,7 @@ select {
 }
 
 .team-list b,
+.identity-list b,
 .stage-roster-list b,
 .operator-packet b,
 .procedure-status-list b,
