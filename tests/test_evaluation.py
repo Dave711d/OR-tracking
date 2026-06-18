@@ -327,6 +327,49 @@ def test_stage_table_coverage_reports_room_view_denominator() -> None:
     assert coverage[0]["room_coverage_ratio"] == 0.667
 
 
+def test_brief_table_contact_stays_audit_only_for_operator_rosters() -> None:
+    metrics = []
+    for frame_index in range(20):
+        if frame_index < 12:
+            table_ids = [7]
+        elif 15 <= frame_index <= 17:
+            table_ids = [8]
+        else:
+            table_ids = []
+        metrics.append(
+            _table_metric(
+                frame_index,
+                frame_index / 10,
+                "valve_deployment",
+                table_ids,
+            )
+        )
+
+    coverage = stage_table_coverage(metrics, min_observed_table_frames=1)
+    handoff = stage_handoff_summary(metrics, min_observed_table_frames=1)[0]
+    roster = stage_roster_summary(metrics, min_observed_table_frames=1)[0]
+    events = table_transition_events(metrics, min_observed_table_frames=1)
+
+    assert {
+        (row["track_id"], row["table_contact_status"])
+        for row in coverage
+    } == {(7, "sustained"), (8, "brief")}
+    assert handoff["active_table_track_count"] == 1
+    assert handoff["active_table_canonical_ids"] == [1]
+    assert handoff["brief_table_track_count"] == 1
+    assert handoff["brief_table_canonical_ids"] == [2]
+    assert handoff["new_track_ids"] == [7]
+    assert handoff["within_stage_entry_track_ids"] == []
+    assert roster["active_table_track_ids"] == [7]
+    assert roster["brief_table_track_ids"] == [8]
+    assert roster["canonical_table_identity_count"] == 1
+    assert [
+        (event["event_type"], event["track_id"], event["table_contact_status"])
+        for event in events
+        if event["track_id"] == 8
+    ] == [("brief_table_contact", 8, "brief")]
+
+
 def test_stage_handoff_summary_reports_boundary_roster_changes() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),
@@ -830,16 +873,20 @@ def test_operator_packet_splits_stage_cumulative_from_current_active_roster() ->
     packet = operator_stage_packet(metrics)[-1]
 
     assert packet["is_current_stage"] is True
-    assert packet["stage_table_track_ids"] == [7, 8]
-    assert packet["stage_table_canonical_ids"] == [1, 2]
+    assert packet["stage_table_track_ids"] == [7]
+    assert packet["stage_table_canonical_ids"] == [1]
+    assert packet["brief_table_track_ids"] == [8]
+    assert packet["brief_table_canonical_ids"] == [2]
+    assert packet["brief_table_track_count"] == 1
     assert packet["active_table_track_ids"] == [8]
     assert packet["active_table_canonical_ids"] == [2]
     assert packet["effective_table_source"] == "current_room_view"
     assert packet["effective_table_track_ids"] == [8]
-    assert packet["canonical_table_identity_count"] == 2
-    assert "stage roster people Person 1, Person 2 (raw IDs 7, 8)" in (
+    assert packet["canonical_table_identity_count"] == 1
+    assert "stage roster people Person 1 (raw IDs 7)" in (
         packet["operator_packet"]
     )
+    assert "brief contacts Person 2 (raw IDs 8)" in packet["operator_packet"]
     assert "active people Person 2 (raw IDs 8)" in packet["operator_packet"]
 
 
@@ -2621,11 +2668,11 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
             {
                 "stage": "valve_deployment",
                 "role": "table_operator",
-                "handoff_type": "roster_changed",
+                "handoff_type": "table_roster_started",
                 "lead_role": "table_operator",
                 "min_active_tracks": 2,
                 "min_new_tracks": 2,
-                "min_dropped_tracks": 1,
+                "max_dropped_tracks": 0,
                 "min_lead_observed_table_frames": 2,
             }
         ],
@@ -2633,13 +2680,13 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
             {
                 "stage": "valve_deployment",
                 "role": "table_operator",
-                "handoff_type": "roster_changed",
+                "handoff_type": "table_roster_started",
                 "min_tracks": 2,
                 "min_peak_table_count": 2,
                 "min_canonical_table_identity_count": 2,
                 "max_canonical_table_identity_count": 2,
                 "min_new_tracks": 2,
-                "min_dropped_tracks": 1,
+                "max_dropped_tracks": 0,
             }
         ],
         "stage_evidence_expectations": [
@@ -2709,20 +2756,20 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "current": False,
                 "stage_status": "observed_prior",
                 "stage_evidence_status": "strong_visual_support",
-                "handoff_type": "roster_changed",
+                "handoff_type": "table_roster_started",
                 "evidence_level": "strong_visual_support",
                 "min_peak_table_count": 2,
                 "min_active_tracks": 2,
                 "min_canonical_table_identity_count": 2,
                 "max_canonical_table_identity_count": 2,
                 "min_new_tracks": 2,
-                "min_dropped_tracks": 1,
+                "max_dropped_tracks": 0,
                 "required_quality_flags": ["non_room_view"],
-                    "required_packet_text": [
-                        "Observed stage: Valve deployment",
-                        "stage roster people Person 2, Person 3 (raw IDs 9, 10)",
-                    ],
-                    "forbidden_packet_text": ["active people"],
+                "required_packet_text": [
+                    "Observed stage: Valve deployment",
+                    "stage roster people Person 2, Person 3 (raw IDs 9, 10)",
+                ],
+                "forbidden_packet_text": ["active people"],
             }
         ],
         "table_team_expectations": [
@@ -2770,7 +2817,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
             {
                 "event_type": "table_handoff",
                 "stage": "valve_deployment",
-                "handoff_type": "roster_changed",
+                "handoff_type": "table_roster_started",
                 "role": "table_operator",
                 "min_tracks": 2,
                 "min_table_count": 2,

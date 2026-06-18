@@ -435,6 +435,9 @@
         "stage_table_track_ids": [],
         "stage_table_canonical_ids": [],
         "stage_table_roster_summary": "none",
+        "brief_table_track_count": 0,
+        "brief_table_track_ids": [],
+        "brief_table_canonical_ids": [],
         "active_table_track_count": 0,
         "canonical_table_identity_count": 0,
         "lead_track_id": null,
@@ -607,6 +610,9 @@
         "non_room_view_frames": 773,
         "tracking_available_rate": 0.14,
         "active_table_track_count": 0,
+        "brief_table_track_count": 0,
+        "brief_table_track_ids": [],
+        "brief_table_canonical_ids": [],
         "lead_track_id": null,
         "lead_canonical_table_id": null,
         "lead_role": null,
@@ -632,6 +638,7 @@
         "dropped_table_roster": [],
         "within_stage_entry_roster": [],
         "within_stage_exit_roster": [],
+        "brief_table_roster": [],
         "label": "Access / sheathing: initial_no_table_evidence; no table roster evidence"
       }
     ],
@@ -652,6 +659,9 @@
         "peak_table_count": 0,
         "active_table_track_count": 0,
         "canonical_table_identity_count": 0,
+        "brief_table_track_count": 0,
+        "brief_table_track_ids": [],
+        "brief_table_canonical_ids": [],
         "lead_track_id": null,
         "lead_canonical_table_id": null,
         "lead_table_team_role": null,
@@ -669,8 +679,9 @@
         "within_stage_exit_canonical_table_ids": [],
         "handoff_type": "initial_no_table_evidence",
         "active_table_roster": [],
+        "brief_table_roster": [],
         "roster_summary": "none",
-        "label": "Access / sheathing: peak table 0; 0 table IDs; initial_no_table_evidence; none"
+        "label": "Access / sheathing: peak table 0; 0 table IDs; 0 brief contacts; initial_no_table_evidence; none"
       }
     ],
     "stage_evidence_summary": [

@@ -18,6 +18,10 @@ from .tavr import (
 )
 
 
+SUSTAINED_TABLE_CONTACT_MIN_FRAMES = 10
+SUSTAINED_TABLE_CONTACT_MIN_ROOM_COVERAGE = 0.5
+
+
 TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
     "timebase_summary": [
         "timebase",
@@ -151,6 +155,9 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_table_track_ids",
         "stage_table_canonical_ids",
         "stage_table_roster_summary",
+        "brief_table_track_count",
+        "brief_table_track_ids",
+        "brief_table_canonical_ids",
         "active_table_track_count",
         "canonical_table_identity_count",
         "lead_track_id",
@@ -314,6 +321,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "coverage_ratio",
         "room_coverage_ratio",
         "estimated_table_duration_s",
+        "table_contact_status",
+        "is_sustained_table_contact",
         "entered_during_stage",
         "exited_during_stage",
         "spans_full_stage",
@@ -337,6 +346,9 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "non_room_view_frames",
         "tracking_available_rate",
         "active_table_track_count",
+        "brief_table_track_count",
+        "brief_table_track_ids",
+        "brief_table_canonical_ids",
         "lead_track_id",
         "lead_canonical_table_id",
         "lead_role",
@@ -362,6 +374,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "dropped_table_roster",
         "within_stage_entry_roster",
         "within_stage_exit_roster",
+        "brief_table_roster",
         "label",
     ],
     "stage_roster_summary": [
@@ -380,6 +393,9 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "peak_table_count",
         "active_table_track_count",
         "canonical_table_identity_count",
+        "brief_table_track_count",
+        "brief_table_track_ids",
+        "brief_table_canonical_ids",
         "lead_track_id",
         "lead_canonical_table_id",
         "lead_table_team_role",
@@ -397,6 +413,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "within_stage_exit_canonical_table_ids",
         "handoff_type",
         "active_table_roster",
+        "brief_table_roster",
         "roster_summary",
         "label",
     ],
@@ -493,6 +510,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "room_coverage_ratio",
         "tracking_available_rate",
         "observed_table_frames",
+        "table_contact_status",
+        "is_sustained_table_contact",
         "label",
     ],
     "table_presence_intervals": [
@@ -1022,6 +1041,9 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             "stage_table_track_ids": stage_table_track_ids,
             "stage_table_canonical_ids": stage_table_canonical_ids,
             "stage_table_roster_summary": roster.get("roster_summary", "none"),
+            "brief_table_track_count": roster.get("brief_table_track_count", 0),
+            "brief_table_track_ids": roster.get("brief_table_track_ids", []),
+            "brief_table_canonical_ids": roster.get("brief_table_canonical_ids", []),
             "active_table_track_count": active_table_count,
             "canonical_table_identity_count": roster.get(
                 "canonical_table_identity_count",
@@ -1791,6 +1813,15 @@ def table_transition_events(
         metrics,
         min_observed_table_frames=min_observed_table_frames,
     ):
+        if not coverage.get("is_sustained_table_contact", True):
+            events.append(
+                _table_transition_event(
+                    coverage,
+                    "brief_table_contact",
+                    is_entry=True,
+                )
+            )
+            continue
         entry_type = (
             "table_entry"
             if coverage["entered_during_stage"]
@@ -1807,8 +1838,9 @@ def table_transition_events(
     event_order = {
         "table_present_at_stage_start": 0,
         "table_entry": 1,
-        "table_exit": 2,
-        "table_present_at_stage_end": 3,
+        "brief_table_contact": 2,
+        "table_exit": 3,
+        "table_present_at_stage_end": 4,
     }
     events.sort(
         key=lambda item: (
@@ -2611,11 +2643,28 @@ def _stage_handoff_item(
         0.0,
         stage_end.timestamp_s - stage_start.timestamp_s + sample_period_s,
     )
+    sustained_rows = [
+        row for row in coverage_rows if row.get("is_sustained_table_contact", True)
+    ]
+    brief_rows = [
+        row for row in coverage_rows if not row.get("is_sustained_table_contact", True)
+    ]
     active_roster = [
         _handoff_roster_item(row)
-        for row in coverage_rows
+        for row in sustained_rows
+    ]
+    brief_roster = [
+        _handoff_roster_item(row)
+        for row in brief_rows
     ]
     active_roster.sort(
+        key=lambda item: (
+            -item["observed_table_frames"],
+            item["first_seen_s"],
+            item["track_id"],
+        )
+    )
+    brief_roster.sort(
         key=lambda item: (
             -item["observed_table_frames"],
             item["first_seen_s"],
@@ -2631,10 +2680,10 @@ def _stage_handoff_item(
     new_ids = sorted(active_ids - previous_ids)
     dropped_ids = sorted(previous_ids - active_ids)
     within_stage_entry_ids = sorted(
-        row["track_id"] for row in coverage_rows if row["entered_during_stage"]
+        row["track_id"] for row in sustained_rows if row["entered_during_stage"]
     )
     within_stage_exit_ids = sorted(
-        row["track_id"] for row in coverage_rows if row["exited_during_stage"]
+        row["track_id"] for row in sustained_rows if row["exited_during_stage"]
     )
     lead = active_roster[0] if active_roster else None
     continued_roster = [
@@ -2648,13 +2697,13 @@ def _stage_handoff_item(
     ]
     within_stage_entry_roster = [
         _handoff_roster_item(row)
-        for row in coverage_rows
+        for row in sustained_rows
         if row["entered_during_stage"]
     ]
     within_stage_entry_roster.sort(key=lambda item: item["track_id"])
     within_stage_exit_roster = [
         _handoff_roster_item(row)
-        for row in coverage_rows
+        for row in sustained_rows
         if row["exited_during_stage"]
     ]
     within_stage_exit_roster.sort(key=lambda item: item["track_id"])
@@ -2682,6 +2731,11 @@ def _stage_handoff_item(
         "non_room_view_frames": stage_frames - room_view_frames,
         "tracking_available_rate": _ratio(room_view_frames, stage_frames),
         "active_table_track_count": len(active_roster),
+        "brief_table_track_count": len(brief_roster),
+        "brief_table_track_ids": [item["track_id"] for item in brief_roster],
+        "brief_table_canonical_ids": _canonical_table_ids_from_roster(
+            brief_roster
+        ),
         "lead_track_id": lead["track_id"] if lead else None,
         "lead_canonical_table_id": (
             lead.get("canonical_table_id") if lead else None
@@ -2723,6 +2777,7 @@ def _stage_handoff_item(
         "dropped_table_roster": dropped_roster,
         "within_stage_entry_roster": within_stage_entry_roster,
         "within_stage_exit_roster": within_stage_exit_roster,
+        "brief_table_roster": brief_roster,
         "label": _handoff_label(stage_state.stage_label, handoff_type, lead, active_roster),
     }
 
@@ -2747,6 +2802,9 @@ def _stage_roster_summary_item(
         handoff.get("within_stage_entry_roster", [])
     )
     within_stage_exit_roster = list(handoff.get("within_stage_exit_roster", []))
+    brief_roster = list(handoff.get("brief_table_roster", []))
+    brief_track_ids = [int(item["track_id"]) for item in brief_roster]
+    brief_canonical_ids = _canonical_table_ids_from_roster(brief_roster)
     lead = active_roster[0] if active_roster else None
     peak_table_count = max(
         (_tavr_state(metric).table_count for metric in segment_metrics),
@@ -2769,6 +2827,9 @@ def _stage_roster_summary_item(
         "peak_table_count": peak_table_count,
         "active_table_track_count": len(active_roster),
         "canonical_table_identity_count": len(canonical_ids),
+        "brief_table_track_count": len(brief_roster),
+        "brief_table_track_ids": brief_track_ids,
+        "brief_table_canonical_ids": brief_canonical_ids,
         "lead_track_id": lead["track_id"] if lead else None,
         "lead_canonical_table_id": (
             lead.get("canonical_table_id") if lead else None
@@ -2802,10 +2863,12 @@ def _stage_roster_summary_item(
         ),
         "handoff_type": handoff["handoff_type"],
         "active_table_roster": active_roster,
+        "brief_table_roster": brief_roster,
         "roster_summary": roster_summary,
         "label": (
             f"{handoff['stage_label']}: peak table {peak_table_count}; "
-            f"{len(active_roster)} table IDs; {handoff['handoff_type']}; "
+            f"{len(active_roster)} table IDs; "
+            f"{len(brief_roster)} brief contacts; {handoff['handoff_type']}; "
             f"{roster_summary}"
         ),
     }
@@ -3210,6 +3273,13 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
             row.get("active_table_canonical_ids", []),
         )
     )
+    brief_ids = row.get("brief_table_track_ids", [])
+    brief_people = _person_ids_text(row.get("brief_table_canonical_ids", []))
+    brief_clause = (
+        f"brief contacts {brief_people} (raw IDs {_track_ids_text(brief_ids)}); "
+        if brief_ids or row.get("brief_table_track_count", 0)
+        else ""
+    )
     active_ids = row.get("active_table_track_ids", [])
     active_people = _person_ids_text(row.get("active_table_canonical_ids", []))
     active_table_differs = (
@@ -3244,6 +3314,7 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
         f"observable {observable_rate}; handoff {handoff}; "
         f"peak table {row.get('peak_table_count', 0)}; "
         f"stage roster people {stage_table_people} (raw IDs {stage_table_ids}); "
+        f"{brief_clause}"
         f"{active_clause}"
         f"new people {new_people} (raw IDs {new_ids}); "
         f"dropped people {dropped_people} (raw IDs {dropped_ids}); "
@@ -3647,6 +3718,8 @@ def _handoff_roster_item(row: Dict[str, Any]) -> Dict[str, Any]:
         "observed_table_frames": row["observed_table_frames"],
         "coverage_ratio": row["coverage_ratio"],
         "room_coverage_ratio": row["room_coverage_ratio"],
+        "table_contact_status": row.get("table_contact_status", "sustained"),
+        "is_sustained_table_contact": row.get("is_sustained_table_contact", True),
         "first_seen_s": row["first_seen_s"],
         "last_seen_s": row["last_seen_s"],
         "first_seen_clip_s": row["first_seen_clip_s"],
@@ -3784,6 +3857,11 @@ def _table_transition_event(
         "room_coverage_ratio": coverage["room_coverage_ratio"],
         "tracking_available_rate": coverage["tracking_available_rate"],
         "observed_table_frames": coverage["observed_table_frames"],
+        "table_contact_status": coverage.get("table_contact_status", "sustained"),
+        "is_sustained_table_contact": coverage.get(
+            "is_sustained_table_contact",
+            True,
+        ),
         "label": (
             f"{(coverage['first_seen_clip_s'] if is_entry else coverage['last_seen_clip_s']):.1f}s "
             f"{event_type}: Person {coverage['canonical_table_id']} "
@@ -8677,6 +8755,11 @@ def _stage_table_coverage_rows(
             stage_room_view_frames,
         )
         estimated_duration_s = track["observed_table_frames"] * sample_period_s
+        is_sustained_table_contact = _is_sustained_table_contact(
+            observed_table_frames=track["observed_table_frames"],
+            room_coverage_ratio=room_coverage_ratio,
+            min_observed_table_frames=min_observed_table_frames,
+        )
         row = {
             "stage_segment_index": segment_index,
             "stage": stage_state.stage,
@@ -8707,6 +8790,10 @@ def _stage_table_coverage_rows(
             "coverage_ratio": coverage_ratio,
             "room_coverage_ratio": room_coverage_ratio,
             "estimated_table_duration_s": round(float(estimated_duration_s), 3),
+            "table_contact_status": (
+                "sustained" if is_sustained_table_contact else "brief"
+            ),
+            "is_sustained_table_contact": is_sustained_table_contact,
             "entered_during_stage": track["first_frame"] > stage_start.frame_index,
             "exited_during_stage": track["last_frame"] < stage_end.frame_index,
             "role_counts": role_counts,
@@ -8729,6 +8816,21 @@ def _stage_table_coverage_rows(
         )
     )
     return rows
+
+
+def _is_sustained_table_contact(
+    *,
+    observed_table_frames: int,
+    room_coverage_ratio: float,
+    min_observed_table_frames: int,
+) -> bool:
+    if observed_table_frames >= SUSTAINED_TABLE_CONTACT_MIN_FRAMES:
+        return True
+    room_coverage = float(room_coverage_ratio or 0.0)
+    return (
+        observed_table_frames >= min_observed_table_frames
+        and room_coverage >= SUSTAINED_TABLE_CONTACT_MIN_ROOM_COVERAGE
+    )
 
 
 def _role_for_track(state: TAVRFrameState, track_id: int) -> str:

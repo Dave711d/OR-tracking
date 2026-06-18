@@ -236,6 +236,7 @@ export function operatorAnswerRowsFromSnapshots({
       context: "current",
     },
     ...operatorSummaryAnswerRows(operatorSummary),
+    ...operatorProcedureProgressAnswerRows(progress, stageLabel),
     {
       kind: "visible",
       label: "Visible now",
@@ -382,15 +383,39 @@ export function procedureProgressBrief(status = {}, packet = null, milestones = 
   const nextKey = status.next_stage || TAVR_STAGE_PROGRESS[current.index + 1]?.key;
   const next = nextKey ? TAVR_STAGE_PROGRESS_LOOKUP.get(nextKey) : null;
   const milestoneRows = asArray(milestones);
+  const currentMilestone = milestoneRows.find((row) => row.stage === stageKey) || null;
+  const previousMilestone = milestoneRows
+    .filter((row) => {
+      const milestone = TAVR_STAGE_PROGRESS_LOOKUP.get(row.stage);
+      return milestone && milestone.index < current.index && milestoneObserved(row);
+    })
+    .at(-1);
+  const previousStage = previousMilestone
+    ? TAVR_STAGE_PROGRESS_LOOKUP.get(previousMilestone.stage)
+    : TAVR_STAGE_PROGRESS[current.index - 1];
   const observedCount = milestoneRows.length
     ? milestoneRows.filter((row) => milestoneObserved(row)).length
     : current.index + 1;
+  const stageStart = packet?.clip_start_s ?? currentMilestone?.clip_start_s ??
+    currentMilestone?.first_observed_s;
+  const stageEnd = packet?.clip_end_s ?? currentMilestone?.clip_end_s ??
+    currentMilestone?.last_observed_s;
   return {
     stageIndex: current.index,
     totalStages: TAVR_STAGE_PROGRESS.length,
+    previousLabel: previousStage?.label || "",
+    currentLabel: current.label,
     nextLabel: next?.label || "complete",
     observedCount,
     observedTotal: milestoneRows.length || TAVR_STAGE_PROGRESS.length,
+    activeTableCount: progressCount(packet?.active_table_track_count),
+    stageTableCount: progressCount(
+      packet?.stage_table_track_count ??
+      currentMilestone?.canonical_table_identity_count ??
+      currentMilestone?.unique_table_track_count,
+    ),
+    peakTableCount: progressCount(packet?.peak_table_count ?? currentMilestone?.peak_table_count),
+    timeLabel: progressTimeLabel(stageStart, stageEnd),
   };
 }
 
@@ -458,7 +483,8 @@ export function stageRosterBriefRows(stageRoster = null) {
   ) || 0;
   const coreRoster = roster.filter((row) => stageRosterContactIsCore(row));
   const coreCount = coreRoster.length;
-  const briefCount = Math.max(0, roster.length - coreCount);
+  const supplementalCount = Math.max(0, roster.length - coreCount);
+  const briefContactCount = stageRosterBriefContactCount(stageRoster);
   const peakCount = Number(stageRoster.peak_table_count ?? 0) || 0;
   const trackingRate = stageRoster.tracking_available_rate;
   const lead = coreRoster[0] || roster[0] || null;
@@ -472,7 +498,8 @@ export function stageRosterBriefRows(stageRoster = null) {
         ? `tracking ${formatPercent(Number(trackingRate))}`
         : "",
       lead ? `lead ${formatRosterPersonLabel(lead)}` : "",
-      briefCount ? `${briefCount} brief contacts` : "",
+      supplementalCount ? `${supplementalCount} supplemental stage people` : "",
+      briefContactCount ? `${briefContactCount} brief contacts` : "",
     ].filter(Boolean).join("; "),
     context: activeCount ? "handoff" : "empty",
   }];
@@ -533,6 +560,31 @@ function operatorProgressDetail(progress = null) {
       ? ""
       : `observed ${observedCount}/${observedTotal}`,
   ].filter(Boolean).join("; ");
+}
+
+function operatorProcedureProgressAnswerRows(progress = null, stageLabel = "Stage n/a") {
+  const rows = stageTableBriefProgressRows(progress);
+  if (!rows.length) return [];
+  const row = rows[0];
+  const activeTableCount = progressCount(progress.activeTableCount);
+  const stageTableCount = progressCount(progress.stageTableCount);
+  const peakTableCount = progressCount(progress.peakTableCount);
+  const observedTotal = progress.observedTotal || progress.totalStages || TAVR_STAGE_PROGRESS.length;
+  return [{
+    ...row,
+    detail: [
+      progress.previousLabel ? `prior ${progress.previousLabel}` : "",
+      `current ${progress.currentLabel || stageLabel}`,
+      `next ${progress.nextLabel || "unknown"}`,
+      progress.observedCount === null || progress.observedCount === undefined
+        ? ""
+        : `observed ${progress.observedCount}/${observedTotal}`,
+      activeTableCount === null ? "" : `${activeTableCount} active`,
+      stageTableCount === null ? "" : `stage people ${stageTableCount}`,
+      peakTableCount === null ? "" : `peak ${peakTableCount}`,
+      progress.timeLabel ? `stage ${progress.timeLabel}` : "",
+    ].filter(Boolean).join("; "),
+  }];
 }
 
 function operatorHandoffAnswerRows(handoff = null, stageRoster = null) {
@@ -635,7 +687,8 @@ function operatorStageRosterSummary(stageRoster = null, activeCount = 0) {
   const roster = asArray(stageRoster.active_table_roster);
   const coreRoster = roster.filter((row) => stageRosterContactIsCore(row));
   const coreCount = coreRoster.length;
-  const briefCount = Math.max(0, roster.length - coreCount);
+  const supplementalCount = Math.max(0, roster.length - coreCount);
+  const briefContactCount = stageRosterBriefContactCount(stageRoster);
   const peakCount = Number(stageRoster.peak_table_count ?? 0) || 0;
   const trackingRate = Number(stageRoster.tracking_available_rate);
   const lead = coreRoster[0] || roster[0] || null;
@@ -645,7 +698,8 @@ function operatorStageRosterSummary(stageRoster = null, activeCount = 0) {
       `peak ${peakCount}`,
       Number.isFinite(trackingRate) ? `tracking ${formatPercent(trackingRate)}` : "",
       lead ? `lead ${formatRosterPersonLabel(lead)}` : "",
-      briefCount ? `${briefCount} brief contacts` : "",
+      supplementalCount ? `${supplementalCount} supplemental stage people` : "",
+      briefContactCount ? `${briefContactCount} brief contacts` : "",
     ].filter(Boolean),
   };
 }
@@ -958,7 +1012,7 @@ function stageRosterPersonBriefRow(row = {}) {
     kind: "stage_roster_person",
     label: `Stage ${formatRosterPersonLabel(row)}`,
     value: [
-      core ? "core" : "brief",
+      core ? "core" : "supplemental",
       tableBriefRoleLabel(row),
       `${frames}f`,
     ].filter(Boolean).join("; "),
@@ -982,6 +1036,14 @@ function stageRosterContactIsCore(row = {}) {
     frames >= CORE_STAGE_CONTACT_MIN_FRAMES ||
     dwellSeconds >= CORE_STAGE_CONTACT_MIN_SECONDS
   );
+}
+
+function stageRosterBriefContactCount(stageRoster = {}) {
+  const explicitCount = Number(stageRoster.brief_table_track_count);
+  if (Number.isFinite(explicitCount)) return explicitCount;
+  const briefRoster = asArray(stageRoster.brief_table_roster);
+  if (briefRoster.length) return briefRoster.length;
+  return asArray(stageRoster.brief_table_canonical_ids).length;
 }
 
 function stageRosterClipRange(row = {}) {
@@ -1079,6 +1141,18 @@ function formatBriefPersonId(id) {
 
 function isBrowserPersonId(id) {
   return typeof id === "string" && /^P\d+$/i.test(id);
+}
+
+function progressCount(value) {
+  const count = Number(value);
+  return Number.isFinite(count) ? Math.max(0, count) : null;
+}
+
+function progressTimeLabel(start, end) {
+  const startSeconds = Number(start);
+  const endSeconds = Number(end);
+  if (!Number.isFinite(startSeconds) || !Number.isFinite(endSeconds)) return "";
+  return `${formatSeconds(startSeconds)}-${formatSeconds(endSeconds)}`;
 }
 
 function numericScore(value) {

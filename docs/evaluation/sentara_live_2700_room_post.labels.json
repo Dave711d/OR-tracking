@@ -155,7 +155,7 @@
       "stage": "closure_finish",
       "stage_segment_index": 1,
       "role": "table_operator",
-      "min_events": 4,
+      "min_events": 2,
       "min_observed_table_frames": 3,
       "min_tracking_available_rate": 0.45
     },
@@ -164,7 +164,7 @@
       "stage": "closure_finish",
       "stage_segment_index": 1,
       "role": "table_operator",
-      "min_events": 5,
+      "min_events": 4,
       "min_observed_table_frames": 3,
       "min_tracking_available_rate": 0.45
     }
@@ -180,13 +180,11 @@
       "min_lead_observed_table_frames": 20,
       "min_tracking_available_rate": 0.9,
       "expected_active_canonical_table_ids": [
-        1,
-        2
+        1
       ],
       "expected_continued_canonical_table_ids": [],
       "expected_new_canonical_table_ids": [
-        1,
-        2
+        1
       ],
       "expected_dropped_canonical_table_ids": []
     },
@@ -195,33 +193,25 @@
       "role": "table_operator",
       "handoff_type": "roster_added",
       "lead_role": "table_operator",
-      "min_active_tracks": 5,
-      "min_new_tracks": 4,
+      "min_active_tracks": 4,
+      "min_new_tracks": 3,
       "min_continued_tracks": 1,
       "min_lead_observed_table_frames": 40,
       "min_tracking_available_rate": 0.45,
       "expected_active_canonical_table_ids": [
         1,
-        2,
         3,
-        4,
-        5,
         6,
         7,
-        8,
         9
       ],
       "expected_continued_canonical_table_ids": [
-        1,
-        2
+        1
       ],
       "expected_new_canonical_table_ids": [
         3,
-        4,
-        5,
         6,
         7,
-        8,
         9
       ],
       "expected_dropped_canonical_table_ids": []
@@ -241,26 +231,18 @@
       "evidence_level": "weak_visual_support",
       "expected_active_canonical_table_ids": [
         1,
-        2,
         3,
-        4,
-        5,
         6,
         7,
-        8,
         9
       ],
       "expected_continued_canonical_table_ids": [
-        1,
-        2
+        1
       ],
       "expected_new_canonical_table_ids": [
         3,
-        4,
-        5,
         6,
         7,
-        8,
         9
       ],
       "expected_dropped_canonical_table_ids": []
@@ -283,8 +265,8 @@
       "role": "table_operator",
       "start_s": 2.5,
       "end_s": 2.7,
-      "min_tracks": 5,
-      "min_table_count": 9,
+      "min_tracks": 4,
+      "min_table_count": 5,
       "tracking_available": true
     },
     {
@@ -581,8 +563,8 @@
       "min_peak_table_count": 4,
       "min_stage_table_tracks": 5,
       "min_active_tracks": 1,
-      "min_canonical_table_identity_count": 7,
-      "min_new_tracks": 4,
+      "min_canonical_table_identity_count": 5,
+      "min_new_tracks": 3,
       "min_continued_tracks": 1,
       "min_effective_table_count": 1,
       "effective_table_source": "last_observed_room_view",
@@ -604,13 +586,9 @@
       ],
       "expected_stage_table_canonical_ids": [
         1,
-        2,
         3,
-        4,
-        5,
         6,
         7,
-        8,
         9
       ],
       "required_packet_text": [
@@ -618,6 +596,7 @@
         "evidence weak visual support",
         "handoff roster added",
         "stage roster people",
+        "brief contacts Person 2, Person 4, Person 5, Person 8",
         "active people Person 9",
         "latest table status last observed room view 1 people",
         "quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"

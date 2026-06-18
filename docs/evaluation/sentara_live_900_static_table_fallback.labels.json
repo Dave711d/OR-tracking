@@ -169,12 +169,11 @@
       "start_s": 0.0,
       "end_s": 0.1,
       "role": "table_operator",
-      "min_tracks": 3,
-      "min_table_count": 3,
+      "min_tracks": 2,
+      "min_table_count": 2,
       "required_table_canonical_ids": [
         1,
-        2,
-        3
+        2
       ],
       "tracking_available": true
     },
@@ -211,38 +210,34 @@
       "role": "table_operator",
       "handoff_type": "initial_table_roster",
       "lead_role": "table_operator",
-      "min_tracks": 3,
-      "max_tracks": 3,
+      "min_tracks": 2,
+      "max_tracks": 2,
       "min_peak_table_count": 3,
       "max_peak_table_count": 3,
-      "min_canonical_table_identity_count": 3,
-      "max_canonical_table_identity_count": 3,
+      "min_canonical_table_identity_count": 2,
+      "max_canonical_table_identity_count": 2,
       "min_tracking_available_rate": 0.1,
       "evidence_level": "weak_visual_support",
       "max_observable_rate": 0.03,
       "max_mean_confidence": 0.25,
-      "min_new_tracks": 3,
-      "min_within_stage_entry_tracks": 1,
-      "min_within_stage_exit_tracks": 3,
+      "min_new_tracks": 2,
+      "max_new_tracks": 2,
+      "max_within_stage_entry_tracks": 0,
+      "min_within_stage_exit_tracks": 2,
       "expected_active_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ],
       "expected_continued_canonical_table_ids": [],
       "expected_new_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ],
       "expected_dropped_canonical_table_ids": [],
-      "expected_within_stage_entry_canonical_table_ids": [
-        3
-      ],
+      "expected_within_stage_entry_canonical_table_ids": [],
       "expected_within_stage_exit_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ]
     }
   ],
@@ -280,33 +275,28 @@
       "role": "table_operator",
       "handoff_type": "initial_table_roster",
       "lead_role": "table_operator",
-      "min_active_tracks": 3,
-      "max_active_tracks": 3,
-      "min_new_tracks": 3,
-      "max_new_tracks": 3,
+      "min_active_tracks": 2,
+      "max_active_tracks": 2,
+      "min_new_tracks": 2,
+      "max_new_tracks": 2,
       "max_continued_tracks": 0,
       "max_dropped_tracks": 0,
       "min_lead_observed_table_frames": 90,
       "min_tracking_available_rate": 0.1,
       "expected_active_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ],
       "expected_continued_canonical_table_ids": [],
       "expected_new_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ],
       "expected_dropped_canonical_table_ids": [],
-      "expected_within_stage_entry_canonical_table_ids": [
-        3
-      ],
+      "expected_within_stage_entry_canonical_table_ids": [],
       "expected_within_stage_exit_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ]
     }
   ],
@@ -322,7 +312,7 @@
       "required_label_text": "Access / sheathing"
     },
     {
-      "event_type": "table_entry",
+      "event_type": "brief_table_contact",
       "stage": "access_sheathing",
       "stage_segment_index": 0,
       "canonical_table_id": 3,
@@ -337,7 +327,7 @@
       "stage": "access_sheathing",
       "stage_segment_index": 0,
       "role": "table_operator",
-      "min_events": 3,
+      "min_events": 2,
       "min_observed_table_frames": 5,
       "required_label_text": "Access / sheathing"
     }
@@ -562,9 +552,9 @@
       "max_peak_table_count": 3,
       "min_active_tracks": 3,
       "max_active_tracks": 3,
-      "min_canonical_table_identity_count": 3,
-      "max_canonical_table_identity_count": 3,
-      "min_new_tracks": 3,
+      "min_canonical_table_identity_count": 2,
+      "max_canonical_table_identity_count": 2,
+      "min_new_tracks": 2,
       "min_effective_table_count": 3,
       "max_effective_table_count": 3,
       "effective_table_source": "last_observed_room_view",
@@ -587,21 +577,17 @@
       ],
       "expected_stage_table_canonical_ids": [
         1,
-        2,
-        3
+        2
       ],
       "expected_effective_canonical_table_ids": [
         1,
         2,
         3
       ],
-      "expected_within_stage_entry_canonical_table_ids": [
-        3
-      ],
+      "expected_within_stage_entry_canonical_table_ids": [],
       "expected_within_stage_exit_canonical_table_ids": [
         1,
-        2,
-        3
+        2
       ],
       "required_quality_flags": [
         "low_stage_confidence",
@@ -615,12 +601,11 @@
         "Current stage: Access / sheathing",
         "evidence weak visual support",
         "handoff initial table roster",
-        "stage roster people Person 1, Person 2, Person 3",
+        "stage roster people Person 1, Person 2",
+        "brief contacts Person 3",
+        "active people Person 1, Person 2, Person 3",
         "latest table status last observed room view 3 people Person 1, Person 2, Person 3",
         "next Angio alignment / crossing"
-      ],
-      "forbidden_packet_text": [
-        "active people"
       ]
     }
   ],

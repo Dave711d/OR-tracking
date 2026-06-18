@@ -1721,6 +1721,27 @@ function renderBackendOperatorPacket(packets = [], status = null) {
       packet.stage_table_canonical_ids || packet.active_table_canonical_ids,
     )}; raw ${formatIdList(packet.stage_table_track_ids || packet.active_table_track_ids)}`,
   );
+  if ((packet.brief_table_track_count ?? packet.brief_table_track_ids?.length ?? 0) > 0) {
+    appendInfoRow(
+      operatorPacket,
+      "Brief contacts",
+      `${packet.brief_table_track_count ?? packet.brief_table_track_ids.length} contacts; ${formatPersonIds(
+        packet.brief_table_canonical_ids,
+      )}; raw ${formatIdList(packet.brief_table_track_ids)}`,
+    );
+  }
+  appendInfoRow(
+    operatorPacket,
+    "Active now",
+    `${packet.active_table_track_count ?? packet.effective_table_count ?? status?.effective_table_count ?? 0} active; ${formatPersonIds(
+      packet.active_table_canonical_ids ||
+        packet.effective_table_canonical_ids ||
+        status?.effective_table_canonical_ids,
+    )}; raw ${formatIdList(
+      packet.active_table_track_ids || packet.effective_table_track_ids,
+    )}`,
+    { tone: "current" },
+  );
   appendInfoRow(
     operatorPacket,
     "Canonical people",
@@ -2076,6 +2097,7 @@ function stageRosterDetail(row = {}) {
   return [
     `peak ${row.peak_table_count ?? 0}`,
     formatPersonIds(row.active_table_canonical_ids, "stage roster people"),
+    formatPersonIds(row.brief_table_canonical_ids, "brief contacts"),
     formatPersonIds(row.continued_canonical_table_ids, "continued people"),
     formatPersonIds(row.new_canonical_table_ids, "new people"),
     formatPersonIds(row.dropped_canonical_table_ids, "dropped people"),

@@ -294,15 +294,15 @@
     },
     {
       "stage": "closure_finish",
-      "handoff_type": "roster_changed",
+      "handoff_type": "table_roster_started",
       "lead_role": "access_operator",
       "min_active_tracks": 2,
       "min_new_tracks": 2,
-      "min_dropped_tracks": 1,
+      "max_dropped_tracks": 0,
       "expected_active_canonical_table_ids": [9, 10],
       "expected_continued_canonical_table_ids": [],
       "expected_new_canonical_table_ids": [9, 10],
-      "expected_dropped_canonical_table_ids": [8]
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "stage_roster_expectations": [
@@ -390,22 +390,20 @@
     },
     {
       "stage": "post_deploy_assessment",
-      "role": "table_operator",
-      "handoff_type": "roster_changed",
-      "lead_role": "table_operator",
-      "min_tracks": 1,
+      "handoff_type": "table_cleared",
+      "max_tracks": 0,
       "min_peak_table_count": 1,
-      "min_canonical_table_identity_count": 1,
+      "max_canonical_table_identity_count": 0,
       "evidence_level": "moderate_visual_support",
-      "expected_active_canonical_table_ids": [8],
+      "expected_active_canonical_table_ids": [],
       "expected_continued_canonical_table_ids": [],
-      "expected_new_canonical_table_ids": [8],
+      "expected_new_canonical_table_ids": [],
       "expected_dropped_canonical_table_ids": [3, 5, 6, 7]
     },
     {
       "stage": "closure_finish",
       "role": "access_operator",
-      "handoff_type": "roster_changed",
+      "handoff_type": "table_roster_started",
       "lead_role": "access_operator",
       "min_tracks": 2,
       "min_peak_table_count": 2,
@@ -414,7 +412,7 @@
       "expected_active_canonical_table_ids": [9, 10],
       "expected_continued_canonical_table_ids": [],
       "expected_new_canonical_table_ids": [9, 10],
-      "expected_dropped_canonical_table_ids": [8]
+      "expected_dropped_canonical_table_ids": []
     }
   ],
   "stage_evidence_expectations": [
@@ -558,7 +556,7 @@
       "current": true,
       "stage_status": "current_observed",
       "stage_evidence_status": "strong_visual_support",
-      "handoff_type": "roster_changed",
+      "handoff_type": "table_roster_started",
       "evidence_level": "strong_visual_support",
       "lead_role": "access_operator",
       "min_peak_table_count": 2,
@@ -577,7 +575,7 @@
       "required_packet_text": [
         "Current stage: Closure / finish",
         "evidence strong visual support",
-        "handoff roster changed",
+        "handoff table roster started",
         "stage roster people Person 9, Person 10",
         "latest table status current stage recent room window 2 people Person 9, Person 10"
       ],
@@ -651,7 +649,7 @@
     {"event_type": "table_handoff", "stage": "angio_alignment_crossing", "handoff_type": "roster_changed", "role": "table_operator", "min_tracks": 2, "min_table_count": 2, "tracking_available": true},
     {"event_type": "table_peak", "stage": "bav_optional", "min_table_count": 4, "tracking_available": true},
     {"event_type": "table_peak", "stage": "valve_deployment", "min_table_count": 4, "tracking_available": true},
-    {"event_type": "table_handoff", "stage": "closure_finish", "handoff_type": "roster_changed", "role": "access_operator", "min_tracks": 2, "min_table_count": 2, "tracking_available": true}
+    {"event_type": "table_handoff", "stage": "closure_finish", "handoff_type": "table_roster_started", "role": "access_operator", "min_tracks": 2, "min_table_count": 2, "tracking_available": true}
   ],
   "roster_snapshot_expectations": [
     {"snapshot_type": "current", "role": "access_operator", "min_tracks": 1, "min_table_count": 1, "expected_canonical_table_ids": [9]},

@@ -38,6 +38,7 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.deepEqual(view.operatorAnswerRows.map((row) => row.label), [
     "Stage",
     "Readout",
+    "Procedure progress",
     "Visible now",
     "Effective table",
     "Table trust",
@@ -49,19 +50,28 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.match(view.operatorAnswerRows[1].value, /Current observed stage: Valve deployment/);
   assert.match(view.operatorAnswerRows[1].detail, /tracking available/);
   assert.match(view.operatorAnswerRows[1].detail, /table status: recent room view hold Person 8/);
-  assert.equal(view.operatorAnswerRows[2].value, "0 visible");
-  assert.match(view.operatorAnswerRows[2].detail, /current room view empty; people none/);
-  assert.equal(view.operatorAnswerRows[3].value, "2 effective");
-  assert.match(view.operatorAnswerRows[3].detail, /recent room-view hold; people Person 8, Person 10/);
-  assert.equal(view.operatorAnswerRows[4].value, "recent context only");
-  assert.match(view.operatorAnswerRows[4].detail, /0 visible now; 2 effective from recent room-view hold/);
-  assert.match(view.operatorAnswerRows[4].detail, /age 3\.6s/);
-  assert.equal(view.operatorAnswerRows[5].value, "10 stage people; 6 core");
-  assert.match(view.operatorAnswerRows[5].detail, /table roster started/);
-  assert.match(view.operatorAnswerRows[5].detail, /peak 3/);
-  assert.match(view.operatorAnswerRows[5].detail, /tracking 100%/);
-  assert.match(view.operatorAnswerRows[5].detail, /lead Person 8 \(ID 21\)/);
-  assert.match(view.operatorAnswerRows[5].detail, /4 brief contacts/);
+  assert.equal(view.operatorAnswerRows[2].value, "6/8 stages");
+  assert.match(view.operatorAnswerRows[2].detail, /prior Valve delivery \/ positioning/);
+  assert.match(view.operatorAnswerRows[2].detail, /current Valve deployment/);
+  assert.match(view.operatorAnswerRows[2].detail, /next Post-deploy assessment/);
+  assert.match(view.operatorAnswerRows[2].detail, /observed 2\/8/);
+  assert.match(view.operatorAnswerRows[2].detail, /2 active/);
+  assert.match(view.operatorAnswerRows[2].detail, /stage people 7/);
+  assert.match(view.operatorAnswerRows[2].detail, /peak 3/);
+  assert.match(view.operatorAnswerRows[2].detail, /stage 8\.0s-30\.0s/);
+  assert.equal(view.operatorAnswerRows[3].value, "0 visible");
+  assert.match(view.operatorAnswerRows[3].detail, /current room view empty; people none/);
+  assert.equal(view.operatorAnswerRows[4].value, "2 effective");
+  assert.match(view.operatorAnswerRows[4].detail, /recent room-view hold; people Person 8, Person 10/);
+  assert.equal(view.operatorAnswerRows[5].value, "recent context only");
+  assert.match(view.operatorAnswerRows[5].detail, /0 visible now; 2 effective from recent room-view hold/);
+  assert.match(view.operatorAnswerRows[5].detail, /age 3\.6s/);
+  assert.equal(view.operatorAnswerRows[6].value, "7 stage people; 6 core");
+  assert.match(view.operatorAnswerRows[6].detail, /table roster started/);
+  assert.match(view.operatorAnswerRows[6].detail, /peak 3/);
+  assert.match(view.operatorAnswerRows[6].detail, /tracking 100%/);
+  assert.match(view.operatorAnswerRows[6].detail, /lead Person 8 \(ID 21\)/);
+  assert.match(view.operatorAnswerRows[6].detail, /3 brief contacts/);
   assert.deepEqual(view.stageTableBriefRows.slice(0, 10).map((row) => row.label), [
     "Stage",
     "Procedure progress",
@@ -78,8 +88,8 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.match(view.stageTableBriefRows[1].detail, /next Post-deploy assessment/);
   assert.match(view.stageTableBriefRows[1].detail, /observed 2\/8/);
   assert.equal(view.stageTableBriefRows[2].value, "table roster started");
-  assert.equal(view.stageTableBriefRows[3].value, "10 tracked; 6 core");
-  assert.match(view.stageTableBriefRows[3].detail, /4 brief contacts/);
+  assert.equal(view.stageTableBriefRows[3].value, "7 tracked; 6 core");
+  assert.match(view.stageTableBriefRows[3].detail, /3 brief contacts/);
   assert.match(view.stageTableBriefRows[4].value, /core; Table op; 36f/);
   assert.match(view.stageTableBriefRows[4].detail, /24\.3s-26\.3s/);
   assert.match(view.stageTableBriefRows[0].detail, /clip 30\.0s/);
@@ -188,13 +198,20 @@ test("replay projection separates current visible person from current-stage effe
   assert.match(view.operatorAnswerRows[0].detail, /next complete/);
   assert.match(view.operatorAnswerRows[1].value, /Current observed stage: Closure \/ finish/);
   assert.match(view.operatorAnswerRows[1].detail, /at table now: Person 9/);
-  assert.equal(view.operatorAnswerRows[2].value, "1 visible");
-  assert.equal(view.operatorAnswerRows[3].value, "2 effective");
-  assert.match(view.operatorAnswerRows[3].detail, /current-stage recent room window; people Person 9, Person 10/);
-  assert.equal(view.operatorAnswerRows[4].value, "live + recent context");
-  assert.match(view.operatorAnswerRows[4].detail, /1 visible now; 2 effective from current-stage recent room window/);
-  assert.equal(view.operatorAnswerRows[5].value, "2 stage people; 2 core");
-  assert.match(view.operatorAnswerRows[5].detail, /peak 2; tracking 100%; lead Person 9/);
+  assert.equal(view.operatorAnswerRows[2].value, "8/8 stages");
+  assert.match(view.operatorAnswerRows[2].detail, /prior Post-deploy assessment/);
+  assert.match(view.operatorAnswerRows[2].detail, /current Closure \/ finish/);
+  assert.match(view.operatorAnswerRows[2].detail, /next complete/);
+  assert.match(view.operatorAnswerRows[2].detail, /2 active/);
+  assert.match(view.operatorAnswerRows[2].detail, /stage people 2/);
+  assert.match(view.operatorAnswerRows[2].detail, /peak 2/);
+  assert.equal(view.operatorAnswerRows[3].value, "1 visible");
+  assert.equal(view.operatorAnswerRows[4].value, "2 effective");
+  assert.match(view.operatorAnswerRows[4].detail, /current-stage recent room window; people Person 9, Person 10/);
+  assert.equal(view.operatorAnswerRows[5].value, "live + recent context");
+  assert.match(view.operatorAnswerRows[5].detail, /1 visible now; 2 effective from current-stage recent room window/);
+  assert.equal(view.operatorAnswerRows[6].value, "2 stage people; 2 core");
+  assert.match(view.operatorAnswerRows[6].detail, /peak 2; tracking 100%; lead Person 9/);
   assert.deepEqual(view.currentTable.canonicalIds, [9]);
   assert.equal(view.currentTable.sourceLabel, "current room view");
   assert.equal(view.tableRosterItems.length, 1);
@@ -224,7 +241,7 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.equal(stageTableBriefRows(demo.status)[1].value, "2/8 stages");
   assert.equal(stageTableBriefRows(demo.status)[2].value, "0 at table");
   assert.equal(stageTableBriefRows(demo.status)[3].value, "3 effective");
-  assert.equal(view.stageTableBriefRows[3].value, "3 tracked; 2 core");
+  assert.equal(view.stageTableBriefRows[3].value, "2 tracked; 2 core");
   assert.match(view.stageTableBriefRows[4].value, /core; Table op; 105f/);
   assert.match(view.stageTableBriefRows[4].detail, /0\.0s-4\.2s; room 83%/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 1.*held/);
@@ -235,14 +252,20 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.equal(view.operatorAnswerRows[0].value, "Access / sheathing");
   assert.match(view.operatorAnswerRows[1].value, /Current weakly supported stage: Access \/ sheathing/);
   assert.match(view.operatorAnswerRows[1].detail, /tracking not available/);
-  assert.equal(view.operatorAnswerRows[2].value, "0 visible");
-  assert.equal(view.operatorAnswerRows[3].value, "3 effective");
-  assert.match(view.operatorAnswerRows[3].detail, /last observed room view; people Person 1, Person 2, Person 3/);
-  assert.equal(view.operatorAnswerRows[4].value, "fallback context only");
-  assert.match(view.operatorAnswerRows[4].detail, /0 visible now; 3 effective from last observed room view/);
-  assert.match(view.operatorAnswerRows[4].detail, /age 25\.8s/);
-  assert.equal(view.operatorAnswerRows[5].value, "3 stage people; 2 core");
-  assert.match(view.operatorAnswerRows[5].detail, /peak 3; tracking 14%; lead Person 1/);
+  assert.equal(view.operatorAnswerRows[2].value, "2/8 stages");
+  assert.match(view.operatorAnswerRows[2].detail, /current Access \/ sheathing/);
+  assert.match(view.operatorAnswerRows[2].detail, /next Angio alignment \/ crossing/);
+  assert.match(view.operatorAnswerRows[2].detail, /3 active/);
+  assert.match(view.operatorAnswerRows[2].detail, /stage people 2/);
+  assert.match(view.operatorAnswerRows[2].detail, /peak 3/);
+  assert.equal(view.operatorAnswerRows[3].value, "0 visible");
+  assert.equal(view.operatorAnswerRows[4].value, "3 effective");
+  assert.match(view.operatorAnswerRows[4].detail, /last observed room view; people Person 1, Person 2, Person 3/);
+  assert.equal(view.operatorAnswerRows[5].value, "fallback context only");
+  assert.match(view.operatorAnswerRows[5].detail, /0 visible now; 3 effective from last observed room view/);
+  assert.match(view.operatorAnswerRows[5].detail, /age 25\.8s/);
+  assert.equal(view.operatorAnswerRows[6].value, "2 stage people; 2 core");
+  assert.match(view.operatorAnswerRows[6].detail, /peak 3; tracking 14%; lead Person 1/);
   assert.equal(view.effectiveTableRosterItems.length, 3);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 1/);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 2/);
@@ -324,7 +347,10 @@ test("focused replay events stay scoped to the selected snapshot stage", async (
       "table_present_at_stage_end",
     ],
   );
-  assert.equal(focused.rows.find((row) => row.event_type === "table_handoff").handoff_type, "roster_changed");
+  assert.equal(
+    focused.rows.find((row) => row.event_type === "table_handoff").handoff_type,
+    "table_roster_started",
+  );
   assert.equal(focused.rows.some((row) => row.stage === "access_sheathing"), false);
   assert.equal(compact.rows.length, 3);
   assert.equal(compact.rows[0].event_type, "stage_started");
@@ -388,14 +414,19 @@ test("operator answer rows can summarize browser-current and held table snapshot
 
   assert.equal(rows[0].value, "Uploaded review");
   assert.match(rows[0].detail, /6\/8 stages; next Post-deploy assessment/);
-  assert.equal(rows[1].value, "0 visible");
-  assert.equal(rows[2].value, "2 effective");
-  assert.match(rows[2].detail, /recent room-view hold; people P1, P2; age 1\.4s/);
-  assert.equal(rows[3].value, "recent context only");
-  assert.match(rows[3].detail, /0 visible now; 2 effective from recent room-view hold; age 1\.4s/);
-  assert.equal(rows[4].value, "2 stage people");
-  assert.match(rows[4].detail, /roster changed; .*new P2; dropped P3/);
-  assert.equal(rows[5].value, "table_roster_held_from_room_view");
+  assert.equal(rows[1].label, "Procedure progress");
+  assert.equal(rows[1].value, "6/8 stages");
+  assert.match(rows[1].detail, /current Uploaded review/);
+  assert.match(rows[1].detail, /next Post-deploy assessment/);
+  assert.match(rows[1].detail, /observed 6\/8/);
+  assert.equal(rows[2].value, "0 visible");
+  assert.equal(rows[3].value, "2 effective");
+  assert.match(rows[3].detail, /recent room-view hold; people P1, P2; age 1\.4s/);
+  assert.equal(rows[4].value, "recent context only");
+  assert.match(rows[4].detail, /0 visible now; 2 effective from recent room-view hold; age 1\.4s/);
+  assert.equal(rows[5].value, "2 stage people");
+  assert.match(rows[5].detail, /roster changed; .*new P2; dropped P3/);
+  assert.equal(rows[6].value, "table_roster_held_from_room_view");
 });
 
 test("stage table brief formats browser handoff people without double person labels", () => {

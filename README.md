@@ -217,11 +217,14 @@ the compact handover surface: one row per observed stage segment with current
 stage status, evidence, handoff type, active/new/dropped table IDs, effective
 current table context, canonical within-stage entrants/exits, quality flags,
 and a plain-English packet sentence.
-In that packet, `stage_table_*` fields are cumulative stage-history evidence
-for everyone seen table-side during the segment. For the current stage,
-`active_table_*` is the trusted active/effective roster at the operator status
-point, so it may be narrower than the stage roster when the view is held from a
-recent or last-observed room frame.
+In that packet, `stage_table_*` fields are cumulative sustained stage-history
+evidence for people who were table-side long enough to count as part of the
+stage roster. `brief_table_*` keeps short contacts audit-visible without
+treating them as handoff staff. For the current stage, `active_table_*` is the
+trusted active/effective roster at the operator status point, so it may be
+narrower than the stage roster when the view is held from a recent or
+last-observed room frame, or temporarily wider when recent context still
+includes a brief contact.
 It also writes:
 
 - `outputs/*_metrics.csv`
@@ -278,21 +281,24 @@ room-view hold, no-table person negative checks, static-fallback review, closure
 peak/last-observed labelled table people, and all-eight-stage table identity
 cases. The sticky stage/table brief shows the current procedure stage,
 canonical stage progress, next expected stage, stage handoff type, stage-wide
-roster contacts with core-vs-brief dwell, current visible table roster, and
-effective held table context so the replay can be scanned before opening the
-deeper tables. A `Current operator answer` panel now combines the current
-stage, visible table, effective table, stage roster handoff, next stage, and
-quality flags into one compact answer. The procedure-status panel also surfaces
+roster contacts with core-vs-supplemental dwell, audit-only brief contacts,
+current visible table roster, and effective held table context so the replay can
+be scanned before opening the deeper tables. A `Current operator answer` panel
+now combines the current stage, procedure progress, visible table, effective
+table, stage roster handoff, next stage, and quality flags into one compact
+answer. The procedure-status panel also surfaces
 evaluated score rows for stage status, operator snapshots, table-person
 intervals/status, and no-table negative clips. When the replay scrubber moves,
 the lower stage-roster and event timeline evidence panes are focused on the
 selected snapshot's stage rather than showing a stale whole-case prefix. The
-packet text uses
-`stage roster people` for everyone seen table-side during that stage and keeps
+operator-packet card separates cumulative stage roster, active now, and
+brief contacts so held-room context is not mistaken for live visibility. The
+packet text uses `stage roster people` for sustained table-side people during
+that stage, `brief contacts` for short audit-visible touches, and keeps
 `active people` plus `latest table status` as the current/effective answer to
-who is at the table now. Stage roster and operator packet cards show canonical people for
-within-stage entry/exit while retaining raw IDs as audit detail. Refresh those
-public replay JSON files after rerunning the local suites with:
+who is at the table now. Stage roster and operator packet cards show canonical
+people for within-stage entry/exit while retaining raw IDs as audit detail.
+Refresh those public replay JSON files after rerunning the local suites with:
 
 ```bash
 python3 export_public_demo_data.py

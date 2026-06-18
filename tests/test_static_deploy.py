@@ -114,7 +114,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_presence_intervals": 3,
         "table_person_interval_score": 1.0,
         "table_person_status_score": 1.0,
-        "min_events": 11,
+        "min_events": 10,
     },
     {
         "file": "synthetic-full-tavr-evaluation.json",
@@ -132,7 +132,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_presence_intervals": 16,
         "table_person_interval_score": 1.0,
         "table_person_status_score": 1.0,
-        "min_events": 60,
+        "min_events": 59,
     },
 ]
 
@@ -311,7 +311,9 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
     assert "stage_table_track_count" in app_js
     assert "stage_table_canonical_ids" in app_js
     assert "stage_table_track_ids" in app_js
-    assert "Active table" not in app_js
+    assert '"Active now"' in app_js
+    assert "active_table_track_count ?? packet.effective_table_count" in app_js
+    assert "active_table_track_ids || packet.effective_table_track_ids" in app_js
     assert "table_roster_held_from_room_view" in app_js
     assert "tableSnapshot?.rows?.some(({ staticFallback }) => staticFallback)" in app_js
     assert "currentStageRosterSegment" in app_js
@@ -417,6 +419,8 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert "active_table_canonical_ids" in packet
         assert "effective_table_canonical_ids" in packet
         assert "stage_table_canonical_ids" in packet
+        assert "brief_table_canonical_ids" in packet
+        assert "brief_table_track_count" in packet
         assert packet["active_table_canonical_ids"] == packet[
             "effective_table_canonical_ids"
         ]
@@ -439,6 +443,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
             for row in tavr["stage_roster_summary"]
         )
         assert all(
+            "brief_table_canonical_ids" in row
+            for row in tavr["stage_roster_summary"]
+        )
+        assert all(
             "within_stage_entry_canonical_table_ids" in row
             for row in tavr["stage_roster_summary"]
         )
@@ -448,6 +456,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         )
         assert all(
             "canonical_table_id" in row
+            for row in tavr["stage_table_coverage"]
+        )
+        assert all(
+            "table_contact_status" in row and "is_sustained_table_contact" in row
             for row in tavr["stage_table_coverage"]
         )
         assert all(
@@ -468,8 +480,15 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     strong_packet = strong_payload["tavr"]["operator_stage_packet"][-1]
     assert strong_packet["active_table_canonical_ids"] == [8, 10]
     assert strong_packet["effective_table_canonical_ids"] == [8, 10]
-    assert strong_packet["stage_table_canonical_ids"] == list(range(1, 11))
+    assert strong_packet["stage_table_canonical_ids"] == [1, 2, 3, 6, 8, 9, 10]
+    assert strong_packet["brief_table_canonical_ids"] == [4, 5, 7]
+    assert "brief contacts Person 4, Person 5, Person 7" in strong_packet[
+        "operator_packet"
+    ]
     assert "active people Person 8, Person 10" in strong_packet["operator_packet"]
+    assert strong_packet["active_table_track_count"] == 2
+    assert strong_packet["stage_table_track_count"] == 7
+    assert strong_packet["brief_table_track_count"] == 3
     strong_current_roster = strong_rosters[-1]
     assert strong_current_roster["active_table_roster"]
     assert {
@@ -501,17 +520,30 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert view_snapshot["effective_table_source"] == "last_observed_room_view"
     assert view_snapshot["effective_table_canonical_ids"] == [1, 2, 3]
     fallback_packet = fallback_payload["tavr"]["operator_stage_packet"][0]
-    assert fallback_packet["within_stage_entry_canonical_table_ids"] == [3]
-    assert fallback_packet["within_stage_exit_canonical_table_ids"] == [1, 2, 3]
+    assert fallback_packet["stage_table_canonical_ids"] == [1, 2]
+    assert fallback_packet["brief_table_canonical_ids"] == [3]
+    assert fallback_packet["active_table_canonical_ids"] == [1, 2, 3]
+    assert fallback_packet["within_stage_entry_canonical_table_ids"] == []
+    assert fallback_packet["within_stage_exit_canonical_table_ids"] == [1, 2]
+    assert "brief contacts Person 3" in fallback_packet["operator_packet"]
     fallback_roster = fallback_payload["tavr"]["stage_roster_summary"][0]
-    assert fallback_roster["within_stage_entry_canonical_table_ids"] == [3]
-    assert fallback_roster["within_stage_exit_canonical_table_ids"] == [1, 2, 3]
+    assert fallback_roster["active_table_canonical_ids"] == [1, 2]
+    assert fallback_roster["brief_table_canonical_ids"] == [3]
+    assert fallback_roster["within_stage_entry_canonical_table_ids"] == []
+    assert fallback_roster["within_stage_exit_canonical_table_ids"] == [1, 2]
     late_payload = load_public_demo_payload("sentara-2700-evaluation.json")
     late_packet = late_payload["tavr"]["operator_stage_packet"][-1]
     assert late_packet["active_table_canonical_ids"] == [9]
     assert late_packet["effective_table_canonical_ids"] == [9]
-    assert late_packet["stage_table_canonical_ids"] == list(range(1, 10))
+    assert late_packet["stage_table_canonical_ids"] == [1, 3, 6, 7, 9]
+    assert late_packet["brief_table_canonical_ids"] == [2, 4, 5, 8]
+    assert "brief contacts Person 2, Person 4, Person 5, Person 8" in late_packet[
+        "operator_packet"
+    ]
     assert "active people Person 9" in late_packet["operator_packet"]
+    assert late_packet["active_table_track_count"] == 1
+    assert late_packet["stage_table_track_count"] == 5
+    assert late_packet["brief_table_track_count"] == 4
     synthetic_payload = load_public_demo_payload(
         "synthetic-full-tavr-evaluation.json"
     )
