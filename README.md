@@ -77,7 +77,8 @@ handoff, roster snapshot, and event timeline rows carry the same pair of roles,
 so the stage-by-stage review is consistent with the operator-facing table-team
 summary while preserving the raw audit trail. The evaluator also derives
 `table_identity_groups`, which stitch compatible sequential raw track IDs into
-canonical table-person groups and expose `merged_track_ids` for review.
+canonical table-person groups using timing, role, position, area, and recent
+motion continuity, then expose `merged_track_ids` for review.
 It also writes those derived TAVR tables as CSV files alongside the frame-level
 metrics CSV.
 For low-motion room-view review, pass `--static-table-fallback` to opt into the

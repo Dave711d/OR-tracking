@@ -6643,6 +6643,7 @@ def _best_identity_group(
         candidates,
         key=lambda group: (
             interval["start_s"] - group["last_s"],
+            _identity_assignment_distance(group, interval),
             _identity_centroid_distance(group, interval) or 0.0,
             min(group["raw_track_ids"]) if group["raw_track_ids"] else 0,
         ),
@@ -6702,12 +6703,70 @@ def _identity_centroid_distance(
     return (dx * dx + dy * dy) ** 0.5
 
 
+def _identity_assignment_distance(
+    group: Dict[str, Any],
+    interval: Dict[str, Any],
+) -> float:
+    centroid_distance = _identity_centroid_distance(group, interval)
+    if centroid_distance is None:
+        return 0.0
+    projected_distance = _identity_projected_centroid_distance(group, interval)
+    if projected_distance is not None:
+        return projected_distance + (2.0 * centroid_distance)
+    return centroid_distance
+
+
+def _identity_projected_centroid_distance(
+    group: Dict[str, Any],
+    interval: Dict[str, Any],
+) -> Optional[float]:
+    if (
+        group.get("last_cx") is None
+        or group.get("last_cy") is None
+        or group.get("last_velocity_cx") is None
+        or group.get("last_velocity_cy") is None
+        or interval.get("first_cx") is None
+        or interval.get("first_cy") is None
+    ):
+        return None
+    frame_gap = int(interval["start_frame"]) - int(group["last_frame"])
+    if frame_gap <= 0:
+        return None
+    predicted_cx = (
+        float(group["last_cx"]) + float(group["last_velocity_cx"]) * frame_gap
+    )
+    predicted_cy = (
+        float(group["last_cy"]) + float(group["last_velocity_cy"]) * frame_gap
+    )
+    dx = predicted_cx - float(interval["first_cx"])
+    dy = predicted_cy - float(interval["first_cy"])
+    return (dx * dx + dy * dy) ** 0.5
+
+
 def _identity_area_ratio(first: Any, second: Any) -> Optional[float]:
     if first is None or second is None:
         return None
     first_value = max(float(first), 1.0)
     second_value = max(float(second), 1.0)
     return max(first_value, second_value) / min(first_value, second_value)
+
+
+def _identity_interval_velocity(
+    interval: Dict[str, Any],
+) -> tuple[Optional[float], Optional[float]]:
+    frame_span = int(interval["end_frame"]) - int(interval["start_frame"])
+    if (
+        frame_span <= 0
+        or interval.get("first_cx") is None
+        or interval.get("first_cy") is None
+        or interval.get("last_cx") is None
+        or interval.get("last_cy") is None
+    ):
+        return None, None
+    return (
+        (float(interval["last_cx"]) - float(interval["first_cx"])) / frame_span,
+        (float(interval["last_cy"]) - float(interval["first_cy"])) / frame_span,
+    )
 
 
 def _merge_identity_interval(
@@ -6724,6 +6783,13 @@ def _merge_identity_interval(
     group["last_cx"] = interval.get("last_cx")
     group["last_cy"] = interval.get("last_cy")
     group["last_area"] = interval.get("last_area")
+    velocity_cx, velocity_cy = _identity_interval_velocity(interval)
+    if velocity_cx is not None and velocity_cy is not None:
+        group["last_velocity_cx"] = velocity_cx
+        group["last_velocity_cy"] = velocity_cy
+    else:
+        group.pop("last_velocity_cx", None)
+        group.pop("last_velocity_cy", None)
     group["observed_table_frames"] += int(interval["observed_table_frames"])
     _merge_counts(group["role_counts"], interval.get("role_counts", {}))
     _merge_counts(group["stage_counts"], interval.get("stage_counts", {}))

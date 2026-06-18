@@ -170,7 +170,9 @@ The JSON output includes:
   current room view is empty.
 - `table_identity_groups`: canonical table-person groups stitched from
   compatible sequential raw track IDs using table-side timing, role, centroid,
-  and area continuity. These rows keep the representative raw track ID plus
+  area, and recent motion continuity. Brief table-side crossings or occlusions
+  can therefore keep the moving person identity instead of blindly following
+  the next raw track ID. These rows keep the representative raw track ID plus
   `merged_track_ids` so identity stitching remains auditable.
 - `table_presence_roster`: tracks that spent meaningful time table-side anywhere
   in the clip, useful when the final frames are still or empty.

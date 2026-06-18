@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import pytest
 
+import or_tracking.evaluation as evaluation_module
 from evaluate_tavr import parse_args, parse_roi
 from or_tracking import MotionTrackerConfig, process_video_file
 from or_tracking.evaluation import (
@@ -1161,6 +1162,204 @@ def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
             "merged_track_ids"
         ]
         == [7, 8, 9]
+    )
+
+
+def test_table_identity_stitching_preserves_people_through_crossing_fragments() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [7, 8],
+            centroids_by_track={7: (120, 220), 8: (220, 220)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [7, 8],
+            centroids_by_track={7: (145, 220), 8: (195, 220)},
+        ),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [7, 8],
+            centroids_by_track={7: (170, 220), 8: (170, 222)},
+        ),
+        _table_metric(
+            3,
+            0.3,
+            "valve_deployment",
+            [],
+            centroids_by_track={},
+        ),
+        _table_metric(
+            4,
+            0.4,
+            "valve_deployment",
+            [9, 10],
+            centroids_by_track={9: (145, 220), 10: (195, 220)},
+        ),
+        _table_metric(
+            5,
+            0.5,
+            "valve_deployment",
+            [9, 10],
+            centroids_by_track={9: (120, 220), 10: (220, 220)},
+        ),
+    ]
+
+    identities = summarize_tavr_metrics(metrics)["table_identity_groups"]
+    merged_sets = {tuple(row["merged_track_ids"]) for row in identities}
+
+    assert len(identities) == 2
+    assert merged_sets == {(7, 10), (8, 9)}
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_identity_group_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "min_groups": 2,
+                    "max_groups": 2,
+                },
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "min_groups": 1,
+                    "max_groups": 1,
+                    "min_merged_track_count": 2,
+                    "max_merged_track_count": 2,
+                    "min_observed_table_frames": 4,
+                    "required_merged_track_ids": [7, 10],
+                },
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "min_groups": 1,
+                    "max_groups": 1,
+                    "min_merged_track_count": 2,
+                    "max_merged_track_count": 2,
+                    "min_observed_table_frames": 4,
+                    "required_merged_track_ids": [8, 9],
+                },
+            ]
+        },
+    )
+
+    assert score["table_identity_group_score"]["pass_rate"] == 1.0
+    expectations = score["table_identity_group_score"]["expectations"]
+    assert [expectation["matched_count"] for expectation in expectations] == [
+        2,
+        1,
+        1,
+    ]
+
+
+def test_table_identity_stitching_uses_motion_when_centroids_nearly_tie() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [7, 8],
+            centroids_by_track={7: (220, 220), 8: (139.8, 220)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [7, 8],
+            centroids_by_track={7: (170.1, 220), 8: (169.9, 220)},
+        ),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [9],
+            centroids_by_track={9: (200, 220)},
+        ),
+    ]
+
+    identities = summarize_tavr_metrics(metrics)["table_identity_groups"]
+    merged_sets = {tuple(row["merged_track_ids"]) for row in identities}
+
+    assert merged_sets == {(7,), (8, 9)}
+
+
+def test_table_identity_motion_resets_after_single_frame_fragment() -> None:
+    group = {
+        "raw_track_ids": set(),
+        "first_frame": 0,
+        "last_frame": 0,
+        "first_s": 0.0,
+        "last_s": 0.0,
+        "first_clip_s": 0.0,
+        "last_clip_s": 0.0,
+        "last_cx": None,
+        "last_cy": None,
+        "last_area": None,
+        "observed_table_frames": 0,
+        "role_counts": {},
+        "stage_counts": {},
+    }
+    moving_interval = {
+        "track_id": 7,
+        "start_frame": 0,
+        "end_frame": 1,
+        "start_s": 0.0,
+        "end_s": 0.1,
+        "clip_start_s": 0.0,
+        "clip_end_s": 0.1,
+        "first_cx": 100,
+        "first_cy": 220,
+        "last_cx": 150,
+        "last_cy": 220,
+        "last_area": 200,
+        "observed_table_frames": 2,
+        "role_counts": {"table_operator": 2},
+        "stage_counts": {"valve_deployment": 2},
+    }
+    single_frame_interval = {
+        "track_id": 9,
+        "start_frame": 2,
+        "end_frame": 2,
+        "start_s": 0.2,
+        "end_s": 0.2,
+        "clip_start_s": 0.2,
+        "clip_end_s": 0.2,
+        "first_cx": 151,
+        "first_cy": 220,
+        "last_cx": 151,
+        "last_cy": 220,
+        "last_area": 200,
+        "observed_table_frames": 1,
+        "role_counts": {"table_operator": 1},
+        "stage_counts": {"valve_deployment": 1},
+    }
+    future_interval = {
+        "start_frame": 3,
+        "first_cx": 201,
+        "first_cy": 220,
+    }
+
+    evaluation_module._merge_identity_interval(group, moving_interval)
+    assert group["last_velocity_cx"] == 50
+
+    evaluation_module._merge_identity_interval(group, single_frame_interval)
+
+    assert "last_velocity_cx" not in group
+    assert "last_velocity_cy" not in group
+    assert (
+        evaluation_module._identity_projected_centroid_distance(
+            group,
+            future_interval,
+        )
+        is None
     )
 
 
