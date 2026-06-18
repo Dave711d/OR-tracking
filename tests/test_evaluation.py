@@ -536,6 +536,31 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     assert "last observed table: ID 7" in status["operator_summary"]
 
 
+def test_procedure_status_holds_recent_room_roster_when_current_frame_is_quiet() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+        _table_metric(2, 0.2, "valve_deployment", []),
+    ]
+
+    status = procedure_status_summary(metrics)[0]
+    packet = operator_stage_packet(metrics)[-1]
+
+    assert status["current_view"] == "room"
+    assert status["tracking_available"] is True
+    assert status["current_table_count"] == 0
+    assert status["effective_table_source"] == "recent_room_view_hold"
+    assert status["effective_table_count"] == 1
+    assert status["effective_table_track_ids"] == [7]
+    assert status["effective_table_age_from_clip_end_s"] == 0.1
+    assert "table status: recent room view hold ID 7" in status["operator_summary"]
+    assert packet["effective_table_source"] == "recent_room_view_hold"
+    assert packet["effective_table_track_ids"] == [7]
+    assert "latest table status recent room view hold 1 IDs 7" in (
+        packet["operator_packet"]
+    )
+
+
 def test_table_team_summary_reports_active_recent_and_historical_members() -> None:
     non_room_metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7, 8]),

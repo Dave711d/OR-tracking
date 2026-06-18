@@ -2481,8 +2481,28 @@ def _effective_table_status(
     latest_state: TAVRFrameState,
     current_roster: Sequence[Dict[str, Any]],
     last_observed: Dict[str, Any],
+    recent_hold_s: float = 5.0,
 ) -> Dict[str, Any]:
     if _view_label(latest_metric) == "room":
+        last_roster = last_observed.get("roster", [])
+        last_age_s = last_observed.get("age_from_clip_end_s")
+        if (
+            not current_roster
+            and last_roster
+            and last_age_s is not None
+            and float(last_age_s) <= recent_hold_s
+        ):
+            return {
+                "source": "recent_room_view_hold",
+                "timestamp_s": last_observed.get("timestamp_s"),
+                "clip_timestamp_s": last_observed.get("clip_timestamp_s"),
+                "age_from_clip_end_s": last_age_s,
+                "stage": last_observed.get("stage"),
+                "stage_label": last_observed.get("stage_label"),
+                "table_count": last_observed.get("table_count", 0),
+                "track_ids": [item["track_id"] for item in last_roster],
+                "roster": list(last_roster),
+            }
         source = (
             "current_room_view"
             if current_roster

@@ -122,9 +122,11 @@ The JSON output includes:
   current table roster, effective table roster source, last observed table
   roster, peak table roster, quality flag codes, and a concise
   `operator_summary` sentence. `effective_table_source` is
-  `current_room_view`, `current_room_view_empty`, `last_observed_room_view`, or
-  `no_room_table_evidence`, which keeps fluoroscopy frames from implying a
-  false empty table when the room is not visible.
+  `current_room_view`, `current_room_view_empty`, `recent_room_view_hold`,
+  `last_observed_room_view`, or `no_room_table_evidence`. This keeps
+  fluoroscopy frames from implying a false empty table when the room is not
+  visible, and keeps a recently observed table roster visible when the latest
+  room-view frame is motion-quiet rather than confidently empty.
 - `operator_stage_packet`: one row per observed stage segment designed as a
   compact handover packet. Each row combines current/prior stage status,
   timing, evidence level, observable rate, mean confidence, handoff type, peak

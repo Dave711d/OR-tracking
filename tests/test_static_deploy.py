@@ -152,6 +152,11 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
     assert "clip_start_s" in status
     assert "clip_end_s" in packet
     assert "effective_table_source" in status
+    assert status["effective_table_source"] == "recent_room_view_hold"
+    assert status["effective_table_count"] == 1
+    assert status["effective_table_track_ids"]
+    assert packet["effective_table_source"] == "recent_room_view_hold"
+    assert packet["effective_table_count"] == 1
     assert "canonical_table_identity_count" in packet
     assert "quality_flag_codes" in packet
     assert payload["score_summary"]["table_identity_group_score"] == 1.0
@@ -192,6 +197,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderBackendQualityFlags" in app_js
     assert "function formatClockRange" in app_js
     assert "function formatClockPoint" in app_js
+    assert "function tableSourceLabel" in app_js
+    assert "recent room-view hold" in app_js
     assert "evaluationReplayRequestId" in app_js
     assert "keepEvaluationReplayRequest" in app_js
     assert "requestId !== evaluationReplayRequestId" in app_js

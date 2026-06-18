@@ -1278,7 +1278,7 @@ function renderProcedureStatus(status = null, demo = null) {
   appendInfoRow(
     procedureStatus,
     "Effective table",
-    `${status.effective_table_count ?? 0} staff; ${status.effective_table_source || "source n/a"}`,
+    `${status.effective_table_count ?? 0} staff; ${tableSourceLabel(status.effective_table_source)}`,
   );
   appendInfoRow(
     procedureStatus,
@@ -1336,7 +1336,7 @@ function renderBackendOperatorPacket(packets = [], status = null) {
   appendInfoRow(
     operatorPacket,
     "Effective table",
-    `${packet.effective_table_count ?? status?.effective_table_count ?? 0}; ${packet.effective_table_source || status?.effective_table_source || "source n/a"}`,
+    `${packet.effective_table_count ?? status?.effective_table_count ?? 0}; ${tableSourceLabel(packet.effective_table_source || status?.effective_table_source)}`,
   );
   const flags = asArray(packet.quality_flag_codes);
   appendInfoRow(
@@ -1630,6 +1630,18 @@ function statusLabel(status) {
 
 function handoffLabel(handoffType) {
   return handoffType.replaceAll("_", " ");
+}
+
+function tableSourceLabel(source) {
+  if (!source) return "source n/a";
+  const labels = {
+    current_room_view: "current room view",
+    current_room_view_empty: "current room view empty",
+    recent_room_view_hold: "recent room-view hold",
+    last_observed_room_view: "last observed room view",
+    no_room_table_evidence: "no room table evidence",
+  };
+  return labels[source] || String(source).replaceAll("_", " ");
 }
 
 function compactIdList(ids, maxVisible = 4) {
