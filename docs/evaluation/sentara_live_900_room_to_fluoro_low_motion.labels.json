@@ -102,6 +102,7 @@
     {
       "current_stage": "access_sheathing",
       "current_stage_status": "current_observed",
+      "current_stage_evidence_status": "weak_visual_support",
       "next_stage": "angio_alignment_crossing",
       "current_view": "non_room",
       "tracking_available": false,
@@ -126,6 +127,7 @@
       "stage_segment_index": 0,
       "current": true,
       "stage_status": "current_observed",
+      "stage_evidence_status": "weak_visual_support",
       "next_stage": "angio_alignment_crossing",
       "handoff_type": "initial_no_table_evidence",
       "evidence_level": "weak_visual_support",
@@ -142,6 +144,7 @@
       ],
       "required_packet_text": [
         "Current stage: Access / sheathing",
+        "evidence weak visual support",
         "handoff initial no table evidence",
         "active IDs none",
         "latest table status no room table evidence 0 IDs none",

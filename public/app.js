@@ -1262,7 +1262,7 @@ function renderProcedureStatus(status = null, demo = null) {
   appendInfoRow(
     procedureStatus,
     "Current stage",
-    `${status.current_stage_label || "unknown"}; ${status.current_stage_status || "status n/a"}`,
+    `${status.current_stage_label || "unknown"}; ${stageEvidenceLabel(status.current_stage_evidence_status || status.evidence_level)}`,
     { tone: "current" },
   );
   appendInfoRow(
@@ -1315,7 +1315,7 @@ function renderBackendOperatorPacket(packets = [], status = null) {
   appendInfoRow(
     operatorPacket,
     "Evidence",
-    `${packet.evidence_level || "n/a"}; confidence ${formatNumber(packet.mean_confidence)}`,
+    `${evidenceSupportLabel(packet.evidence_level, packet.stage_evidence_status)}; confidence ${formatNumber(packet.mean_confidence)}`,
   );
   appendInfoRow(
     operatorPacket,
@@ -1642,6 +1642,36 @@ function tableSourceLabel(source) {
     no_room_table_evidence: "no room table evidence",
   };
   return labels[source] || String(source).replaceAll("_", " ");
+}
+
+function stageEvidenceLabel(status) {
+  if (!status) return "stage support n/a";
+  const labels = {
+    held_non_room_context: "held from non-room context",
+    weak_visual_support: "weak visual support",
+    moderate_visual_support: "moderate visual support",
+    strong_visual_support: "strong visual support",
+    held_non_room: "held non-room",
+    unknown_stage_support: "unknown stage support",
+  };
+  return labels[status] || String(status).replaceAll("_", " ");
+}
+
+function evidenceLevelLabel(level) {
+  if (!level) return "evidence n/a";
+  const labels = {
+    held_non_room: "held non-room",
+    weak_visual_support: "weak visual support",
+    moderate_visual_support: "moderate visual support",
+    strong_visual_support: "strong visual support",
+  };
+  return labels[level] || String(level).replaceAll("_", " ");
+}
+
+function evidenceSupportLabel(level, status) {
+  const evidence = evidenceLevelLabel(level);
+  const support = stageEvidenceLabel(status || level);
+  return evidence === support ? evidence : `${evidence}; ${support}`;
 }
 
 function compactIdList(ids, maxVisible = 4) {

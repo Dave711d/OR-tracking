@@ -117,10 +117,12 @@ static equipment from being counted as people.
 The JSON output includes:
 
 - `procedure_status_summary`: a one-row operator status that combines current
-  observed stage, next expected milestone, evidence level, observable rate,
-  mean confidence, latest room/non-room view state, tracking availability,
-  current table roster, effective table roster source, last observed table
-  roster, peak table roster, quality flag codes, and a concise
+  stage, current stage evidence status (`strong_visual_support`,
+  `moderate_visual_support`, `weak_visual_support`, or
+  `held_non_room_context`), next expected milestone, evidence level,
+  observable rate, mean confidence, latest room/non-room view state, tracking
+  availability, current table roster, effective table roster source, last
+  observed table roster, peak table roster, quality flag codes, and a concise
   `operator_summary` sentence. `effective_table_source` is
   `current_room_view`, `current_room_view_empty`, `recent_room_view_hold`,
   `last_observed_room_view`, or `no_room_table_evidence`. This keeps
@@ -129,10 +131,11 @@ The JSON output includes:
   room-view frame is motion-quiet rather than confidently empty.
 - `operator_stage_packet`: one row per observed stage segment designed as a
   compact handover packet. Each row combines current/prior stage status,
-  timing, evidence level, observable rate, mean confidence, handoff type, peak
-  table count, active/canonical table-person counts, lead role, active/new/
-  dropped table IDs, the effective current table source for the current stage,
-  quality flag codes, and a plain-English `operator_packet` sentence.
+  stage evidence status, timing, evidence level, observable rate, mean
+  confidence, handoff type, peak table count, active/canonical table-person
+  counts, lead role, active/new/dropped table IDs, the effective current table
+  source for the current stage, quality flag codes, and a plain-English
+  `operator_packet` sentence.
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
 - `view_segments`: contiguous room/non-room stretches with duration,
@@ -294,16 +297,17 @@ The label file can include:
   observable rate, mean confidence, peak table-side count, and unique
   table-side track count or canonical table-person count for the milestone.
 - `procedure_status_expectations`: expected one-row operator status, including
-  current stage, current milestone status, next stage, current view, tracking
-  availability, effective table source/count/freshness, evidence level,
-  observable rate, mean confidence, current table count, last-observed table
-  count/freshness, peak table count, and required or forbidden quality flags.
+  current stage, current milestone status, current stage evidence status, next
+  stage, current view, tracking availability, effective table
+  source/count/freshness, evidence level, observable rate, mean confidence,
+  current table count, last-observed table count/freshness, peak table count,
+  and required or forbidden quality flags.
 - `operator_packet_expectations`: expected operator handover packet rows,
-  including stage/current-vs-prior status, next stage, handoff type, evidence
-  level, lead role, active/canonical/effective table counts, continued/new/
-  dropped table identities, tracking and observable rates, mean confidence,
-  effective table source, required or forbidden quality flags, and required or
-  forbidden packet text fragments.
+  including stage/current-vs-prior status, stage evidence status, next stage,
+  handoff type, evidence level, lead role, active/canonical/effective table
+  counts, continued/new/dropped table identities, tracking and observable
+  rates, mean confidence, effective table source, required or forbidden quality
+  flags, and required or forbidden packet text fragments.
 - `table_team_expectations`: expected table-team rows, such as requiring no
   tracks in fluoroscopy-only clips, requiring a `recent_last_observed` row from
   the last room-view roster, requiring an `active_current` row in a live room

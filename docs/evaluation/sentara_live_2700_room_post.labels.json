@@ -232,6 +232,7 @@
     {
       "current_stage": "closure_finish",
       "current_stage_status": "current_observed",
+      "current_stage_evidence_status": "weak_visual_support",
       "next_stage": null,
       "current_view": "non_room",
       "tracking_available": false,
@@ -259,6 +260,7 @@
       "stage_segment_index": 1,
       "current": true,
       "stage_status": "current_observed",
+      "stage_evidence_status": "weak_visual_support",
       "next_stage": null,
       "handoff_type": "roster_added",
       "evidence_level": "weak_visual_support",
@@ -282,6 +284,7 @@
       ],
       "required_packet_text": [
         "Current stage: Closure / finish",
+        "evidence weak visual support",
         "handoff roster added",
         "active IDs",
         "latest table status last observed room view 1 IDs",

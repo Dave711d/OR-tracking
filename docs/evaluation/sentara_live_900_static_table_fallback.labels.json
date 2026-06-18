@@ -219,6 +219,7 @@
     {
       "current_stage": "bav_optional",
       "current_stage_status": "current_observed",
+      "current_stage_evidence_status": "weak_visual_support",
       "next_stage": "valve_delivery_positioning",
       "current_view": "non_room",
       "tracking_available": false,
@@ -251,6 +252,7 @@
       "stage_segment_index": 2,
       "current": true,
       "stage_status": "current_observed",
+      "stage_evidence_status": "weak_visual_support",
       "next_stage": "valve_delivery_positioning",
       "handoff_type": "roster_continued",
       "evidence_level": "weak_visual_support",
@@ -277,6 +279,7 @@
       ],
       "required_packet_text": [
         "Current stage: Balloon valvuloplasty",
+        "evidence weak visual support",
         "handoff roster continued",
         "active IDs 1, 2, 4",
         "latest table status last observed room view 3 IDs 1, 2, 4",

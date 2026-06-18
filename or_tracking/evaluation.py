@@ -46,6 +46,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "current_stage",
         "current_stage_label",
         "current_stage_status",
+        "current_stage_evidence_status",
+        "current_stage_evidence_label",
         "next_stage",
         "next_stage_label",
         "evidence_level",
@@ -89,6 +91,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage",
         "stage_label",
         "stage_status",
+        "stage_evidence_status",
+        "stage_evidence_label",
         "is_current_stage",
         "next_stage",
         "next_stage_label",
@@ -712,6 +716,10 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     evidence_level = current_milestone.get("evidence_level")
     observable_rate = current_milestone.get("observable_rate")
     mean_confidence = current_milestone.get("mean_confidence")
+    current_stage_evidence_status = _stage_evidence_status(
+        evidence_level,
+        observable_rate,
+    )
     tracking_available = _view_label(latest_metric) == "room"
     effective_table = _effective_table_status(
         latest_metric=latest_metric,
@@ -736,6 +744,10 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
             current_milestone.get("stage_label") or latest_state.stage_label
         ),
         "current_stage_status": current_milestone.get("milestone_status"),
+        "current_stage_evidence_status": current_stage_evidence_status,
+        "current_stage_evidence_label": _stage_evidence_status_label(
+            current_stage_evidence_status
+        ),
         "next_stage": next_milestone.get("stage") if next_milestone else None,
         "next_stage_label": (
             next_milestone.get("stage_label") if next_milestone else None
@@ -818,12 +830,20 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             if is_current_stage
             else milestone.get("milestone_status", "observed_prior")
         )
+        stage_evidence_status = _stage_evidence_status(
+            roster.get("evidence_level"),
+            roster.get("observable_rate"),
+        )
         row = {
             "packet_index": packet_index,
             "stage_segment_index": roster["stage_segment_index"],
             "stage": roster["stage"],
             "stage_label": roster["stage_label"],
             "stage_status": stage_status,
+            "stage_evidence_status": stage_evidence_status,
+            "stage_evidence_label": _stage_evidence_status_label(
+                stage_evidence_status
+            ),
             "is_current_stage": is_current_stage,
             "next_stage": status.get("next_stage") if is_current_stage else None,
             "next_stage_label": (
@@ -2547,6 +2567,64 @@ def _effective_table_status(
     }
 
 
+def _stage_evidence_status(
+    evidence_level: Optional[str],
+    observable_rate: Optional[float],
+) -> str:
+    if evidence_level == "held_non_room" or observable_rate == 0:
+        return "held_non_room_context"
+    if evidence_level in {
+        "weak_visual_support",
+        "moderate_visual_support",
+        "strong_visual_support",
+    }:
+        return evidence_level
+    return "unknown_stage_support"
+
+
+def _stage_evidence_status_label(status: Optional[str]) -> str:
+    labels = {
+        "held_non_room_context": "held from non-room context",
+        "weak_visual_support": "weak visual support",
+        "moderate_visual_support": "moderate visual support",
+        "strong_visual_support": "strong visual support",
+        "unknown_stage_support": "unknown stage support",
+    }
+    return labels.get(status or "", "unknown stage support")
+
+
+def _evidence_level_label(evidence_level: Optional[str]) -> str:
+    if not evidence_level:
+        return "no evidence"
+    labels = {
+        "held_non_room": "held non-room",
+        "weak_visual_support": "weak visual support",
+        "moderate_visual_support": "moderate visual support",
+        "strong_visual_support": "strong visual support",
+    }
+    return labels.get(evidence_level, _text_status_label(evidence_level))
+
+
+def _evidence_support_clause(
+    evidence_level: Optional[str],
+    stage_support: str,
+) -> str:
+    evidence_label = _evidence_level_label(evidence_level)
+    if evidence_label == stage_support:
+        return evidence_label
+    return f"{evidence_label}, stage support {stage_support}"
+
+
+def _current_stage_phrase(stage_evidence_status: Optional[str]) -> str:
+    if stage_evidence_status == "held_non_room_context":
+        return "Current held stage"
+    if stage_evidence_status == "weak_visual_support":
+        return "Current weakly supported stage"
+    if stage_evidence_status == "unknown_stage_support":
+        return "Current stage context"
+    return "Current observed stage"
+
+
 def _procedure_status_label(row: Dict[str, Any]) -> str:
     current_roster = _roster_status_label(row.get("current_table_roster", []))
     effective_roster = _roster_status_label(row.get("effective_table_roster", []))
@@ -2557,10 +2635,13 @@ def _procedure_status_label(row: Dict[str, Any]) -> str:
     tracking_label = "available" if row.get("tracking_available") else "not available"
     quality_flags = row.get("quality_flag_codes", [])
     quality_label = ", ".join(quality_flags) if quality_flags else "none"
+    stage_phrase = _current_stage_phrase(row.get("current_stage_evidence_status"))
+    stage_support = row.get("current_stage_evidence_label") or "stage support n/a"
+    evidence_clause = _evidence_support_clause(row.get("evidence_level"), stage_support)
     return (
-        f"Current observed stage: {row.get('current_stage_label') or 'n/a'} "
-        f"({row.get('evidence_level') or 'no evidence'}, "
-        f"confidence {current_confidence}, observable {observable_rate}); "
+        f"{stage_phrase}: {row.get('current_stage_label') or 'n/a'} "
+        f"({evidence_clause}, confidence {current_confidence}, "
+        f"observable {observable_rate}); "
         f"tracking {tracking_label}; at table now: {current_roster}; "
         f"table status: {_text_status_label(row.get('effective_table_source'))} "
         f"{effective_roster}; "
@@ -2573,7 +2654,8 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
     status_label = (
         "Current stage" if row.get("is_current_stage") else "Observed stage"
     )
-    evidence = row.get("evidence_level") or "no evidence"
+    stage_support = row.get("stage_evidence_label") or "stage support n/a"
+    evidence = _evidence_support_clause(row.get("evidence_level"), stage_support)
     observable_rate = _maybe_percent_label(row.get("observable_rate"))
     mean_confidence = _maybe_float_label(row.get("mean_confidence"))
     handoff = _text_status_label(row.get("handoff_type"))
@@ -2585,7 +2667,8 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
     packet = (
         f"{status_label}: {row.get('stage_label') or 'n/a'} "
         f"{row.get('start_s')}s-{row.get('end_s')}s; "
-        f"evidence {evidence}, confidence {mean_confidence}, "
+        f"evidence {evidence}, "
+        f"confidence {mean_confidence}, "
         f"observable {observable_rate}; handoff {handoff}; "
         f"peak table {row.get('peak_table_count', 0)}; "
         f"active IDs {active_ids}; new IDs {new_ids}; "
@@ -4900,6 +4983,9 @@ def _score_procedure_status_candidate(
 ) -> Dict[str, Any]:
     current_stage = expectation.get("current_stage")
     current_stage_status = expectation.get("current_stage_status")
+    current_stage_evidence_status = expectation.get(
+        "current_stage_evidence_status"
+    )
     has_next_stage_expectation = "next_stage" in expectation
     next_stage = expectation.get("next_stage")
     current_view = expectation.get("current_view")
@@ -4938,6 +5024,10 @@ def _score_procedure_status_candidate(
         "current_stage_status": (
             current_stage_status is None
             or row["current_stage_status"] == current_stage_status
+        ),
+        "current_stage_evidence_status": (
+            current_stage_evidence_status is None
+            or row["current_stage_evidence_status"] == current_stage_evidence_status
         ),
         "next_stage": (
             not has_next_stage_expectation or row["next_stage"] == next_stage
@@ -5042,6 +5132,8 @@ def _score_procedure_status_candidate(
     return {
         "current_stage": row["current_stage"],
         "current_stage_status": row["current_stage_status"],
+        "current_stage_evidence_status": row["current_stage_evidence_status"],
+        "current_stage_evidence_label": row["current_stage_evidence_label"],
         "next_stage": row["next_stage"],
         "current_view": row["current_view"],
         "tracking_available": row["tracking_available"],
@@ -5071,6 +5163,7 @@ def _score_operator_packet_candidate(
     expectation: Dict[str, Any],
 ) -> Dict[str, Any]:
     stage_status = expectation.get("stage_status")
+    stage_evidence_status = expectation.get("stage_evidence_status")
     next_stage_expected = "next_stage" in expectation
     next_stage = expectation.get("next_stage")
     expected_handoff_types = _expected_handoff_types(expectation)
@@ -5128,6 +5221,10 @@ def _score_operator_packet_candidate(
     }
     checks = {
         "stage_status": stage_status is None or row.get("stage_status") == stage_status,
+        "stage_evidence_status": (
+            stage_evidence_status is None
+            or row.get("stage_evidence_status") == stage_evidence_status
+        ),
         "next_stage": (
             not next_stage_expected or row.get("next_stage") == next_stage
         ),
@@ -5260,6 +5357,8 @@ def _score_operator_packet_candidate(
         "stage": row["stage"],
         "stage_label": row["stage_label"],
         "stage_status": row.get("stage_status"),
+        "stage_evidence_status": row.get("stage_evidence_status"),
+        "stage_evidence_label": row.get("stage_evidence_label"),
         "is_current_stage": row.get("is_current_stage"),
         "start_s": row["start_s"],
         "end_s": row["end_s"],

@@ -412,10 +412,13 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
     current = packets[-1]
     assert current["is_current_stage"] is True
     assert current["stage_status"] == "current_observed"
+    assert current["stage_evidence_status"] == "held_non_room_context"
+    assert current["stage_evidence_label"] == "held from non-room context"
     assert current["handoff_type"] == "table_cleared"
     assert current["effective_table_source"] == "last_observed_room_view"
     assert current["effective_table_track_ids"] == [7, 8]
     assert "Current stage: Closure / finish" in current["operator_packet"]
+    assert "stage support held from non-room context" in current["operator_packet"]
     assert "latest table status last observed room view 2 IDs 7, 8" in (
         current["operator_packet"]
     )
@@ -517,6 +520,8 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
 
     assert status["current_stage"] == "closure_finish"
     assert status["current_stage_status"] == "current_observed"
+    assert status["current_stage_evidence_status"] == "held_non_room_context"
+    assert status["current_stage_evidence_label"] == "held from non-room context"
     assert status["next_stage"] is None
     assert status["current_view"] == "non_room"
     assert status["tracking_available"] is False
@@ -531,7 +536,7 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     assert status["last_observed_table_track_ids"] == [7, 8]
     assert status["peak_table_count"] == 2
     assert status["peak_table_track_ids"] == [7, 8]
-    assert "Current observed stage: Closure / finish" in status["operator_summary"]
+    assert "Current held stage: Closure / finish" in status["operator_summary"]
     assert "table status: last observed room view ID 7" in status["operator_summary"]
     assert "last observed table: ID 7" in status["operator_summary"]
 
@@ -549,12 +554,14 @@ def test_procedure_status_holds_recent_room_roster_when_current_frame_is_quiet()
     assert status["current_view"] == "room"
     assert status["tracking_available"] is True
     assert status["current_table_count"] == 0
+    assert status["current_stage_evidence_status"] == "strong_visual_support"
     assert status["effective_table_source"] == "recent_room_view_hold"
     assert status["effective_table_count"] == 1
     assert status["effective_table_track_ids"] == [7]
     assert status["effective_table_age_from_clip_end_s"] == 0.1
     assert "table status: recent room view hold ID 7" in status["operator_summary"]
     assert packet["effective_table_source"] == "recent_room_view_hold"
+    assert packet["stage_evidence_status"] == "strong_visual_support"
     assert packet["effective_table_track_ids"] == [7]
     assert "latest table status recent room view hold 1 IDs 7" in (
         packet["operator_packet"]
@@ -1338,6 +1345,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
             {
                 "current_stage": "closure_finish",
                 "current_stage_status": "current_observed",
+                "current_stage_evidence_status": "strong_visual_support",
                 "next_stage": None,
                 "current_view": "room",
                 "tracking_available": True,
@@ -1357,6 +1365,7 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "stage": "valve_deployment",
                 "current": False,
                 "stage_status": "observed_prior",
+                "stage_evidence_status": "strong_visual_support",
                 "handoff_type": "roster_changed",
                 "evidence_level": "strong_visual_support",
                 "min_peak_table_count": 2,

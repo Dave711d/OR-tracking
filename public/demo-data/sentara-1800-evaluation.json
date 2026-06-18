@@ -1,6 +1,6 @@
 {
   "case": "sentara_1800_mixed_room",
-  "generated_from": "outputs/tavr_suite_recent_hold/sentara_1800_mixed_room/result.json",
+  "generated_from": "outputs/tavr_suite_stage_support/sentara_1800_mixed_room/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,
@@ -80,6 +80,8 @@
         "current_stage": "valve_deployment",
         "current_stage_label": "Valve deployment",
         "current_stage_status": "current_observed",
+        "current_stage_evidence_status": "strong_visual_support",
+        "current_stage_evidence_label": "strong visual support",
         "next_stage": "post_deploy_assessment",
         "next_stage_label": "Post-deploy assessment",
         "evidence_level": "strong_visual_support",
@@ -175,7 +177,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_summary": "Current observed stage: Valve deployment (strong_visual_support, confidence 0.50, observable 100%); tracking available; at table now: none; table status: recent room view hold ID 21 table_operator table=100%; last observed table: ID 21 table_operator table=100%; next: Post-deploy assessment; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_summary": "Current observed stage: Valve deployment (strong visual support, confidence 0.50, observable 100%); tracking available; at table now: none; table status: recent room view hold ID 21 table_operator table=100%; last observed table: ID 21 table_operator table=100%; next: Post-deploy assessment; quality flags: rapid_stage_progression, low_stage_confidence, non_room_view"
       }
     ],
     "operator_stage_packet": [
@@ -185,6 +187,8 @@
         "stage": "valve_delivery_positioning",
         "stage_label": "Valve delivery / positioning",
         "stage_status": "observed_prior",
+        "stage_evidence_status": "held_non_room_context",
+        "stage_evidence_label": "held from non-room context",
         "is_current_stage": false,
         "next_stage": null,
         "next_stage_label": null,
@@ -216,7 +220,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Observed stage: Valve delivery / positioning 1799.998s-1807.973s; evidence held_non_room, confidence 0.20, observable 0%; handoff initial no table evidence; peak table 0; active IDs none; new IDs none; dropped IDs none; roster none; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_packet": "Observed stage: Valve delivery / positioning 1799.998s-1807.973s; evidence held non-room, stage support held from non-room context, confidence 0.20, observable 0%; handoff initial no table evidence; peak table 0; active IDs none; new IDs none; dropped IDs none; roster none; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
       },
       {
         "packet_index": 1,
@@ -224,6 +228,8 @@
         "stage": "valve_deployment",
         "stage_label": "Valve deployment",
         "stage_status": "current_observed",
+        "stage_evidence_status": "strong_visual_support",
+        "stage_evidence_label": "strong visual support",
         "is_current_stage": true,
         "next_stage": "post_deploy_assessment",
         "next_stage_label": "Post-deploy assessment",
@@ -279,7 +285,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Valve deployment 1808.006s-1829.961s; evidence strong_visual_support, confidence 0.50, observable 100%; handoff table roster started; peak table 3; active IDs 18, 1, 2, 5, 20, 16, 8, 13, 14, 6; new IDs 1, 2, 5, 6, 8, 13, 14, 16, 18, 20; dropped IDs none; roster ID 18 table_operator 36 frames 24.3-26.3s; ID 1 table_operator 32 frames 8.0-9.0s; ID 2 table_operator 29 frames 8.0-8.9s; ID 5 table_operator 20 frames 12.2-13.1s; ID 20 table_operator 18 frames 24.5-25.1s; ID 16 imaging 16 frames 24.4-24.9s; latest table status recent room view hold 1 IDs 21; next Post-deploy assessment; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Valve deployment 1808.006s-1829.961s; evidence strong visual support, confidence 0.50, observable 100%; handoff table roster started; peak table 3; active IDs 18, 1, 2, 5, 20, 16, 8, 13, 14, 6; new IDs 1, 2, 5, 6, 8, 13, 14, 16, 18, 20; dropped IDs none; roster ID 18 table_operator 36 frames 24.3-26.3s; ID 1 table_operator 32 frames 8.0-9.0s; ID 2 table_operator 29 frames 8.0-8.9s; ID 5 table_operator 20 frames 12.2-13.1s; ID 20 table_operator 18 frames 24.5-25.1s; ID 16 imaging 16 frames 24.4-24.9s; latest table status recent room view hold 1 IDs 21; next Post-deploy assessment; quality flags rapid_stage_progression, low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [
