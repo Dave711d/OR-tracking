@@ -154,15 +154,27 @@ def test_vercel_deploy_ignores_streamlit_entrypoint() -> None:
 
 def test_static_demo_stage_keys_match_backend_tavr_order() -> None:
     app_js = Path("public/app.js").read_text(encoding="utf-8")
+    replay_js = Path("public/replay_view.mjs").read_text(encoding="utf-8")
     stage_block_match = re.search(
         r"const TAVR_STAGES = \[(?P<body>.*?)\];",
         app_js,
+        flags=re.DOTALL,
+    )
+    replay_stage_block_match = re.search(
+        r"export const TAVR_STAGE_PROGRESS = \[(?P<body>.*?)\];",
+        replay_js,
         flags=re.DOTALL,
     )
 
     assert stage_block_match is not None
     stage_keys = re.findall(r'key: "([^"]+)"', stage_block_match.group("body"))
     assert stage_keys == TAVR_STAGE_ORDER
+    assert replay_stage_block_match is not None
+    replay_stage_keys = re.findall(
+        r'key: "([^"]+)"',
+        replay_stage_block_match.group("body"),
+    )
+    assert replay_stage_keys == TAVR_STAGE_ORDER
 
 
 def test_static_demo_role_zone_priority_matches_backend() -> None:
@@ -529,9 +541,14 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "export function stageTableBriefRows" in replay_js
     assert "stageTableBriefRowsFromSnapshots" in app_js
     assert "export function stageTableBriefRowsFromSnapshots" in replay_js
+    assert "Procedure progress" in replay_js
+    assert "export function procedureProgressBrief" in replay_js
+    assert "export function stageTableBriefProgressRows" in replay_js
     assert "Stage handoff" in replay_js
     assert "export function stageTableBriefHandoffRows" in replay_js
     assert "function browserStageHandoffBrief" in app_js
+    assert "function browserProcedureProgressBrief" in app_js
+    assert "progress: browserProcedureProgressBrief(stage.key)" in app_js
     assert "handoff: browserStageHandoffBrief(currentStageRosterSegment)" in app_js
     assert "function renderStageTableBrief" in app_js
     assert ".stage-table-brief" in styles

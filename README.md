@@ -254,11 +254,11 @@ The `Evaluated demo` replay selector loads compact backend artifacts from the
 Sentara 900s, 1800s, 2400s, and 2700s windows plus the full synthetic TAVR
 workflow, including weak visual support, held non-room context, recent
 room-view hold, static-fallback review, and all-eight-stage table identity
-cases. The sticky stage/table brief shows the current procedure stage, stage
-handoff type, continued/new/dropped table people, current visible table roster,
-and effective held table context so the replay can be scanned before opening
-the deeper tables. Refresh those public replay JSON files after rerunning the
-local suites with:
+cases. The sticky stage/table brief shows the current procedure stage, canonical
+stage progress, next expected stage, stage handoff type, continued/new/dropped
+table people, current visible table roster, and effective held table context so
+the replay can be scanned before opening the deeper tables. Refresh those
+public replay JSON files after rerunning the local suites with:
 
 ```bash
 python3 export_public_demo_data.py

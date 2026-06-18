@@ -367,7 +367,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   elapsedMetric.textContent = formatSeconds(eventTimeSeconds(status));
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
-  renderStageTableBrief(stageTableBriefRows(status, packet));
+  renderStageTableBrief(stageTableBriefRows(status, packet, demo.milestones));
   renderBackendTableRoster(status);
   renderProcedureStatus(status, demo);
   renderBackendStatusSnapshots(demo.statusSnapshots, selectedIndex);
@@ -1010,12 +1010,14 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
   updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
+  updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   renderStageTableBrief(stageTableBriefRowsFromSnapshots({
     stageLabel: stage.label,
     evidenceLabel: stage.stageHoldReason
       ? stage.stageHoldReason.replaceAll("_", " ")
       : `confidence ${formatNumber(stage.confidence)}`,
     timeLabel: `${formatSeconds(elapsedSeconds)}`,
+    progress: browserProcedureProgressBrief(stage.key),
     currentTable,
     effectiveTable: tableSnapshot,
     handoff: browserStageHandoffBrief(currentStageRosterSegment),
@@ -1025,7 +1027,6 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   renderBrowserTableIdentities();
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
   renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot);
-  updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   entryZone.textContent = String(summary.zones.entry);
   accessZone.textContent = String(summary.zones.access);
   tableZone.textContent = String(summary.zones.table);
@@ -1475,6 +1476,23 @@ function browserStageHandoffBrief(segment = null) {
     continuedIds: segment.continuedIds,
     newIds: segment.newIds,
     droppedIds: segment.droppedIds,
+  };
+}
+
+function browserProcedureProgressBrief(stageKey) {
+  const stageMeta = TAVR_STAGE_LOOKUP.get(stageKey);
+  if (!stageMeta) return null;
+  const nextStage = TAVR_STAGES[stageMeta.index + 1];
+  const observedCount = TAVR_STAGES.reduce(
+    (count, stage) => count + Number(milestoneProgress.has(stage.key)),
+    0,
+  );
+  return {
+    stageIndex: stageMeta.index,
+    totalStages: TAVR_STAGES.length,
+    nextLabel: nextStage?.label || "complete",
+    observedCount,
+    observedTotal: TAVR_STAGES.length,
   };
 }
 

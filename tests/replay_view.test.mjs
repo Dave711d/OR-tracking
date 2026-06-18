@@ -29,22 +29,26 @@ test("replay projection keeps current table empty when only held evidence exists
 
   assert.equal(view.stageMetric, "Valve deployment (strong_visual_support)");
   assert.equal(view.tableSideMetric, "0");
-  assert.deepEqual(view.stageTableBriefRows.slice(0, 6).map((row) => row.label), [
+  assert.deepEqual(view.stageTableBriefRows.slice(0, 7).map((row) => row.label), [
     "Stage",
+    "Procedure progress",
     "Stage handoff",
     "Now visible",
     "Effective for stage",
     "Person 8 (ID 21)",
     "Person 10 (ID 20)",
   ]);
-  assert.equal(view.stageTableBriefRows[1].value, "table roster started");
+  assert.equal(view.stageTableBriefRows[1].value, "6/8 stages");
+  assert.match(view.stageTableBriefRows[1].detail, /next Post-deploy assessment/);
+  assert.match(view.stageTableBriefRows[1].detail, /observed 2\/8/);
+  assert.equal(view.stageTableBriefRows[2].value, "table roster started");
   assert.match(view.stageTableBriefRows[0].detail, /clip 30\.0s/);
-  assert.match(view.stageTableBriefRows[1].detail, /new Person 1/);
-  assert.match(view.stageTableBriefRows[1].detail, /new .*Person 10/);
-  assert.match(view.stageTableBriefRows[1].detail, /dropped none/);
-  assert.equal(view.stageTableBriefRows[2].value, "0 at table");
-  assert.equal(view.stageTableBriefRows[3].value, "2 effective");
-  assert.match(view.stageTableBriefRows[4].value, /held; Table op/);
+  assert.match(view.stageTableBriefRows[2].detail, /new Person 1/);
+  assert.match(view.stageTableBriefRows[2].detail, /new .*Person 10/);
+  assert.match(view.stageTableBriefRows[2].detail, /dropped none/);
+  assert.equal(view.stageTableBriefRows[3].value, "0 at table");
+  assert.equal(view.stageTableBriefRows[4].value, "2 effective");
+  assert.match(view.stageTableBriefRows[5].value, /held; Table op/);
   assert.deepEqual(view.tableRosterItems, ["None"]);
   assert.deepEqual(view.tablePresenceRows.map((row) => row.label), [
     "Current room view",
@@ -69,6 +73,7 @@ test("replay projection separates current visible person from current-stage effe
 
   assert.equal(view.stageMetric, "Closure / finish (strong_visual_support)");
   assert.equal(view.tableSideMetric, "1");
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Procedure progress: 8\/8 stages; next complete; observed 8\/8/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 9.*now \+ effective/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 10.*held/);
   assert.match(view.tablePresenceRows[0].value, /1 at table; current room view; people Person 9/);
@@ -99,7 +104,8 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.equal(snapshot.count, 3);
   assert.deepEqual(snapshot.canonicalIds, [1, 2, 3]);
   assert.deepEqual(view.currentTable.canonicalIds, []);
-  assert.equal(stageTableBriefRows(demo.status)[2].value, "3 effective");
+  assert.equal(stageTableBriefRows(demo.status)[1].value, "2/8 stages");
+  assert.equal(stageTableBriefRows(demo.status)[3].value, "3 effective");
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 1.*held/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 2.*held/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 3.*held/);
@@ -174,6 +180,13 @@ test("stage table brief formats browser handoff people without double person lab
     stageLabel: "Uploaded review",
     evidenceLabel: "confidence 0.8",
     timeLabel: "1.0s",
+    progress: {
+      stageIndex: 5,
+      totalStages: 8,
+      nextLabel: "Post-deploy assessment",
+      observedCount: 6,
+      observedTotal: 8,
+    },
     currentTable: {
       count: 2,
       rows: [
@@ -199,7 +212,10 @@ test("stage table brief formats browser handoff people without double person lab
     },
   });
   const handoff = rows.find((row) => row.kind === "handoff");
+  const progress = rows.find((row) => row.kind === "progress");
 
+  assert.equal(progress.value, "6/8 stages");
+  assert.equal(progress.detail, "next Post-deploy assessment; observed 6/8");
   assert.equal(handoff.value, "roster added");
   assert.equal(handoff.detail, "continued P1; new P2; dropped none");
   assert.match(rows.map((row) => row.detail).join(" "), /people P1, P2/);

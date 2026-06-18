@@ -7,6 +7,21 @@ export const ROLE_LABELS = {
   entry_supply: "Supply",
 };
 
+export const TAVR_STAGE_PROGRESS = [
+  { key: "room_prep_drape", label: "Room prep / drape" },
+  { key: "access_sheathing", label: "Access / sheathing" },
+  { key: "angio_alignment_crossing", label: "Angio alignment / crossing" },
+  { key: "bav_optional", label: "Balloon valvuloplasty" },
+  { key: "valve_delivery_positioning", label: "Valve delivery / positioning" },
+  { key: "valve_deployment", label: "Valve deployment" },
+  { key: "post_deploy_assessment", label: "Post-deploy assessment" },
+  { key: "closure_finish", label: "Closure / finish" },
+];
+
+const TAVR_STAGE_PROGRESS_LOOKUP = new Map(
+  TAVR_STAGE_PROGRESS.map((stage, index) => [stage.key, { ...stage, index }]),
+);
+
 export function normalizeEvaluationPayload(payload, demoMeta = {}) {
   const tavr = payload.tavr || {};
   const events = [
@@ -52,7 +67,7 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
   const effectiveTable = effectiveTableSnapshot(status);
   const effectiveSource = effectiveTable.source;
   const effectiveCount = effectiveTable.count;
-  const tableBriefRows = stageTableBriefRows(status, latestPacket);
+  const tableBriefRows = stageTableBriefRows(status, latestPacket, demo.milestones);
 
   return {
     caseName: demo.caseName,
@@ -114,7 +129,7 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
   };
 }
 
-export function stageTableBriefRows(status = {}, packet = null) {
+export function stageTableBriefRows(status = {}, packet = null, milestones = []) {
   const stageLabel = status.current_stage_label || packet?.stage_label || "Stage n/a";
   const evidence = status.current_stage_evidence_status || status.evidence_level ||
     packet?.stage_evidence_status || packet?.evidence_level || "evidence n/a";
@@ -123,6 +138,7 @@ export function stageTableBriefRows(status = {}, packet = null) {
     stageLabel,
     evidenceLabel: String(evidence).replaceAll("_", " "),
     timeLabel: Number.isFinite(time) ? `clip ${formatSeconds(time)}` : "",
+    progress: procedureProgressBrief(status, packet, milestones),
     currentTable: currentTableSnapshot(status),
     effectiveTable: effectiveTableSnapshot(status),
     handoff: packet ? {
@@ -139,6 +155,7 @@ export function stageTableBriefRowsFromSnapshots({
   stageLabel = "Stage n/a",
   evidenceLabel = "",
   timeLabel = "",
+  progress = null,
   currentTable = {},
   effectiveTable = null,
   handoff = null,
@@ -153,6 +170,7 @@ export function stageTableBriefRowsFromSnapshots({
       detail: [evidenceLabel, timeLabel].filter(Boolean).join("; "),
       context: "current",
     },
+    ...stageTableBriefProgressRows(progress),
     ...stageTableBriefHandoffRows(handoff),
     {
       kind: "current",
@@ -170,6 +188,51 @@ export function stageTableBriefRowsFromSnapshots({
     },
   ];
   return rows.concat(stageTableBriefPersonRows(current, effective));
+}
+
+export function procedureProgressBrief(status = {}, packet = null, milestones = []) {
+  const stageKey = status.current_stage || packet?.stage;
+  const current = TAVR_STAGE_PROGRESS_LOOKUP.get(stageKey);
+  if (!current) return null;
+
+  const nextKey = status.next_stage || TAVR_STAGE_PROGRESS[current.index + 1]?.key;
+  const next = nextKey ? TAVR_STAGE_PROGRESS_LOOKUP.get(nextKey) : null;
+  const milestoneRows = asArray(milestones);
+  const observedCount = milestoneRows.length
+    ? milestoneRows.filter((row) => milestoneObserved(row)).length
+    : current.index + 1;
+  return {
+    stageIndex: current.index,
+    totalStages: TAVR_STAGE_PROGRESS.length,
+    nextLabel: next?.label || "complete",
+    observedCount,
+    observedTotal: milestoneRows.length || TAVR_STAGE_PROGRESS.length,
+  };
+}
+
+export function stageTableBriefProgressRows(progress = null) {
+  if (!progress) return [];
+  const stageIndex = Number(progress.stageIndex);
+  const totalStages = Number(progress.totalStages || TAVR_STAGE_PROGRESS.length);
+  const ordinal = Number.isFinite(stageIndex) ? stageIndex + 1 : null;
+  const value = progress.value || (
+    ordinal === null ? "stage n/a" : `${ordinal}/${totalStages} stages`
+  );
+  const observedCount = progress.observedCount;
+  const observedTotal = progress.observedTotal || totalStages;
+  const observedDetail = observedCount === null || observedCount === undefined
+    ? ""
+    : `observed ${observedCount}/${observedTotal}`;
+  return [{
+    kind: "progress",
+    label: "Procedure progress",
+    value,
+    detail: [
+      `next ${progress.nextLabel || "unknown"}`,
+      observedDetail,
+    ].filter(Boolean).join("; "),
+    context: "current",
+  }];
 }
 
 export function stageTableBriefHandoffRows(handoff = null) {
@@ -458,6 +521,15 @@ function snapshotRowKey(row = {}) {
 function tableBriefRoleLabel(row = {}) {
   const role = row.table_team_role || row.role;
   return ROLE_LABELS[role] || role || "role n/a";
+}
+
+function milestoneObserved(row = {}) {
+  if (row.observed_in_clip !== null && row.observed_in_clip !== undefined) {
+    return Boolean(row.observed_in_clip);
+  }
+  return !["not_observed_in_clip", "not_observed"].includes(
+    String(row.milestone_status || ""),
+  );
 }
 
 function formatBriefPersonIds(ids, prefix) {
