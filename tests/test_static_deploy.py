@@ -180,14 +180,23 @@ def test_static_demo_estimates_tavr_stage_for_uploaded_video() -> None:
     assert "populateInitialStageOptions" in app_js
     assert "selectedInitialStageIndex" in app_js
     assert analyze_frame_match is not None
+    assert "const viewColorfulness = frameColorfulness(image)" in app_js
+    assert "const nonRoomView = viewColorfulness < BROWSER_NON_ROOM_COLORFULNESS_THRESHOLD" in app_js
+    assert "if (nonRoomView) {" in app_js
+    assert "boxes = []" in app_js
     assert "let staticTableUsed = false" in app_js
-    assert "stageHoldReason: staticTableUsed ? \"static_table_fallback\" : null" in app_js
+    assert "stageHoldReason: nonRoomView" in app_js
+    assert "? \"non_room_view\"" in app_js
+    assert ": (staticTableUsed ? \"static_table_fallback\" : null)" in app_js
+    assert "viewColorfulness," in app_js
     assert "estimateUploadedTavrStage(boxes, activity, video.currentTime, {" in app_js
     assert "function estimateUploadedTavrStage" in app_js
     assert "function scoreTavrStages" in app_js
     assert "function chooseTavrStageIndex" in app_js
+    assert "function frameColorfulness" in app_js
     assert "const stageObservable = !stageHoldReason" in app_js
     assert "if (stageObservable) {" in app_js
+    assert "stage_hold_non_room_view" in app_js
     assert "stage_hold_static_table_fallback" in app_js
     assert "Uploaded review" not in analyze_frame_match.group("body")
 
@@ -220,6 +229,7 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
     assert "currentStageRosterSegment" in app_js
     assert "nextTavrStage(stage.key)" in app_js
     assert "static_table_fallback" in app_js
+    assert "non_room_view" in app_js
     assert ".operator-packet" in styles
 
 

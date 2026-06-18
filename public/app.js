@@ -177,6 +177,7 @@ const TAVR_STAGE_LOOKUP = new Map(
 const BROWSER_STAGE_MIN_SECONDS = 1.0;
 const BROWSER_STAGE_MIN_CONFIDENCE = 0.42;
 const BROWSER_STAGE_ADVANCE_MARGIN = 0.06;
+const BROWSER_NON_ROOM_COLORFULNESS_THRESHOLD = 8.0;
 const EVALUATION_DEMOS = [
   {
     id: "sentara_900_room_to_fluoro_low_motion",
@@ -439,10 +440,14 @@ function analyzeFrame() {
 
   const cellSize = Number(cellSizeInput.value);
   const sensitivity = Number(sensitivityInput.value);
+  const viewColorfulness = frameColorfulness(image);
+  const nonRoomView = viewColorfulness < BROWSER_NON_ROOM_COLORFULNESS_THRESHOLD;
   const cells = collectMotionCells(image, previousFrame, cellSize, sensitivity);
   let boxes = clusterCells(cells, cellSize, work.width, work.height);
   let staticTableUsed = false;
-  if (staticFallbackInput.checked && !hasTableSideBox(boxes)) {
+  if (nonRoomView) {
+    boxes = [];
+  } else if (staticFallbackInput.checked && !hasTableSideBox(boxes)) {
     const staticBoxes = collectStaticTableBoxes(image);
     if (staticBoxes.length) {
       boxes = dedupeBoxes([...boxes, ...staticBoxes]).slice(0, 12);
@@ -454,7 +459,10 @@ function analyzeFrame() {
   activityHistory.push(activity);
   if (activityHistory.length > 80) activityHistory.shift();
   const stage = estimateUploadedTavrStage(boxes, activity, video.currentTime, {
-    stageHoldReason: staticTableUsed ? "static_table_fallback" : null,
+    stageHoldReason: nonRoomView
+      ? "non_room_view"
+      : (staticTableUsed ? "static_table_fallback" : null),
+    viewColorfulness,
   });
 
   drawOverlay(boxes, activity, stage);
@@ -515,6 +523,7 @@ function estimateUploadedTavrStage(boxes, activity, elapsedSeconds, options = {}
     progress,
     stageObservable,
     stageHoldReason,
+    viewColorfulness: options.viewColorfulness,
   };
 }
 
@@ -681,6 +690,28 @@ function collectMotionCells(current, previous, cellSize, sensitivity) {
   }
 
   return cells;
+}
+
+function frameColorfulness(image) {
+  if (!image?.data?.length) return 0;
+  let redGreenTotal = 0;
+  let yellowBlueTotal = 0;
+  const stride = 4;
+  const sampleStep = Math.max(1, Math.floor((image.width * image.height) / 24000));
+  let samples = 0;
+  for (let pixel = 0; pixel < image.width * image.height; pixel += sampleStep) {
+    const index = pixel * stride;
+    const red = image.data[index];
+    const green = image.data[index + 1];
+    const blue = image.data[index + 2];
+    redGreenTotal += Math.abs(red - green);
+    yellowBlueTotal += Math.abs(0.5 * (red + green) - blue);
+    samples += 1;
+  }
+  if (!samples) return 0;
+  const redGreen = redGreenTotal / samples;
+  const yellowBlue = yellowBlueTotal / samples;
+  return Math.hypot(redGreen, yellowBlue);
 }
 
 function clusterCells(cells, cellSize, width, height) {
@@ -1615,6 +1646,9 @@ function renderBackendQualityFlags(rows = []) {
 
 function operatorEvidenceLevel(stage, summary) {
   const confidence = stage.confidence;
+  if (stage.stageHoldReason === "non_room_view") {
+    return "held non-room context";
+  }
   if (stage.stageHoldReason === "static_table_fallback") {
     return "held static roster evidence";
   }
@@ -1643,6 +1677,10 @@ function operatorQualityFlags(stage, summary) {
   }
   if (summary.tableRoster.some(({ staticFallback }) => staticFallback)) {
     flags.push("static_table_fallback");
+  }
+  if (stage.stageHoldReason === "non_room_view") {
+    flags.push("non_room_view");
+    flags.push("stage_hold_non_room_view");
   }
   if (stage.stageHoldReason === "static_table_fallback") {
     flags.push("stage_hold_static_table_fallback");
