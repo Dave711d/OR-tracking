@@ -157,7 +157,15 @@
         2,
         3
       ],
-      "expected_dropped_canonical_table_ids": []
+      "expected_dropped_canonical_table_ids": [],
+      "expected_within_stage_entry_canonical_table_ids": [
+        3
+      ],
+      "expected_within_stage_exit_canonical_table_ids": [
+        1,
+        2,
+        3
+      ]
     }
   ],
   "stage_table_coverage_expectations": [
@@ -213,7 +221,15 @@
         2,
         3
       ],
-      "expected_dropped_canonical_table_ids": []
+      "expected_dropped_canonical_table_ids": [],
+      "expected_within_stage_entry_canonical_table_ids": [
+        3
+      ],
+      "expected_within_stage_exit_canonical_table_ids": [
+        1,
+        2,
+        3
+      ]
     }
   ],
   "table_transition_expectations": [
@@ -497,6 +513,14 @@
         3
       ],
       "expected_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_within_stage_entry_canonical_table_ids": [
+        3
+      ],
+      "expected_within_stage_exit_canonical_table_ids": [
         1,
         2,
         3

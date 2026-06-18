@@ -168,6 +168,17 @@ def _run_analysis(
     tavr_summary = summarize_tavr_metrics(result.metrics)
     timebase_rows = tavr_summary.get("timebase_summary", [])
     timebase = timebase_rows[0] if timebase_rows else {}
+    status_rows = tavr_summary.get("procedure_status_summary", [])
+    status_row = status_rows[0] if status_rows else {}
+    operator_packets = tavr_summary.get("operator_stage_packet", [])
+    current_packet = _current_operator_packet(operator_packets)
+    stage_rosters = tavr_summary.get("stage_roster_summary", [])
+    current_stage_roster = _current_stage_roster(
+        stage_rosters,
+        current_packet,
+        status_row,
+    )
+    status_snapshots = tavr_summary.get("operator_status_snapshots", [])
     summary = result.summary.to_dict()
     metric_cols = st.columns(7)
     metric_cols[0].metric("Frames", summary["frames_processed"])
@@ -175,10 +186,30 @@ def _run_analysis(
     metric_cols[2].metric("Peak count", summary["peak_people_count"])
     metric_cols[3].metric("Tracks", summary["total_unique_tracks"])
     metric_cols[4].metric("Activity", summary["activity_score"])
-    metric_cols[5].metric("TAVR stage", summary.get("dominant_tavr_stage") or "n/a")
+    metric_cols[5].metric(
+        "TAVR stage",
+        status_row.get("current_stage_label")
+        or summary.get("dominant_tavr_stage")
+        or "n/a",
+    )
     metric_cols[6].metric("Peak table", summary.get("peak_table_count", 0))
     if timebase:
         st.caption(_timebase_label(timebase))
+
+    if status_row:
+        st.subheader("Current operator answer")
+        st.info(status_row.get("operator_summary", ""))
+        st.dataframe(
+            pd.DataFrame(
+                _operator_answer_rows(
+                    status_row,
+                    current_packet,
+                    current_stage_roster,
+                )
+            ),
+            width="stretch",
+            hide_index=True,
+        )
 
     rows = [metric.to_row() for metric in result.metrics]
     metrics_df = pd.DataFrame(rows)
@@ -201,17 +232,14 @@ def _run_analysis(
 
     run_stem = result.csv_path.name.replace("_metrics.csv", "")
     tavr_csv_paths = write_tavr_summary_csvs("outputs", run_stem, tavr_summary)
-    status_rows = tavr_summary.get("procedure_status_summary", [])
     if status_rows:
         st.subheader("Procedure status")
-        st.info(status_rows[0].get("operator_summary", ""))
         st.dataframe(
             pd.DataFrame(_procedure_status_rows(status_rows)),
             width="stretch",
             hide_index=True,
         )
 
-    operator_packets = tavr_summary.get("operator_stage_packet", [])
     if operator_packets:
         st.subheader("Operator stage packet")
         st.dataframe(
@@ -302,11 +330,18 @@ def _run_analysis(
             hide_index=True,
         )
 
-    stage_rosters = tavr_summary.get("stage_roster_summary", [])
     if stage_rosters:
         st.subheader("Stage roster summary")
         st.dataframe(
             pd.DataFrame(_stage_roster_rows(stage_rosters)),
+            width="stretch",
+            hide_index=True,
+        )
+
+    if status_snapshots:
+        st.subheader("Operator status snapshots")
+        st.dataframe(
+            pd.DataFrame(_operator_status_snapshot_rows(status_snapshots)).head(50),
             width="stretch",
             hide_index=True,
         )
@@ -579,8 +614,29 @@ def _stage_roster_rows(stage_rosters: list[dict[str, Any]]) -> list[dict[str, An
                 "lead_role": _status_label(item.get("lead_table_team_role")),
                 "handoff_type": _status_label(item.get("handoff_type")),
                 "active_ids": _id_label(item.get("active_table_track_ids", [])),
+                "active_people": _person_id_label(
+                    item.get("active_table_canonical_ids", [])
+                ),
                 "new_ids": _id_label(item.get("new_track_ids", [])),
+                "new_people": _person_id_label(
+                    item.get("new_canonical_table_ids", [])
+                ),
                 "dropped_ids": _id_label(item.get("dropped_track_ids", [])),
+                "dropped_people": _person_id_label(
+                    item.get("dropped_canonical_table_ids", [])
+                ),
+                "within_stage_entry_ids": _id_label(
+                    item.get("within_stage_entry_track_ids", [])
+                ),
+                "within_stage_entry_people": _person_id_label(
+                    item.get("within_stage_entry_canonical_table_ids", [])
+                ),
+                "within_stage_exit_ids": _id_label(
+                    item.get("within_stage_exit_track_ids", [])
+                ),
+                "within_stage_exit_people": _person_id_label(
+                    item.get("within_stage_exit_canonical_table_ids", [])
+                ),
                 "roster": _roster_label(item.get("active_table_roster", [])),
             }
         )
@@ -602,13 +658,206 @@ def _operator_stage_packet_rows(packets: list[dict[str, Any]]) -> list[dict[str,
                 "handoff": _status_label(item.get("handoff_type")),
                 "peak_table": item.get("peak_table_count", 0),
                 "active_ids": _id_label(item.get("active_table_track_ids", [])),
+                "active_people": _person_id_label(
+                    item.get("active_table_canonical_ids", [])
+                ),
                 "new_ids": _id_label(item.get("new_track_ids", [])),
+                "new_people": _person_id_label(
+                    item.get("new_canonical_table_ids", [])
+                ),
                 "dropped_ids": _id_label(item.get("dropped_track_ids", [])),
+                "dropped_people": _person_id_label(
+                    item.get("dropped_canonical_table_ids", [])
+                ),
+                "within_stage_entry_ids": _id_label(
+                    item.get("within_stage_entry_track_ids", [])
+                ),
+                "within_stage_entry_people": _person_id_label(
+                    item.get("within_stage_entry_canonical_table_ids", [])
+                ),
+                "within_stage_exit_ids": _id_label(
+                    item.get("within_stage_exit_track_ids", [])
+                ),
+                "within_stage_exit_people": _person_id_label(
+                    item.get("within_stage_exit_canonical_table_ids", [])
+                ),
                 "effective_table": _status_label(item.get("effective_table_source")),
                 "effective_ids": _id_label(
                     item.get("effective_table_track_ids", [])
                 ),
+                "effective_people": _person_id_label(
+                    item.get("effective_table_canonical_ids", [])
+                ),
+                "quality_flags": ", ".join(item.get("quality_flag_codes", [])),
                 "packet": item.get("operator_packet", ""),
+            }
+        )
+    return rows
+
+
+def _current_operator_packet(
+    packets: list[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    for item in reversed(packets):
+        if item.get("is_current_stage"):
+            return item
+    return packets[-1] if packets else None
+
+
+def _current_stage_roster(
+    stage_rosters: list[dict[str, Any]],
+    current_packet: Optional[dict[str, Any]],
+    status_row: dict[str, Any],
+) -> Optional[dict[str, Any]]:
+    if current_packet:
+        segment_index = current_packet.get("stage_segment_index")
+        for item in stage_rosters:
+            if item.get("stage_segment_index") == segment_index:
+                return item
+    current_stage = status_row.get("current_stage")
+    for item in reversed(stage_rosters):
+        if current_stage is None or item.get("stage") == current_stage:
+            return item
+    return stage_rosters[-1] if stage_rosters else None
+
+
+def _operator_answer_rows(
+    status_row: dict[str, Any],
+    current_packet: Optional[dict[str, Any]],
+    stage_roster: Optional[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    packet = current_packet or {}
+    roster = stage_roster or {}
+    stage_canonical_ids = (
+        packet.get("stage_table_canonical_ids")
+        or roster.get("active_table_canonical_ids")
+        or []
+    )
+    stage_track_ids = (
+        packet.get("stage_table_track_ids")
+        or roster.get("active_table_track_ids")
+        or []
+    )
+    quality_flags = status_row.get("quality_flag_codes", [])
+    quality_label = ", ".join(quality_flags) if quality_flags else "none"
+    return [
+        {
+            "answer": "Current stage",
+            "value": status_row.get("current_stage_label") or "n/a",
+            "people": "",
+            "canonical_people": "",
+            "raw_track_ids": "",
+            "evidence": (
+                f"{_status_label(status_row.get('current_stage_status'))}; "
+                f"{_status_label(status_row.get('evidence_level'))}; "
+                f"observable {status_row.get('observable_rate')}"
+            ),
+        },
+        {
+            "answer": "Current visible table",
+            "value": f"{status_row.get('current_table_count', 0)} people visible",
+            "people": _roster_label(status_row.get("current_table_roster", [])),
+            "canonical_people": _person_id_label(
+                status_row.get("current_table_canonical_ids", [])
+            ),
+            "raw_track_ids": _id_label(status_row.get("current_table_track_ids", [])),
+            "evidence": (
+                f"view {_status_label(status_row.get('current_view'))}; "
+                f"tracking {_yes_no(status_row.get('tracking_available'))}"
+            ),
+        },
+        {
+            "answer": "Effective table handoff",
+            "value": f"{status_row.get('effective_table_count', 0)} people",
+            "people": _roster_label(status_row.get("effective_table_roster", [])),
+            "canonical_people": _person_id_label(
+                status_row.get("effective_table_canonical_ids", [])
+            ),
+            "raw_track_ids": _id_label(
+                status_row.get("effective_table_track_ids", [])
+            ),
+            "evidence": (
+                f"{_status_label(status_row.get('effective_table_source'))}; "
+                f"age {_seconds_label(status_row.get('effective_table_age_from_clip_end_s'))}; "
+                f"stage {status_row.get('effective_table_stage_label') or 'n/a'}"
+            ),
+        },
+        {
+            "answer": "Stage roster",
+            "value": (
+                f"{packet.get('stage_label') or roster.get('stage_label') or 'n/a'}; "
+                f"{_status_label(packet.get('handoff_type') or roster.get('handoff_type'))}"
+            ),
+            "people": (
+                packet.get("stage_table_roster_summary")
+                or roster.get("roster_summary")
+                or "none"
+            ),
+            "canonical_people": _person_id_label(stage_canonical_ids),
+            "raw_track_ids": _id_label(stage_track_ids),
+            "evidence": (
+                f"new {_person_id_label(packet.get('new_canonical_table_ids') or roster.get('new_canonical_table_ids', []))}; "
+                f"dropped {_person_id_label(packet.get('dropped_canonical_table_ids') or roster.get('dropped_canonical_table_ids', []))}"
+            ),
+        },
+        {
+            "answer": "Within-stage movement",
+            "value": (
+                f"entered {_person_id_label(packet.get('within_stage_entry_canonical_table_ids') or roster.get('within_stage_entry_canonical_table_ids', []))}; "
+                f"exited {_person_id_label(packet.get('within_stage_exit_canonical_table_ids') or roster.get('within_stage_exit_canonical_table_ids', []))}"
+            ),
+            "people": "",
+            "canonical_people": "",
+            "raw_track_ids": (
+                "entered "
+                f"{_id_label(packet.get('within_stage_entry_track_ids') or roster.get('within_stage_entry_track_ids', []))}; "
+                "exited "
+                f"{_id_label(packet.get('within_stage_exit_track_ids') or roster.get('within_stage_exit_track_ids', []))}"
+            ),
+            "evidence": "stage-local entry/exit",
+        },
+        {
+            "answer": "Quality",
+            "value": quality_label,
+            "people": "",
+            "canonical_people": "",
+            "raw_track_ids": "",
+            "evidence": (
+                f"peak table {status_row.get('peak_table_count', 0)}; "
+                f"next {status_row.get('next_stage_label') or 'procedure end'}"
+            ),
+        },
+    ]
+
+
+def _operator_status_snapshot_rows(
+    snapshots: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    rows = []
+    for item in snapshots:
+        rows.append(
+            {
+                "snapshot": item.get("snapshot_index"),
+                "reason": ", ".join(item.get("snapshot_reason", [])),
+                "clip_s": item.get("clip_timestamp_s"),
+                "stage": item.get("current_stage_label") or "n/a",
+                "status": _status_label(item.get("current_stage_status")),
+                "evidence": _status_label(item.get("evidence_level")),
+                "current_visible_count": item.get("current_table_count", 0),
+                "current_visible_people": _person_id_label(
+                    item.get("current_table_canonical_ids", [])
+                ),
+                "effective_table_count": item.get("effective_table_count", 0),
+                "effective_people": _person_id_label(
+                    item.get("effective_table_canonical_ids", [])
+                ),
+                "effective_source": _status_label(
+                    item.get("effective_table_source")
+                ),
+                "effective_age_s": item.get(
+                    "effective_table_age_from_clip_end_s"
+                ),
+                "quality_flags": ", ".join(item.get("quality_flag_codes", [])),
             }
         )
     return rows
@@ -775,6 +1024,13 @@ def _stage_evidence_rows(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]
 
 def _id_label(track_ids: list[int]) -> str:
     return ", ".join(str(track_id) for track_id in track_ids) or "none"
+
+
+def _person_id_label(canonical_ids: list[int]) -> str:
+    return (
+        ", ".join(f"Person {int(person_id)}" for person_id in canonical_ids)
+        or "none"
+    )
 
 
 def _roster_label(roster: list[dict[str, Any]]) -> str:

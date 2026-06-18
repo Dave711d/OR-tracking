@@ -164,6 +164,10 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "new_canonical_table_ids",
         "dropped_track_ids",
         "dropped_canonical_table_ids",
+        "within_stage_entry_track_ids",
+        "within_stage_entry_canonical_table_ids",
+        "within_stage_exit_track_ids",
+        "within_stage_exit_canonical_table_ids",
         "effective_table_source",
         "effective_table_count",
         "effective_table_track_ids",
@@ -348,12 +352,16 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "dropped_track_ids",
         "dropped_canonical_table_ids",
         "within_stage_entry_track_ids",
+        "within_stage_entry_canonical_table_ids",
         "within_stage_exit_track_ids",
+        "within_stage_exit_canonical_table_ids",
         "handoff_type",
         "active_table_roster",
         "continued_table_roster",
         "new_table_roster",
         "dropped_table_roster",
+        "within_stage_entry_roster",
+        "within_stage_exit_roster",
         "label",
     ],
     "stage_roster_summary": [
@@ -384,7 +392,9 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "dropped_track_ids",
         "dropped_canonical_table_ids",
         "within_stage_entry_track_ids",
+        "within_stage_entry_canonical_table_ids",
         "within_stage_exit_track_ids",
+        "within_stage_exit_canonical_table_ids",
         "handoff_type",
         "active_table_roster",
         "roster_summary",
@@ -1010,6 +1020,18 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             "dropped_canonical_table_ids": roster.get(
                 "dropped_canonical_table_ids",
                 [],
+            ),
+            "within_stage_entry_track_ids": roster.get(
+                "within_stage_entry_track_ids", []
+            ),
+            "within_stage_entry_canonical_table_ids": roster.get(
+                "within_stage_entry_canonical_table_ids", []
+            ),
+            "within_stage_exit_track_ids": roster.get(
+                "within_stage_exit_track_ids", []
+            ),
+            "within_stage_exit_canonical_table_ids": roster.get(
+                "within_stage_exit_canonical_table_ids", []
             ),
             "effective_table_source": (
                 status.get("effective_table_source") if is_current_stage else None
@@ -2568,6 +2590,18 @@ def _stage_handoff_item(
     dropped_roster = [
         previous_roster_by_id[track_id] for track_id in dropped_ids
     ]
+    within_stage_entry_roster = [
+        _handoff_roster_item(row)
+        for row in coverage_rows
+        if row["entered_during_stage"]
+    ]
+    within_stage_entry_roster.sort(key=lambda item: item["track_id"])
+    within_stage_exit_roster = [
+        _handoff_roster_item(row)
+        for row in coverage_rows
+        if row["exited_during_stage"]
+    ]
+    within_stage_exit_roster.sort(key=lambda item: item["track_id"])
     handoff_type = _handoff_type(
         has_previous_stage=previous_stage is not None,
         previous_ids=previous_ids,
@@ -2619,12 +2653,20 @@ def _stage_handoff_item(
             dropped_roster
         ),
         "within_stage_entry_track_ids": within_stage_entry_ids,
+        "within_stage_entry_canonical_table_ids": (
+            _canonical_table_ids_from_roster(within_stage_entry_roster)
+        ),
         "within_stage_exit_track_ids": within_stage_exit_ids,
+        "within_stage_exit_canonical_table_ids": (
+            _canonical_table_ids_from_roster(within_stage_exit_roster)
+        ),
         "handoff_type": handoff_type,
         "active_table_roster": active_roster,
         "continued_table_roster": continued_roster,
         "new_table_roster": new_roster,
         "dropped_table_roster": dropped_roster,
+        "within_stage_entry_roster": within_stage_entry_roster,
+        "within_stage_exit_roster": within_stage_exit_roster,
         "label": _handoff_label(stage_state.stage_label, handoff_type, lead, active_roster),
     }
 
@@ -2645,6 +2687,10 @@ def _stage_roster_summary_item(
     continued_roster = list(handoff.get("continued_table_roster", []))
     new_roster = list(handoff.get("new_table_roster", []))
     dropped_roster = list(handoff.get("dropped_table_roster", []))
+    within_stage_entry_roster = list(
+        handoff.get("within_stage_entry_roster", [])
+    )
+    within_stage_exit_roster = list(handoff.get("within_stage_exit_roster", []))
     lead = active_roster[0] if active_roster else None
     peak_table_count = max(
         (_tavr_state(metric).table_count for metric in segment_metrics),
@@ -2687,8 +2733,16 @@ def _stage_roster_summary_item(
         "within_stage_entry_track_ids": handoff.get(
             "within_stage_entry_track_ids", []
         ),
+        "within_stage_entry_canonical_table_ids": (
+            handoff.get("within_stage_entry_canonical_table_ids")
+            or _canonical_table_ids_from_roster(within_stage_entry_roster)
+        ),
         "within_stage_exit_track_ids": handoff.get(
             "within_stage_exit_track_ids", []
+        ),
+        "within_stage_exit_canonical_table_ids": (
+            handoff.get("within_stage_exit_canonical_table_ids")
+            or _canonical_table_ids_from_roster(within_stage_exit_roster)
         ),
         "handoff_type": handoff["handoff_type"],
         "active_table_roster": active_roster,
@@ -3104,6 +3158,14 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
     new_people = _person_ids_text(row.get("new_canonical_table_ids", []))
     dropped_ids = _track_ids_text(row.get("dropped_track_ids", []))
     dropped_people = _person_ids_text(row.get("dropped_canonical_table_ids", []))
+    within_entry_ids = _track_ids_text(row.get("within_stage_entry_track_ids", []))
+    within_entry_people = _person_ids_text(
+        row.get("within_stage_entry_canonical_table_ids", [])
+    )
+    within_exit_ids = _track_ids_text(row.get("within_stage_exit_track_ids", []))
+    within_exit_people = _person_ids_text(
+        row.get("within_stage_exit_canonical_table_ids", [])
+    )
     quality_flags = row.get("quality_flag_codes", [])
     quality_label = ", ".join(quality_flags) if quality_flags else "none"
     packet = (
@@ -3116,6 +3178,8 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
         f"stage roster people {stage_table_people} (raw IDs {stage_table_ids}); "
         f"new people {new_people} (raw IDs {new_ids}); "
         f"dropped people {dropped_people} (raw IDs {dropped_ids}); "
+        f"within-stage entered {within_entry_people} (raw IDs {within_entry_ids}); "
+        f"within-stage exited {within_exit_people} (raw IDs {within_exit_ids}); "
         f"roster {row.get('stage_table_roster_summary') or row.get('roster_summary') or 'none'}"
     )
     if row.get("is_current_stage"):
@@ -5614,6 +5678,8 @@ def _score_stage_roster_candidate(
         ("continued", "continued_canonical_table_ids"),
         ("new", "new_canonical_table_ids"),
         ("dropped", "dropped_canonical_table_ids"),
+        ("within_stage_entry", "within_stage_entry_canonical_table_ids"),
+        ("within_stage_exit", "within_stage_exit_canonical_table_ids"),
     ):
         checks_for_prefix, details_for_prefix = _canonical_table_id_score(
             row,
@@ -5744,7 +5810,13 @@ def _score_stage_roster_candidate(
         "new_track_ids": row["new_track_ids"],
         "dropped_track_ids": row["dropped_track_ids"],
         "within_stage_entry_track_ids": row["within_stage_entry_track_ids"],
+        "within_stage_entry_canonical_table_ids": row[
+            "within_stage_entry_canonical_table_ids"
+        ],
         "within_stage_exit_track_ids": row["within_stage_exit_track_ids"],
+        "within_stage_exit_canonical_table_ids": row[
+            "within_stage_exit_canonical_table_ids"
+        ],
         "roster_summary": row["roster_summary"],
         "checks": checks,
         "passed": all(checks.values()),
@@ -6178,6 +6250,8 @@ def _score_operator_packet_candidate(
     min_continued_tracks = expectation.get("min_continued_tracks")
     min_new_tracks = expectation.get("min_new_tracks")
     min_dropped_tracks = expectation.get("min_dropped_tracks")
+    min_within_stage_entry_tracks = expectation.get("min_within_stage_entry_tracks")
+    min_within_stage_exit_tracks = expectation.get("min_within_stage_exit_tracks")
     min_effective_table_count = expectation.get("min_effective_table_count")
     max_effective_table_count = expectation.get("max_effective_table_count")
     min_tracking_available_rate = expectation.get("min_tracking_available_rate")
@@ -6213,6 +6287,18 @@ def _score_operator_packet_candidate(
         int(value)
         for value in expectation.get("required_effective_canonical_table_ids", [])
     }
+    required_within_stage_entry_canonical_ids = {
+        int(value)
+        for value in expectation.get(
+            "required_within_stage_entry_canonical_table_ids", []
+        )
+    }
+    required_within_stage_exit_canonical_ids = {
+        int(value)
+        for value in expectation.get(
+            "required_within_stage_exit_canonical_table_ids", []
+        )
+    }
     expected_active_canonical_ids = _expected_int_set(
         expectation,
         "expected_active_canonical_table_ids",
@@ -6229,6 +6315,14 @@ def _score_operator_packet_candidate(
     expected_effective_canonical_ids = _expected_int_set(
         expectation,
         "expected_effective_canonical_table_ids",
+    )
+    expected_within_stage_entry_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_within_stage_entry_canonical_table_ids",
+    )
+    expected_within_stage_exit_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_within_stage_exit_canonical_table_ids",
     )
     required_quality_flags = set(expectation.get("required_quality_flags", []))
     forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
@@ -6265,6 +6359,14 @@ def _score_operator_packet_candidate(
     }
     effective_canonical_ids = {
         int(value) for value in row.get("effective_table_canonical_ids", [])
+    }
+    within_stage_entry_canonical_ids = {
+        int(value)
+        for value in row.get("within_stage_entry_canonical_table_ids", [])
+    }
+    within_stage_exit_canonical_ids = {
+        int(value)
+        for value in row.get("within_stage_exit_canonical_table_ids", [])
     }
     checks = {
         "stage_status": stage_status is None or row.get("stage_status") == stage_status,
@@ -6342,6 +6444,16 @@ def _score_operator_packet_candidate(
             min_dropped_tracks is None
             or len(row.get("dropped_track_ids", [])) >= int(min_dropped_tracks)
         ),
+        "min_within_stage_entry_tracks": (
+            min_within_stage_entry_tracks is None
+            or len(row.get("within_stage_entry_track_ids", []))
+            >= int(min_within_stage_entry_tracks)
+        ),
+        "min_within_stage_exit_tracks": (
+            min_within_stage_exit_tracks is None
+            or len(row.get("within_stage_exit_track_ids", []))
+            >= int(min_within_stage_exit_tracks)
+        ),
         "min_effective_table_count": (
             min_effective_table_count is None
             or (
@@ -6412,6 +6524,16 @@ def _score_operator_packet_candidate(
         "required_effective_canonical_table_ids": (
             required_effective_canonical_ids.issubset(effective_canonical_ids)
         ),
+        "required_within_stage_entry_canonical_table_ids": (
+            required_within_stage_entry_canonical_ids.issubset(
+                within_stage_entry_canonical_ids
+            )
+        ),
+        "required_within_stage_exit_canonical_table_ids": (
+            required_within_stage_exit_canonical_ids.issubset(
+                within_stage_exit_canonical_ids
+            )
+        ),
         "expected_active_canonical_table_ids": (
             expected_active_canonical_ids is None
             or active_canonical_ids == expected_active_canonical_ids
@@ -6423,6 +6545,16 @@ def _score_operator_packet_candidate(
         "expected_effective_canonical_table_ids": (
             expected_effective_canonical_ids is None
             or effective_canonical_ids == expected_effective_canonical_ids
+        ),
+        "expected_within_stage_entry_canonical_table_ids": (
+            expected_within_stage_entry_canonical_ids is None
+            or within_stage_entry_canonical_ids
+            == expected_within_stage_entry_canonical_ids
+        ),
+        "expected_within_stage_exit_canonical_table_ids": (
+            expected_within_stage_exit_canonical_ids is None
+            or within_stage_exit_canonical_ids
+            == expected_within_stage_exit_canonical_ids
         ),
         "required_quality_flags": required_quality_flags.issubset(
             actual_quality_flags
@@ -6493,6 +6625,26 @@ def _score_operator_packet_candidate(
         ),
         "new_track_ids": row.get("new_track_ids", []),
         "dropped_track_ids": row.get("dropped_track_ids", []),
+        "within_stage_entry_track_ids": row.get("within_stage_entry_track_ids", []),
+        "within_stage_entry_canonical_table_ids": row.get(
+            "within_stage_entry_canonical_table_ids",
+            [],
+        ),
+        "expected_within_stage_entry_canonical_table_ids": (
+            sorted(expected_within_stage_entry_canonical_ids)
+            if expected_within_stage_entry_canonical_ids is not None
+            else None
+        ),
+        "within_stage_exit_track_ids": row.get("within_stage_exit_track_ids", []),
+        "within_stage_exit_canonical_table_ids": row.get(
+            "within_stage_exit_canonical_table_ids",
+            [],
+        ),
+        "expected_within_stage_exit_canonical_table_ids": (
+            sorted(expected_within_stage_exit_canonical_ids)
+            if expected_within_stage_exit_canonical_ids is not None
+            else None
+        ),
         "quality_flag_codes": row.get("quality_flag_codes", []),
         "operator_packet": row.get("operator_packet", ""),
         "checks": checks,
@@ -6877,6 +7029,8 @@ def _score_handoff_candidate(
         ("continued", "continued_canonical_table_ids"),
         ("new", "new_canonical_table_ids"),
         ("dropped", "dropped_canonical_table_ids"),
+        ("within_stage_entry", "within_stage_entry_canonical_table_ids"),
+        ("within_stage_exit", "within_stage_exit_canonical_table_ids"),
     ):
         checks_for_prefix, details_for_prefix = _canonical_table_id_score(
             handoff,
@@ -6949,6 +7103,14 @@ def _score_handoff_candidate(
         "continued_match_count": len(continued_matches),
         "dropped_match_count": len(dropped_matches),
         "tracking_available_rate": handoff["tracking_available_rate"],
+        "within_stage_entry_track_ids": handoff["within_stage_entry_track_ids"],
+        "within_stage_entry_canonical_table_ids": handoff[
+            "within_stage_entry_canonical_table_ids"
+        ],
+        "within_stage_exit_track_ids": handoff["within_stage_exit_track_ids"],
+        "within_stage_exit_canonical_table_ids": handoff[
+            "within_stage_exit_canonical_table_ids"
+        ],
         "checks": checks,
         "passed": all(checks.values()),
     }

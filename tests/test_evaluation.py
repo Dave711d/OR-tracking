@@ -343,6 +343,10 @@ def test_stage_handoff_summary_reports_boundary_roster_changes() -> None:
     assert handoffs[1]["new_track_ids"] == [8]
     assert handoffs[1]["active_table_track_count"] == 2
     assert handoffs[1]["lead_role"] == "table_operator"
+    assert handoffs[1]["within_stage_entry_track_ids"] == [8]
+    assert handoffs[1]["within_stage_entry_canonical_table_ids"] == [2]
+    assert handoffs[1]["within_stage_exit_track_ids"] == [7]
+    assert handoffs[1]["within_stage_exit_canonical_table_ids"] == [1]
     assert handoffs[2]["dropped_track_ids"] == [7, 8]
     assert handoffs[2]["active_table_roster"] == []
     assert handoffs[2]["dropped_table_roster"]
@@ -373,7 +377,9 @@ def test_stage_roster_summary_reports_per_stage_table_team() -> None:
     assert rosters[1]["continued_track_ids"] == [7]
     assert rosters[1]["new_track_ids"] == [8]
     assert rosters[1]["within_stage_entry_track_ids"] == [8]
+    assert rosters[1]["within_stage_entry_canonical_table_ids"] == [2]
     assert rosters[1]["within_stage_exit_track_ids"] == [7]
+    assert rosters[1]["within_stage_exit_canonical_table_ids"] == [1]
     assert rosters[1]["peak_table_count"] == 2
     assert rosters[1]["active_table_track_count"] == 2
     assert rosters[1]["canonical_table_identity_count"] == 2
@@ -1055,6 +1061,78 @@ def test_exact_stage_roster_canonical_deltas_accept_full_boundary_contract() -> 
     assert candidate["active_table_canonical_ids"] == roster[
         "active_table_canonical_ids"
     ]
+
+
+def test_exact_within_stage_canonical_deltas_reject_wrong_person() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(2, 0.2, "valve_deployment", [7]),
+        _table_metric(3, 0.3, "valve_deployment", [7, 8]),
+        _table_metric(4, 0.4, "valve_deployment", [8]),
+    ]
+    roster = stage_roster_summary(metrics)[1]
+    assert roster["within_stage_entry_canonical_table_ids"] == [2]
+    assert roster["within_stage_exit_canonical_table_ids"] == [1]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "stage_roster_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "min_within_stage_entry_tracks": 1,
+                    "min_within_stage_exit_tracks": 1,
+                    "required_within_stage_entry_canonical_table_ids": [2],
+                    "expected_within_stage_entry_canonical_table_ids": [],
+                    "expected_within_stage_exit_canonical_table_ids": [1],
+                }
+            ],
+            "operator_packet_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "is_current_stage": True,
+                    "min_within_stage_entry_tracks": 1,
+                    "min_within_stage_exit_tracks": 1,
+                    "expected_within_stage_entry_canonical_table_ids": [2],
+                    "expected_within_stage_exit_canonical_table_ids": [],
+                }
+            ],
+            "stage_handoff_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "min_active_tracks": 1,
+                    "required_within_stage_entry_canonical_table_ids": [2],
+                    "expected_within_stage_exit_canonical_table_ids": [],
+                }
+            ],
+        },
+    )
+
+    roster_candidate = score["stage_roster_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    packet_candidate = score["operator_packet_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    handoff_candidate = score["stage_handoff_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    assert score["stage_roster_score"]["pass_rate"] == 0.0
+    assert roster_candidate["checks"][
+        "required_within_stage_entry_canonical_table_ids"
+    ] is True
+    assert roster_candidate["checks"][
+        "expected_within_stage_entry_canonical_table_ids"
+    ] is False
+    assert score["operator_packet_score"]["pass_rate"] == 0.0
+    assert packet_candidate["checks"][
+        "expected_within_stage_exit_canonical_table_ids"
+    ] is False
+    assert score["stage_handoff_score"]["pass_rate"] == 0.0
+    assert handoff_candidate["checks"][
+        "expected_within_stage_exit_canonical_table_ids"
+    ] is False
 
 
 def test_operator_status_snapshots_capture_critical_replay_points() -> None:
@@ -2067,16 +2145,22 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "handoff_type" in handoff_csv
     assert "lead_table_team_role" in handoff_csv
     assert "active_table_canonical_ids" in handoff_csv
+    assert "within_stage_entry_canonical_table_ids" in handoff_csv
+    assert "within_stage_exit_canonical_table_ids" in handoff_csv
     assert "roster_added" in handoff_csv
     assert "roster_summary" in roster_csv
     assert "active_table_track_ids" in roster_csv
     assert "active_table_canonical_ids" in roster_csv
+    assert "within_stage_entry_canonical_table_ids" in roster_csv
+    assert "within_stage_exit_canonical_table_ids" in roster_csv
     assert "canonical_table_identity_count" in roster_csv
     assert "Valve deployment: peak table 2" in roster_csv
     assert "operator_packet" in packet_csv
     assert "Current stage: Valve deployment" in packet_csv
     assert "stage_table_track_ids" in packet_csv
     assert "stage_table_canonical_ids" in packet_csv
+    assert "within_stage_entry_canonical_table_ids" in packet_csv
+    assert "within_stage_exit_canonical_table_ids" in packet_csv
     assert "stage_table_roster_summary" in packet_csv
     assert "stage roster people Person 1, Person 2 (raw IDs 7, 8)" in packet_csv
     assert "active people" not in packet_csv

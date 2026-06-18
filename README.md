@@ -177,8 +177,14 @@ low-colorfulness fluoroscopy/non-room frames.
 When uploaded footage drops from room view into fluoroscopy, the browser packet
 keeps a separate effective table roster from the last trustworthy room frame so
 operators can distinguish current visible detections from held table context.
-The app shows a `Procedure status` summary, `Table team summary`, the latest
-table roster, last observed table roster, `Table identity groups`, and `View segments`,
+The app leads with a `Current operator answer` pane: current stage, literal
+current visible table, effective handoff table, stage roster, within-stage
+entry/exit, and quality status are separated before the detailed audit tables.
+It also shows `Operator status snapshots` so critical clip, stage, and view
+transition points can be reviewed with the same current/effective table
+semantics used by the public replay. The app shows a `Procedure status` summary,
+`Table team summary`, the latest table roster, last observed table roster,
+`Table identity groups`, and `View segments`,
 `Procedure event timeline`,
 `Procedure milestones`, `Stage evidence summary`, `Stage staffing summary`,
 `Stage handoff summary`, `Stage roster summary`, `Stage table coverage`, `Table transition events`, and
@@ -201,7 +207,8 @@ rates, and room-view table occupancy so staff/table coverage is not understated
 by frames where the room was not visible. The `Operator stage packet` table is
 the compact handover surface: one row per observed stage segment with current
 stage status, evidence, handoff type, active/new/dropped table IDs, effective
-current table context, quality flags, and a plain-English packet sentence.
+current table context, canonical within-stage entrants/exits, quality flags,
+and a plain-English packet sentence.
 It also writes:
 
 - `outputs/*_metrics.csv`

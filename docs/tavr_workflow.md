@@ -146,14 +146,17 @@ The JSON output includes:
   peak table, and last-observed table. These rows reuse
   `procedure_status_summary` semantics so the public replay can answer "what
   stage are we at, and who is effectively at the table?" throughout the clip,
-  not only at the final frame.
+  not only at the final frame. Streamlit renders the same snapshots for uploaded
+  footage so the public replay and upload path share the same operator answer
+  contract.
 - `operator_stage_packet`: one row per observed stage segment designed as a
   compact handover packet. Each row combines current/prior stage status,
   stage evidence status, timing, evidence level, observable rate, mean
   confidence, handoff type, peak table count, active/canonical table-person
-  counts, lead role, active/new/dropped table IDs, the effective current table
-  source for the current stage, quality flag codes, and a plain-English
-  `operator_packet` sentence.
+  counts, lead role, active/new/dropped table IDs, canonical within-stage
+  entry/exit table-person IDs, the effective current table source for the
+  current stage, quality flag codes, and a plain-English `operator_packet`
+  sentence.
 - `stage_timeline`: contiguous stage segments with timestamps, peak table
   counts, and end-of-stage table roster snapshots.
 - `view_segments`: contiguous room/non-room stretches with duration,
