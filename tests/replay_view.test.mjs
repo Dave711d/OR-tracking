@@ -5,7 +5,11 @@ import { test } from "node:test";
 import {
   eventTimeSeconds,
   normalizeEvaluationPayload,
+  packetForStatus,
   replayOperatorProjection,
+  replaySnapshotAt,
+  replaySnapshotIndexForTime,
+  replaySnapshotLabel,
   tableSourceLabel,
 } from "../public/replay_view.mjs";
 
@@ -67,6 +71,34 @@ test("evaluation replay normalization sorts events by clip-relative fallback tim
     ["early", "middle", "late"],
   );
   assert.equal(eventTimeSeconds({ clip_start_s: 2.5 }), 2.5);
+  assert.equal(eventTimeSeconds({ timestamp_s: 1801, clip_timestamp_s: 1 }), 1);
+});
+
+test("replay snapshots select matching operator packets by stage and time", async () => {
+  const payload = await demoPayload("synthetic-full-tavr-evaluation.json");
+  const demo = normalizeEvaluationPayload(payload, { label: "Full synthetic workflow" });
+  const first = replaySnapshotAt(demo, 0);
+  const deploymentIndex = replaySnapshotIndexForTime(demo, 8.8);
+  const deployment = replaySnapshotAt(demo, deploymentIndex);
+  const final = replaySnapshotAt(demo);
+
+  assert.equal(first.current_stage, "room_prep_drape");
+  assert.equal(packetForStatus(demo.packets, first).stage, "room_prep_drape");
+  assert.equal(deployment.current_stage, "valve_deployment");
+  assert.equal(packetForStatus(demo.packets, deployment).stage, "valve_deployment");
+  assert.equal(final.current_stage, "closure_finish");
+  assert.equal(packetForStatus(demo.packets, final).stage, "closure_finish");
+  assert.match(replaySnapshotLabel(deployment, deploymentIndex, demo.statusSnapshots.length), /Valve deployment/);
+});
+
+test("replay projection can represent an earlier selected snapshot", async () => {
+  const payload = await demoPayload("synthetic-full-tavr-evaluation.json");
+  const view = replayOperatorProjection(payload, { label: "Full synthetic workflow" }, 0);
+
+  assert.equal(view.stageMetric, "Room prep / drape (moderate_visual_support)");
+  assert.equal(view.tableSideMetric, "0");
+  assert.equal(view.effectiveTable.source, "current_room_view_empty");
+  assert.deepEqual(view.operatorPacketEffective.canonicalIds, []);
 });
 
 test("table source labels cover effective table continuity states", () => {

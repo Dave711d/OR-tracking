@@ -417,6 +417,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
 
     assert 'id="evaluationDemoButton"' in index_html
     assert 'id="evaluationDemoSelect"' in index_html
+    assert 'id="evaluationSnapshotRange"' in index_html
+    assert 'id="evaluationSnapshotLabel"' in index_html
     assert 'id="procedureStatus"' in index_html
     assert 'id="statusSnapshotList"' in index_html
     assert 'id="tableIdentityList"' in index_html
@@ -447,6 +449,17 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function populateEvaluationDemoOptions" in app_js
     assert "function selectedEvaluationDemo" in app_js
     assert "function loadEvaluationDemo" in app_js
+    assert "function setupEvaluationScrubber" in app_js
+    assert "function renderEvaluationReplaySnapshot" in app_js
+    assert "function visibleSnapshotRows" in app_js
+    assert "evaluationSnapshotRange.addEventListener" in app_js
+    assert "replaySnapshotAt" in app_js
+    assert "packetForStatus" in app_js
+    assert "replaySnapshotLabel" in app_js
+    assert "export function replaySnapshotAt" in replay_js
+    assert "export function replaySnapshotIndexForTime" in replay_js
+    assert "export function replaySnapshotLabel" in replay_js
+    assert "export function packetForStatus" in replay_js
     assert "normalizeEvaluationPayload" in app_js
     assert "export function normalizeEvaluationPayload" in replay_js
     assert "export function replayOperatorProjection" in replay_js
@@ -454,6 +467,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderProcedureStatus" in app_js
     assert "function renderBackendStatusSnapshots" in app_js
     assert "function renderBackendOperatorPacket" in app_js
+    assert "Replay stage" in app_js
     assert "function renderBackendTableTeam" in app_js
     assert "function renderBackendTableIdentities" in app_js
     assert "function renderBackendStageCoverage" in app_js
@@ -519,6 +533,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "procedure_event_timeline" in replay_js
     assert ".procedure-status-list" in styles
     assert ".replay-control" in styles
+    assert ".replay-scrub-control" in styles
     assert ".identity-list" in styles
     assert ".milestone-list" in styles
     assert ".event-list" in styles

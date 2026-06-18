@@ -160,6 +160,19 @@ video {
   grid-column: span 2;
 }
 
+.controls .replay-scrub-control {
+  grid-column: span 2;
+}
+
+.replay-scrub-control output {
+  min-height: 32px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-transform: none;
+}
+
 input[type="range"] {
   width: 100%;
 }
@@ -440,6 +453,10 @@ select {
   }
 
   .controls .replay-control {
+    grid-column: auto;
+  }
+
+  .controls .replay-scrub-control {
     grid-column: auto;
   }
 

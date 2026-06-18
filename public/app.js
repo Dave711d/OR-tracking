@@ -6,8 +6,10 @@ import {
   eventTimeSeconds,
   formatPersonId,
   formatPersonIds,
-  latestOperatorPacket,
   normalizeEvaluationPayload,
+  packetForStatus,
+  replaySnapshotAt,
+  replaySnapshotLabel,
   rosterPersonLabel,
   tableSourceLabel,
 } from "./replay_view.mjs";
@@ -20,6 +22,8 @@ const playButton = document.querySelector("#playButton");
 const syntheticButton = document.querySelector("#syntheticButton");
 const evaluationDemoSelect = document.querySelector("#evaluationDemoSelect");
 const evaluationDemoButton = document.querySelector("#evaluationDemoButton");
+const evaluationSnapshotRange = document.querySelector("#evaluationSnapshotRange");
+const evaluationSnapshotLabel = document.querySelector("#evaluationSnapshotLabel");
 const resetButton = document.querySelector("#resetButton");
 const staticFallbackInput = document.querySelector("#staticFallback");
 const initialStageInput = document.querySelector("#initialStage");
@@ -228,6 +232,7 @@ let currentStageRosterSegment = null;
 let milestoneProgress = new Map();
 let currentMilestoneKey = null;
 let lastObservedTableSnapshot = null;
+let currentEvaluationReplay = null;
 let uploadedStageIndex = 0;
 let uploadedStageStartedAt = 0;
 let rafId = null;
@@ -272,6 +277,13 @@ syntheticButton.addEventListener("click", () => {
 });
 
 evaluationDemoButton.addEventListener("click", loadEvaluationDemo);
+evaluationSnapshotRange.addEventListener("input", () => {
+  if (!currentEvaluationReplay) return;
+  renderEvaluationReplaySnapshot(
+    currentEvaluationReplay,
+    Number(evaluationSnapshotRange.value),
+  );
+});
 
 resetButton.addEventListener("click", () => {
   cancelAnimationFrame(rafId);
@@ -315,27 +327,9 @@ async function loadEvaluationDemo() {
 }
 
 function renderEvaluationReplay(demo) {
-  const status = demo.status || {};
-  const latestPacket = latestOperatorPacket(demo.packets);
-  const stageLabel = status.current_stage_label || latestPacket?.stage_label || demo.caseName;
-  const tableSnapshot = currentTableSnapshot(status);
-  const tableCount = tableSnapshot.count;
-  const teamCount = demo.team.length || tableCount;
+  currentEvaluationReplay = demo;
+  const selectedIndex = setupEvaluationScrubber(demo);
 
-  clearCanvas();
-  setEmptyState("Evaluated TAVR demo loaded", demo.demoLabel);
-  stageMetric.textContent = `${stageLabel} (${status.evidence_level || "evaluated"})`;
-  countMetric.textContent = String(teamCount);
-  tableSideMetric.textContent = String(tableCount);
-  activityMetric.textContent = "replay";
-  elapsedMetric.textContent = status.clip_end_s === undefined
-    ? "n/a"
-    : `${Number(status.clip_end_s).toFixed(1)}s`;
-
-  renderBackendTableRoster(status);
-  renderProcedureStatus(status, demo);
-  renderBackendStatusSnapshots(demo.statusSnapshots);
-  renderBackendOperatorPacket(demo.packets, status);
   renderBackendTableTeam(demo.team);
   renderBackendTableIdentities(demo.identities);
   renderBackendStageCoverage(demo.stageCoverage);
@@ -343,6 +337,34 @@ function renderEvaluationReplay(demo) {
   renderBackendProcedureMilestones(demo.milestones);
   renderBackendProcedureEvents(demo.events);
   renderBackendQualityFlags(demo.qualityFlags);
+  renderEvaluationReplaySnapshot(demo, selectedIndex);
+}
+
+function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
+  const status = replaySnapshotAt(demo, snapshotIndex) || demo.status || {};
+  const selectedIndex = selectedSnapshotIndex(demo, snapshotIndex);
+  const packet = packetForStatus(demo.packets, status);
+  const stageLabel = status.current_stage_label || packet?.stage_label || demo.caseName;
+  const tableSnapshot = currentTableSnapshot(status);
+  const tableCount = tableSnapshot.count;
+  const teamCount = demo.team.length || tableCount;
+
+  clearCanvas();
+  setEmptyState(
+    "Evaluated TAVR demo loaded",
+    `${demo.demoLabel}; ${replaySnapshotLabel(status, selectedIndex, demo.statusSnapshots.length)}`,
+  );
+  stageMetric.textContent = `${stageLabel} (${status.evidence_level || "evaluated"})`;
+  countMetric.textContent = String(teamCount);
+  tableSideMetric.textContent = String(tableCount);
+  activityMetric.textContent = "replay";
+  elapsedMetric.textContent = formatSeconds(eventTimeSeconds(status));
+
+  updateEvaluationScrubberLabel(demo, selectedIndex, status);
+  renderBackendTableRoster(status);
+  renderProcedureStatus(status, demo);
+  renderBackendStatusSnapshots(demo.statusSnapshots, selectedIndex);
+  renderBackendOperatorPacket(demo.packets, status);
 }
 
 function populateInitialStageOptions() {
@@ -370,6 +392,47 @@ function selectedEvaluationDemo() {
     EVALUATION_DEMOS.find((demo) => demo.default) ||
     EVALUATION_DEMOS[0]
   );
+}
+
+function setupEvaluationScrubber(demo) {
+  const snapshotCount = demo.statusSnapshots.length;
+  const selectedIndex = Math.max(0, snapshotCount - 1);
+  evaluationSnapshotRange.disabled = snapshotCount <= 0;
+  evaluationSnapshotRange.min = "0";
+  evaluationSnapshotRange.max = String(Math.max(0, snapshotCount - 1));
+  evaluationSnapshotRange.value = String(selectedIndex);
+  updateEvaluationScrubberLabel(
+    demo,
+    selectedIndex,
+    replaySnapshotAt(demo, selectedIndex) || demo.status || {},
+  );
+  return selectedIndex;
+}
+
+function updateEvaluationScrubberLabel(demo, selectedIndex, status) {
+  evaluationSnapshotRange.value = String(selectedIndex);
+  evaluationSnapshotLabel.textContent = replaySnapshotLabel(
+    status,
+    selectedIndex,
+    demo.statusSnapshots.length,
+  );
+}
+
+function selectedSnapshotIndex(demo, requestedIndex) {
+  const snapshotCount = demo.statusSnapshots.length;
+  if (!snapshotCount) return 0;
+  const numeric = Number(requestedIndex);
+  if (!Number.isFinite(numeric)) return snapshotCount - 1;
+  return Math.min(Math.max(Math.round(numeric), 0), snapshotCount - 1);
+}
+
+function resetEvaluationScrubber() {
+  currentEvaluationReplay = null;
+  evaluationSnapshotRange.disabled = true;
+  evaluationSnapshotRange.min = "0";
+  evaluationSnapshotRange.max = "0";
+  evaluationSnapshotRange.value = "0";
+  evaluationSnapshotLabel.textContent = "No replay loaded";
 }
 
 function tick() {
@@ -1490,15 +1553,20 @@ function renderProcedureStatus(status = null, demo = null) {
   }
 }
 
-function renderBackendStatusSnapshots(rows = []) {
+function renderBackendStatusSnapshots(rows = [], selectedIndex = -1) {
   statusSnapshotList.replaceChildren();
   if (!rows.length) {
     appendInfoRow(statusSnapshotList, "None yet", "");
     return;
   }
 
-  const visibleRows = rows.slice(0, 10);
-  visibleRows.forEach((row) => {
+  const visibleRows = visibleSnapshotRows(rows, selectedIndex, 10);
+  if (visibleRows[0]?.index > 0) {
+    appendInfoRow(statusSnapshotList, "Earlier snapshots", `${visibleRows[0].index} hidden`, {
+      tone: "quiet",
+    });
+  }
+  visibleRows.forEach(({ row, index }) => {
     appendInfoRow(
       statusSnapshotList,
       `${formatClockPoint(row)} ${snapshotReasonLabel(row.snapshot_reason)}`,
@@ -1510,28 +1578,52 @@ function renderBackendStatusSnapshots(rows = []) {
         formatPersonIds(row.effective_table_canonical_ids),
       ].join("; "),
       {
-        tone: asArray(row.snapshot_reason).includes("clip_end")
+        tone: index === selectedIndex ||
+          (selectedIndex < 0 && asArray(row.snapshot_reason).includes("clip_end"))
           ? "current"
           : undefined,
       },
     );
   });
-  appendOverflowRow(statusSnapshotList, rows.length, visibleRows.length, "snapshots");
+  const hiddenAfter = rows.length - (visibleRows.at(-1)?.index ?? -1) - 1;
+  if (hiddenAfter > 0) {
+    appendInfoRow(statusSnapshotList, "Later snapshots", `${hiddenAfter} hidden`, {
+      tone: "quiet",
+    });
+  }
+}
+
+function visibleSnapshotRows(rows, selectedIndex, maxVisible) {
+  if (rows.length <= maxVisible) {
+    return rows.map((row, index) => ({ row, index }));
+  }
+  const selected = selectedIndex >= 0
+    ? Math.min(Math.max(selectedIndex, 0), rows.length - 1)
+    : rows.length - 1;
+  const start = Math.min(
+    Math.max(selected - Math.floor(maxVisible / 2), 0),
+    rows.length - maxVisible,
+  );
+  return rows.slice(start, start + maxVisible).map((row, offset) => ({
+    row,
+    index: start + offset,
+  }));
 }
 
 function renderBackendOperatorPacket(packets = [], status = null) {
   operatorPacket.replaceChildren();
-  const packet = latestOperatorPacket(packets);
+  const packet = packetForStatus(packets, status || {});
   if (!packet) {
     appendInfoRow(operatorPacket, "No stage packet yet", "");
     return;
   }
+  const isSelectedStatusStage = status?.current_stage && packet.stage === status.current_stage;
 
   appendInfoRow(
     operatorPacket,
-    packet.is_current_stage ? "Current stage" : "Observed stage",
+    packet.is_current_stage ? "Current stage" : (isSelectedStatusStage ? "Replay stage" : "Observed stage"),
     `${packet.stage_label} ${formatClockRange(packet, status)}`,
-    { tone: packet.is_current_stage ? "current" : undefined },
+    { tone: packet.is_current_stage || isSelectedStatusStage ? "current" : undefined },
   );
   appendInfoRow(
     operatorPacket,
@@ -2079,6 +2171,7 @@ function resetMetrics(options = {}) {
   milestoneProgress = new Map();
   currentMilestoneKey = null;
   lastObservedTableSnapshot = null;
+  resetEvaluationScrubber();
   uploadedStageIndex = selectedInitialStageIndex();
   uploadedStageStartedAt = video.currentTime || 0;
   stageMetric.textContent = "Idle";

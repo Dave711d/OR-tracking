@@ -37,6 +37,11 @@
             <select id="evaluationDemoSelect"></select>
           </label>
           <button id="evaluationDemoButton" type="button">Evaluated demo</button>
+          <label class="replay-scrub-control">
+            Replay time
+            <input id="evaluationSnapshotRange" type="range" min="0" max="0" value="0" disabled />
+            <output id="evaluationSnapshotLabel">No replay loaded</output>
+          </label>
           <button id="resetButton" type="button">Reset metrics</button>
           <label class="toggle-control">
             <input id="staticFallback" type="checkbox" />
