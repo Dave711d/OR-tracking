@@ -183,6 +183,10 @@ The JSON output includes:
   room-view availability, observable rate, mean/min/max stage confidence,
   dominant visual signal, and an evidence level: `strong_visual_support`,
   `moderate_visual_support`, `weak_visual_support`, or `held_non_room`.
+- `timebase_summary`: one row describing the clock contract for the run:
+  clip-local start/end, original source/case start/end, frame offsets, FPS, and
+  the source offset. Pre-cut public case slices can therefore show `clip 0-30s`
+  while retaining the original procedure clock such as `source 1800-1830s`.
 - `procedure_milestones`: one row per canonical TAVR stage showing whether that
   milestone was observed in the clip, whether it is the current observed stage,
   the first/last observed timestamps, duration, evidence level, observable rate,
@@ -227,12 +231,18 @@ python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2700_30s.mp4 \
   --initial-stage post_deploy_assessment \
   --min-area 300 \
   --max-frames 900 \
+  --source-start-s 2700 \
   --no-annotated-video \
   --labels docs/evaluation/sentara_live_2700_room_post.labels.json
 ```
 
 The label file can include:
 
+- `timebase`: `clip` or `source`. `clip` is the default and means
+  `start_s`/`end_s` windows are local to the exported clip. `source` means the
+  windows use the original procedure/source clock. Use `--source-start-s` for
+  pre-cut clips when you want JSON/CSV artifacts to show source time without
+  seeking into a longer file.
 - `stage_segments`: expected stage over timestamp windows.
 - `table_count_segments`: expected minimum/maximum table-side count windows, or
   `min_peak_count` when the requirement is that the table count reaches a peak
@@ -332,9 +342,10 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_suite.json --output-dir outpu
 ```
 
 The default suite is manifest-driven rather than shell-string-driven. Each case
-declares a clip path, label path, ROI, starting stage, frame limit, and tracking
-configuration. Cases can set `"static_table_fallback": true` in their `config`
-object for opt-in low-motion room-view review. The runner writes per-case JSON plus
+declares a clip path, label path, ROI, starting stage, frame limit, optional
+`source_start_s` for pre-cut case-clock metadata, and tracking configuration.
+Cases can set `"static_table_fallback": true` in their `config` object for
+opt-in low-motion room-view review. The runner writes per-case JSON plus
 `outputs/tavr_suite/suite_summary.json`. It also exports the derived TAVR
 summary tables as per-case CSV files, including view segments, procedure
 status summaries, table-team summaries, procedure milestones, stage staffing,

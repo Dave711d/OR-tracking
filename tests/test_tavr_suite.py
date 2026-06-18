@@ -97,6 +97,7 @@ def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
                             "min_area": 180,
                             "static_table_fallback": True,
                             "initial_stage": "room_prep_drape",
+                            "source_start_s": 42.0,
                         },
                     }
                 ],
@@ -114,6 +115,10 @@ def test_run_suite_with_synthetic_tavr_case(tmp_path: Path) -> None:
     assert result_path.exists()
     result_payload = json.loads(result_path.read_text(encoding="utf-8"))
     assert result_payload["evaluation_config"]["static_table_fallback"] is True
+    assert result_payload["evaluation_config"]["source_start_s"] == 42.0
+    assert result_payload["timebase"]["timebase"] == "source"
+    assert result_payload["timebase"]["source_start_s"] == 42.0
+    assert result_payload["tavr"]["timebase_summary"][0]["source_start_s"] == 42.0
     assert summary["cases"][0]["tavr_csv_paths"]["stage_timeline"]
     assert Path(summary["cases"][0]["tavr_csv_paths"]["stage_timeline"]).exists()
     assert Path(summary["summary_path"]).exists()

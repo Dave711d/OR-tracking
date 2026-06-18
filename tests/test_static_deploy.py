@@ -130,7 +130,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
     tavr = payload["tavr"]
 
     assert payload["case"] == "sentara_1800_mixed_room"
+    assert payload["timebase"]["timebase"] in {"clip", "source"}
+    assert tavr["timebase_summary"]
     for key in [
+        "timebase_summary",
         "procedure_status_summary",
         "operator_stage_packet",
         "table_team_summary",
@@ -145,6 +148,9 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifact() -> None:
 
     status = tavr["procedure_status_summary"][0]
     packet = tavr["operator_stage_packet"][-1]
+    assert "source_start_s" in status
+    assert "clip_start_s" in status
+    assert "clip_end_s" in packet
     assert "effective_table_source" in status
     assert "canonical_table_identity_count" in packet
     assert "quality_flag_codes" in packet
@@ -184,6 +190,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderBackendStageRoster" in app_js
     assert "function renderBackendProcedureEvents" in app_js
     assert "function renderBackendQualityFlags" in app_js
+    assert "function formatClockRange" in app_js
+    assert "function formatClockPoint" in app_js
     assert "evaluationReplayRequestId" in app_js
     assert "keepEvaluationReplayRequest" in app_js
     assert "requestId !== evaluationReplayRequestId" in app_js
@@ -194,6 +202,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "effective_table_source" in app_js
     assert "tracking_available_rate" in app_js
     assert "canonical_table_identity_count" in app_js
+    assert "timebase_summary" in app_js
+    assert "clip_timestamp_s" in app_js
     assert "table_identity_groups" in app_js
     assert "merged_track_ids" in app_js
     assert "quality_flag_codes" in app_js

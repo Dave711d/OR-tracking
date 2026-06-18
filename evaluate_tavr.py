@@ -28,6 +28,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-frame", type=int, default=0)
     parser.add_argument("--start-s", type=float)
     parser.add_argument(
+        "--source-start-s",
+        type=float,
+        help=(
+            "Original case/source timestamp for frame 0 of a pre-cut clip. "
+            "Unlike --start-s this does not seek; it only annotates the source clock."
+        ),
+    )
+    parser.add_argument(
         "--roi",
         type=parse_roi,
         help="Normalized crop x0,y0,x1,y1 for room-camera insets in broadcast footage",
@@ -102,6 +110,7 @@ def main() -> None:
         max_frames=args.max_frames,
         start_frame=args.start_frame,
         start_s=args.start_s,
+        source_start_s=args.source_start_s,
         roi=args.roi,
         write_annotated_video=not args.no_annotated_video,
     )
@@ -123,10 +132,14 @@ def main() -> None:
             str(result.annotated_video_path) if result.annotated_video_path else None
         ),
         "tracking_summary": result.summary.to_dict(),
+        "timebase": result.timebase_summary(),
         "evaluation_config": {
             "max_frames": args.max_frames,
             "start_frame": args.start_frame,
             "start_s": args.start_s,
+            "source_start_s": args.source_start_s,
+            "resolved_source_start_frame": result.source_start_frame,
+            "resolved_source_start_s": result.source_start_s,
             "roi": args.roi,
             "min_area": args.min_area,
             "crowding_threshold": args.crowding_threshold,

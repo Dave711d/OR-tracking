@@ -26,6 +26,7 @@
         "initial_stage": "access_sheathing",
         "min_area": 300,
         "max_frames": 900,
+        "source_start_s": 900.0,
         "static_table_fallback": true
       }
     }

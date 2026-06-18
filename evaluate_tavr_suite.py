@@ -149,6 +149,7 @@ def _run_case(
             max_frames=_optional_int(config.get("max_frames")),
             start_frame=int(config.get("start_frame", 0)),
             start_s=_optional_float(config.get("start_s")),
+            source_start_s=_optional_float(config.get("source_start_s")),
             roi=_optional_roi(config.get("roi")),
             write_annotated_video=write_annotated_video,
         )
@@ -170,6 +171,7 @@ def _run_case(
                 str(result.annotated_video_path) if result.annotated_video_path else None
             ),
             "tracking_summary": result.summary.to_dict(),
+            "timebase": result.timebase_summary(),
             "evaluation_config": config,
             "tavr": tavr_summary,
             "label_score": label_score,

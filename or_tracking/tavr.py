@@ -8,7 +8,7 @@ that require fluoroscopy, hemodynamics, audio, or procedure logs.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .models import Detection
 
@@ -212,12 +212,14 @@ class TAVRWorkflowAnalyzer:
         frame_index: int,
         movement_px: float,
         stage_observable: bool = True,
+        stage_frame_index: Optional[int] = None,
     ) -> TAVRFrameState:
+        stage_frame = frame_index if stage_frame_index is None else stage_frame_index
         normalized_role_track_ids = {
             role: sorted(set(track_ids)) for role, track_ids in role_track_ids.items()
         }
         if not self.initialized:
-            self.current_stage_start_frame = frame_index
+            self.current_stage_start_frame = stage_frame
             self.initialized = True
         role_counts = {
             role: len(track_ids) for role, track_ids in normalized_role_track_ids.items()
@@ -247,10 +249,10 @@ class TAVRWorkflowAnalyzer:
                     "view is unavailable."
                 ),
             )
-        stage_scores = _stage_scores(signals, frame_index)
-        stage_index, confidence = self._choose_stage(stage_scores, frame_index)
+        stage_scores = _stage_scores(signals, stage_frame)
+        stage_index, confidence = self._choose_stage(stage_scores, stage_frame)
         if stage_index != self.current_stage_index:
-            self.current_stage_start_frame = frame_index
+            self.current_stage_start_frame = stage_frame
         self.current_stage_index = stage_index
         stage = TAVR_STAGE_ORDER[stage_index]
         return TAVRFrameState(

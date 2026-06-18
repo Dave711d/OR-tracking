@@ -3,6 +3,7 @@
   "source_url": "https://bcmmedia.s3.amazonaws.com/bcp/video/transcodes/live-tavr-transcatheter-aortic-valve-replacement/1710771171/live-tavr-transcatheter-aortic-valve-replacement-720p.mp4",
   "clip_hint": "Extract a 30s clip from 900s. The configured ROI begins as room-camera footage with little foreground motion, then switches to fluoroscopy around 4s.",
   "command_hint": "python evaluate_tavr.py samples/live_tavr_slices/live_tavr_900_30s.mp4 --roi 0,0.46,0.31,0.89 --initial-stage access_sheathing --min-area 300 --max-frames 900 --no-annotated-video --labels docs/evaluation/sentara_live_900_room_to_fluoro_low_motion.labels.json",
+  "timebase": "clip",
   "stage_segments": [
     {
       "start_s": 0.0,

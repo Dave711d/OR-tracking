@@ -3,6 +3,7 @@
   "source_url": "https://bcmmedia.s3.amazonaws.com/bcp/video/transcodes/live-tavr-transcatheter-aortic-valve-replacement/1710771171/live-tavr-transcatheter-aortic-valve-replacement-720p.mp4",
   "clip_hint": "Extract a 30s clip from 2400s. The configured ROI is fluoroscopy rather than room-camera footage.",
   "command_hint": "python evaluate_tavr.py samples/live_tavr_slices/live_tavr_2400_30s.mp4 --roi 0,0.46,0.31,0.89 --initial-stage valve_deployment --min-area 300 --max-frames 900 --no-annotated-video --labels docs/evaluation/sentara_live_2400_fluoro_negative.labels.json",
+  "timebase": "clip",
   "table_count_segments": [
     {
       "start_s": 0.0,

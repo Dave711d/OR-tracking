@@ -21,7 +21,8 @@
         "roi": [0.0, 0.46, 0.31, 0.89],
         "initial_stage": "access_sheathing",
         "min_area": 300,
-        "max_frames": 900
+        "max_frames": 900,
+        "source_start_s": 900.0
       }
     },
     {
@@ -32,7 +33,8 @@
         "roi": [0.0, 0.46, 0.31, 0.89],
         "initial_stage": "valve_delivery_positioning",
         "min_area": 300,
-        "max_frames": 900
+        "max_frames": 900,
+        "source_start_s": 1800.0
       }
     },
     {
@@ -43,7 +45,8 @@
         "roi": [0.0, 0.46, 0.31, 0.89],
         "initial_stage": "valve_deployment",
         "min_area": 300,
-        "max_frames": 900
+        "max_frames": 900,
+        "source_start_s": 2400.0
       }
     },
     {
@@ -54,7 +57,8 @@
         "roi": [0.0, 0.46, 0.31, 0.89],
         "initial_stage": "post_deploy_assessment",
         "min_area": 300,
-        "max_frames": 900
+        "max_frames": 900,
+        "source_start_s": 2700.0
       }
     }
   ]

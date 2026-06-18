@@ -80,7 +80,38 @@ def test_process_video_file_can_start_from_offset(tmp_path: Path) -> None:
     assert result.summary.frames_processed == 8
     assert result.metrics[0].frame_index == 12
     assert result.metrics[0].timestamp_s == 0.5
+    assert result.metrics[0].source_frame_index == 12
+    assert result.metrics[0].source_timestamp_s == 0.5
+    assert result.metrics[0].clip_frame_index == 0
+    assert result.metrics[0].clip_timestamp_s == 0.0
+    assert result.summary.duration_s == round(7 / 24, 3)
     assert result.csv_path.name == "sample_f12_metrics.csv"
+
+
+def test_process_video_file_can_annotate_precut_source_clock(tmp_path: Path) -> None:
+    video_path = generate_synthetic_or_video(
+        tmp_path / "sample.mp4",
+        frames=36,
+        fps=24.0,
+    )
+
+    result = process_video_file(
+        video_path,
+        output_dir=tmp_path / "outputs",
+        max_frames=3,
+        source_start_s=900.0,
+        write_annotated_video=False,
+    )
+
+    assert result.metrics[0].frame_index == 21600
+    assert result.metrics[0].timestamp_s == 900.0
+    assert result.metrics[0].clip_frame_index == 0
+    assert result.metrics[0].clip_timestamp_s == 0.0
+    assert result.timebase_summary()["timebase"] == "source"
+    assert result.timebase_summary()["source_start_s"] == 900.0
+    csv_text = result.csv_path.read_text(encoding="utf-8")
+    assert "source_timestamp_s" in csv_text
+    assert "clip_timestamp_s" in csv_text
 
 
 def test_process_video_file_can_crop_to_roi(tmp_path: Path) -> None:

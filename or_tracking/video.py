@@ -24,6 +24,44 @@ class TrackingRunResult:
     summary: TrackingSummary
     csv_path: Path
     annotated_video_path: Optional[Path]
+    fps: float
+    source_start_frame: int
+    source_start_s: float
+
+    def timebase_summary(self) -> dict[str, object]:
+        """Return run-level source/clip clock metadata."""
+
+        if not self.metrics:
+            return {
+                "timebase": "clip",
+                "fps": round(float(self.fps), 3),
+                "source_start_frame": self.source_start_frame,
+                "source_start_s": round(float(self.source_start_s), 3),
+                "source_end_frame": None,
+                "source_end_s": None,
+                "clip_start_frame": None,
+                "clip_start_s": None,
+                "clip_end_frame": None,
+                "clip_end_s": None,
+                "source_offset_s": round(float(self.source_start_s), 3),
+            }
+
+        first = self.metrics[0]
+        last = self.metrics[-1]
+        source_offset_s = float(first.source_timestamp_s) - float(first.clip_timestamp_s)
+        return {
+            "timebase": "source" if abs(source_offset_s) > 0.001 else "clip",
+            "fps": round(float(self.fps), 3),
+            "source_start_frame": first.source_frame_index,
+            "source_start_s": round(float(first.source_timestamp_s), 3),
+            "source_end_frame": last.source_frame_index,
+            "source_end_s": round(float(last.source_timestamp_s), 3),
+            "clip_start_frame": first.clip_frame_index,
+            "clip_start_s": round(float(first.clip_timestamp_s), 3),
+            "clip_end_frame": last.clip_frame_index,
+            "clip_end_s": round(float(last.clip_timestamp_s), 3),
+            "source_offset_s": round(float(source_offset_s), 3),
+        }
 
 
 def process_video_file(
@@ -33,6 +71,7 @@ def process_video_file(
     max_frames: Optional[int] = None,
     start_frame: int = 0,
     start_s: Optional[float] = None,
+    source_start_s: Optional[float] = None,
     roi: Optional[NormalizedROI] = None,
     write_annotated_video: bool = True,
     progress_callback: Optional[ProgressCallback] = None,
@@ -53,6 +92,11 @@ def process_video_file(
     fps = capture.get(cv2.CAP_PROP_FPS) or 30.0
     total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
     resolved_start_frame = _start_frame(fps, start_frame, start_s)
+    source_clock_start_frame = _source_clock_start_frame(
+        fps,
+        resolved_start_frame,
+        source_start_s,
+    )
     if resolved_start_frame > 0:
         capture.set(cv2.CAP_PROP_POS_FRAMES, resolved_start_frame)
 
@@ -85,9 +129,17 @@ def process_video_file(
                 break
 
             frame = _crop_frame(frame, roi_rect)
-            source_frame_index = resolved_start_frame + processed_count
-            timestamp_s = source_frame_index / max(fps, 1.0)
-            frame_metrics = tracker.process_frame(frame, source_frame_index, timestamp_s)
+            source_frame_index = source_clock_start_frame + processed_count
+            clip_frame_index = processed_count
+            source_timestamp_s = source_frame_index / max(fps, 1.0)
+            clip_timestamp_s = clip_frame_index / max(fps, 1.0)
+            frame_metrics = tracker.process_frame(
+                frame,
+                source_frame_index,
+                source_timestamp_s,
+                clip_frame_index=clip_frame_index,
+                clip_timestamp_s=clip_timestamp_s,
+            )
             metrics.append(frame_metrics)
 
             if writer is not None:
@@ -110,6 +162,9 @@ def process_video_file(
         summary=summary,
         csv_path=csv_path,
         annotated_video_path=annotated_path,
+        fps=fps,
+        source_start_frame=source_clock_start_frame,
+        source_start_s=source_clock_start_frame / max(fps, 1.0),
     )
 
 
@@ -118,6 +173,10 @@ def write_metrics_csv(path: str | Path, metrics: List[FrameMetrics]) -> None:
     fieldnames = [
         "frame_index",
         "timestamp_s",
+        "source_frame_index",
+        "source_timestamp_s",
+        "clip_frame_index",
+        "clip_timestamp_s",
         "people_count",
         "active_track_ids",
         "movement_px",
@@ -163,6 +222,16 @@ def _start_frame(fps: float, start_frame: int, start_s: Optional[float]) -> int:
     if start_s is not None:
         return max(0, int(start_s * max(fps, 1.0)))
     return max(0, int(start_frame))
+
+
+def _source_clock_start_frame(
+    fps: float,
+    resolved_start_frame: int,
+    source_start_s: Optional[float],
+) -> int:
+    if source_start_s is not None:
+        return max(0, int(round(source_start_s * max(fps, 1.0))))
+    return resolved_start_frame
 
 
 def _run_stem(

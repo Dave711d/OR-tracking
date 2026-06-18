@@ -207,6 +207,9 @@ class ORActivityTracker:
         frame: np.ndarray,
         frame_index: int,
         timestamp_s: float,
+        *,
+        clip_frame_index: Optional[int] = None,
+        clip_timestamp_s: Optional[float] = None,
     ) -> FrameMetrics:
         view_colorfulness = _colorfulness(frame)
         view_flags = self._view_quality_flags(view_colorfulness)
@@ -253,10 +256,13 @@ class ORActivityTracker:
                 frame_index=frame_index,
                 movement_px=movement_px,
                 stage_observable=stage_observable,
+                stage_frame_index=clip_frame_index,
             )
         return FrameMetrics(
             frame_index=frame_index,
             timestamp_s=timestamp_s,
+            clip_frame_index=clip_frame_index,
+            clip_timestamp_s=clip_timestamp_s,
             detections=detections,
             movement_px=movement_px,
             zone_counts=zone_counts,

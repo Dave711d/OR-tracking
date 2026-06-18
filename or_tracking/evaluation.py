@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
@@ -18,8 +19,30 @@ from .tavr import (
 
 
 TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
-    "procedure_status_summary": [
+    "timebase_summary": [
+        "timebase",
+        "fps",
+        "source_start_frame",
+        "source_end_frame",
+        "source_start_s",
+        "source_end_s",
+        "clip_start_frame",
+        "clip_end_frame",
+        "clip_start_s",
         "clip_end_s",
+        "source_offset_s",
+    ],
+    "procedure_status_summary": [
+        "timebase",
+        "source_start_frame",
+        "source_end_frame",
+        "source_start_s",
+        "source_end_s",
+        "clip_start_frame",
+        "clip_end_frame",
+        "clip_start_s",
+        "clip_end_s",
+        "source_offset_s",
         "current_stage",
         "current_stage_label",
         "current_stage_status",
@@ -35,6 +58,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "current_table_roster",
         "effective_table_source",
         "effective_table_s",
+        "effective_table_clip_s",
         "effective_table_age_from_clip_end_s",
         "effective_table_stage",
         "effective_table_stage_label",
@@ -42,6 +66,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "effective_table_track_ids",
         "effective_table_roster",
         "last_observed_table_s",
+        "last_observed_clip_s",
         "last_observed_age_from_clip_end_s",
         "last_observed_stage",
         "last_observed_stage_label",
@@ -49,6 +74,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "last_observed_table_track_ids",
         "last_observed_table_roster",
         "peak_table_s",
+        "peak_table_clip_s",
         "peak_table_stage",
         "peak_table_stage_label",
         "peak_table_count",
@@ -68,6 +94,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "next_stage_label",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "duration_s",
         "evidence_level",
         "observable_rate",
@@ -106,6 +134,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "last_seen_frame",
         "first_seen_s",
         "last_seen_s",
+        "first_seen_clip_s",
+        "last_seen_clip_s",
         "age_from_clip_end_s",
         "frames_seen",
         "observed_table_frames",
@@ -130,6 +160,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "last_seen_frame",
         "first_seen_s",
         "last_seen_s",
+        "first_seen_clip_s",
+        "last_seen_clip_s",
         "observed_table_frames",
         "role_counts",
         "stage_counts",
@@ -142,6 +174,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_frame",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "duration_s",
         "frames",
         "mean_colorfulness",
@@ -158,6 +192,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_frame",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "peak_table_count",
         "peak_table_roster",
         "table_presence_roster",
@@ -172,6 +208,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_frame",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "duration_s",
         "frames",
         "room_view_frames",
@@ -196,6 +234,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_end_frame",
         "stage_start_s",
         "stage_end_s",
+        "stage_clip_start_s",
+        "stage_clip_end_s",
         "stage_duration_s",
         "stage_room_view_frames",
         "stage_non_room_view_frames",
@@ -211,6 +251,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "last_seen_frame",
         "first_seen_s",
         "last_seen_s",
+        "first_seen_clip_s",
+        "last_seen_clip_s",
         "coverage_ratio",
         "room_coverage_ratio",
         "estimated_table_duration_s",
@@ -230,6 +272,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_frame",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "duration_s",
         "room_view_frames",
         "non_room_view_frames",
@@ -259,6 +303,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "stage_label",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "duration_s",
         "tracking_available_rate",
         "evidence_level",
@@ -288,6 +334,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_frame",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "duration_s",
         "frames",
         "room_view_frames",
@@ -331,8 +379,10 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
     "procedure_event_timeline": [
         "event_type",
         "timestamp_s",
+        "clip_timestamp_s",
         "frame_index",
         "end_s",
+        "clip_end_s",
         "duration_s",
         "stage",
         "stage_label",
@@ -352,6 +402,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
     "table_transition_events": [
         "event_type",
         "timestamp_s",
+        "clip_timestamp_s",
         "frame_index",
         "track_id",
         "canonical_table_id",
@@ -378,6 +429,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "end_frame",
         "start_s",
         "end_s",
+        "clip_start_s",
+        "clip_end_s",
         "observed_table_frames",
         "interval_duration_s",
         "role_counts",
@@ -388,6 +441,7 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "snapshot_type",
         "frame_index",
         "timestamp_s",
+        "clip_timestamp_s",
         "age_from_clip_end_s",
         "stage",
         "stage_label",
@@ -444,6 +498,7 @@ def summarize_tavr_metrics(
 
     tavr_metrics = [metric for metric in metrics if metric.tavr is not None]
     return {
+        "timebase_summary": timebase_summary(tavr_metrics),
         "procedure_status_summary": procedure_status_summary(tavr_metrics),
         "operator_stage_packet": operator_stage_packet(tavr_metrics),
         "table_team_summary": table_team_summary(tavr_metrics),
@@ -503,73 +558,136 @@ def score_tavr_metrics(
     """Score tracker output against lightweight human/test labels."""
 
     tavr_metrics = [metric for metric in metrics if metric.tavr is not None]
+    label_timebase = _label_timebase(labels)
+    scoring_metrics = _metrics_for_timebase(tavr_metrics, label_timebase)
     return {
-        "stage_score": _stage_score(tavr_metrics, labels.get("stage_segments", [])),
+        "timebase": {
+            "label_timebase": label_timebase,
+            "default_timebase": "clip",
+        },
+        "stage_score": _stage_score(scoring_metrics, labels.get("stage_segments", [])),
         "table_count_score": _table_count_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("table_count_segments", []),
         ),
         "table_presence_score": _table_presence_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("table_presence_expectations", []),
         ),
         "stage_staffing_score": _stage_staffing_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("stage_staffing_expectations", []),
         ),
         "stage_table_coverage_score": _stage_table_coverage_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("stage_table_coverage_expectations", []),
         ),
         "table_transition_score": _table_transition_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("table_transition_expectations", []),
         ),
         "stage_handoff_score": _stage_handoff_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("stage_handoff_expectations", []),
         ),
         "stage_roster_score": _stage_roster_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("stage_roster_expectations", []),
         ),
         "stage_evidence_score": _stage_evidence_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("stage_evidence_expectations", []),
         ),
         "procedure_milestone_score": _procedure_milestone_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("procedure_milestone_expectations", []),
         ),
         "procedure_status_score": _procedure_status_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("procedure_status_expectations", []),
         ),
         "operator_packet_score": _operator_packet_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("operator_packet_expectations", []),
         ),
         "table_team_score": _table_team_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("table_team_expectations", []),
         ),
         "table_identity_group_score": _table_identity_group_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("table_identity_group_expectations", []),
         ),
         "event_timeline_score": _event_timeline_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("event_timeline_expectations", []),
         ),
         "roster_snapshot_score": _roster_snapshot_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("roster_snapshot_expectations", []),
         ),
         "quality_flag_score": _quality_flag_score(
-            tavr_metrics,
+            scoring_metrics,
             labels.get("quality_flag_expectations", []),
         ),
     }
+
+
+def timebase_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
+    """Return one row describing source/case time versus clip-local time."""
+
+    if not metrics:
+        return []
+
+    first = metrics[0]
+    last = metrics[-1]
+    source_offset_s = float(first.source_timestamp_s) - float(first.clip_timestamp_s)
+    sample_period_s = _sample_period_s(metrics)
+    fps = round(1.0 / sample_period_s, 3) if sample_period_s > 0 else None
+    return [
+        {
+            "timebase": "source" if abs(source_offset_s) > 0.001 else "clip",
+            "fps": fps,
+            "source_start_frame": first.source_frame_index,
+            "source_end_frame": last.source_frame_index,
+            "source_start_s": round(float(first.source_timestamp_s), 3),
+            "source_end_s": round(float(last.source_timestamp_s), 3),
+            "clip_start_frame": first.clip_frame_index,
+            "clip_end_frame": last.clip_frame_index,
+            "clip_start_s": round(float(first.clip_timestamp_s), 3),
+            "clip_end_s": round(float(last.clip_timestamp_s), 3),
+            "source_offset_s": round(float(source_offset_s), 3),
+        }
+    ]
+
+
+def _label_timebase(labels: Dict[str, Any]) -> str:
+    value = str(labels.get("timebase", "clip")).strip().lower()
+    aliases = {
+        "clip": "clip",
+        "clip-local": "clip",
+        "clip_local": "clip",
+        "local": "clip",
+        "source": "source",
+        "case": "source",
+        "case-clock": "source",
+        "case_clock": "source",
+    }
+    if value not in aliases:
+        raise ValueError("Label timebase must be 'clip' or 'source'")
+    return aliases[value]
+
+
+def _metrics_for_timebase(
+    metrics: Sequence[FrameMetrics],
+    timebase: str,
+) -> Sequence[FrameMetrics]:
+    if timebase == "source":
+        return metrics
+    return [
+        replace(metric, timestamp_s=float(metric.clip_timestamp_s))
+        for metric in metrics
+    ]
 
 
 def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
@@ -590,6 +708,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     current_track_ids = [item["track_id"] for item in current_roster]
     last_observed_roster = last_observed.get("roster", [])
     peak_roster = peak.get("roster", [])
+    timebase = timebase_summary(metrics)[0]
     evidence_level = current_milestone.get("evidence_level")
     observable_rate = current_milestone.get("observable_rate")
     mean_confidence = current_milestone.get("mean_confidence")
@@ -602,7 +721,16 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     )
 
     row = {
-        "clip_end_s": round(float(latest_metric.timestamp_s), 3),
+        "timebase": timebase["timebase"],
+        "source_start_frame": timebase["source_start_frame"],
+        "source_end_frame": timebase["source_end_frame"],
+        "source_start_s": timebase["source_start_s"],
+        "source_end_s": timebase["source_end_s"],
+        "clip_start_frame": timebase["clip_start_frame"],
+        "clip_end_frame": timebase["clip_end_frame"],
+        "clip_start_s": timebase["clip_start_s"],
+        "clip_end_s": timebase["clip_end_s"],
+        "source_offset_s": timebase["source_offset_s"],
         "current_stage": current_milestone.get("stage") or latest_state.stage,
         "current_stage_label": (
             current_milestone.get("stage_label") or latest_state.stage_label
@@ -622,6 +750,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "current_table_roster": current_roster,
         "effective_table_source": effective_table["source"],
         "effective_table_s": effective_table["timestamp_s"],
+        "effective_table_clip_s": effective_table["clip_timestamp_s"],
         "effective_table_age_from_clip_end_s": effective_table[
             "age_from_clip_end_s"
         ],
@@ -631,6 +760,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         "effective_table_track_ids": effective_table["track_ids"],
         "effective_table_roster": effective_table["roster"],
         "last_observed_table_s": last_observed.get("timestamp_s"),
+        "last_observed_clip_s": last_observed.get("clip_timestamp_s"),
         "last_observed_age_from_clip_end_s": last_observed.get(
             "age_from_clip_end_s"
         ),
@@ -642,6 +772,7 @@ def procedure_status_summary(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
         ],
         "last_observed_table_roster": last_observed_roster,
         "peak_table_s": peak.get("timestamp_s"),
+        "peak_table_clip_s": peak.get("clip_timestamp_s"),
         "peak_table_stage": peak.get("stage"),
         "peak_table_stage_label": peak.get("stage_label"),
         "peak_table_count": peak.get("table_count", 0),
@@ -700,6 +831,8 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             ),
             "start_s": roster["start_s"],
             "end_s": roster["end_s"],
+            "clip_start_s": roster.get("clip_start_s"),
+            "clip_end_s": roster.get("clip_end_s"),
             "duration_s": roster["duration_s"],
             "evidence_level": roster.get("evidence_level"),
             "observable_rate": roster.get("observable_rate"),
@@ -807,6 +940,7 @@ def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any
     default = {
         "frame_index": None,
         "timestamp_s": None,
+        "clip_timestamp_s": None,
         "age_from_clip_end_s": None,
         "stage": None,
         "stage_label": None,
@@ -817,6 +951,7 @@ def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any
         return default
 
     clip_end_s = metrics[-1].timestamp_s
+    clip_end_local_s = float(metrics[-1].clip_timestamp_s)
     for metric in reversed(metrics):
         if _view_label(metric) != "room":
             continue
@@ -826,7 +961,11 @@ def last_observed_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any
         return {
             "frame_index": metric.frame_index,
             "timestamp_s": round(float(metric.timestamp_s), 3),
-            "age_from_clip_end_s": round(max(0.0, clip_end_s - metric.timestamp_s), 3),
+            "clip_timestamp_s": round(float(metric.clip_timestamp_s), 3),
+            "age_from_clip_end_s": round(
+                max(0.0, clip_end_local_s - float(metric.clip_timestamp_s)),
+                3,
+            ),
             "stage": state.stage,
             "stage_label": state.stage_label,
             "table_count": state.table_count,
@@ -842,6 +981,7 @@ def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
         return {
             "frame_index": None,
             "timestamp_s": None,
+            "clip_timestamp_s": None,
             "age_from_clip_end_s": None,
             "stage": None,
             "stage_label": None,
@@ -849,7 +989,7 @@ def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
             "roster": [],
         }
 
-    clip_end_s = metrics[-1].timestamp_s
+    clip_end_s = float(metrics[-1].clip_timestamp_s)
     peak_metric = max(
         metrics,
         key=lambda metric: (_tavr_state(metric).table_count, metric.frame_index),
@@ -858,7 +998,11 @@ def peak_table_roster(metrics: Sequence[FrameMetrics]) -> Dict[str, Any]:
     return {
         "frame_index": peak_metric.frame_index,
         "timestamp_s": round(float(peak_metric.timestamp_s), 3),
-        "age_from_clip_end_s": round(max(0.0, clip_end_s - peak_metric.timestamp_s), 3),
+        "clip_timestamp_s": round(float(peak_metric.clip_timestamp_s), 3),
+        "age_from_clip_end_s": round(
+            max(0.0, clip_end_s - float(peak_metric.clip_timestamp_s)),
+            3,
+        ),
         "stage": peak_state.stage,
         "stage_label": peak_state.stage_label,
         "table_count": peak_state.table_count,
@@ -872,7 +1016,7 @@ def table_roster_snapshots(metrics: Sequence[FrameMetrics]) -> List[Dict[str, An
     if not metrics:
         return []
 
-    clip_end_s = metrics[-1].timestamp_s
+    clip_end_s = float(metrics[-1].clip_timestamp_s)
     snapshot_items = [
         ("current", _roster_snapshot_from_metric(metrics[-1], clip_end_s)),
         ("last_observed", last_observed_table_roster(metrics)),
@@ -929,7 +1073,7 @@ def table_team_summary(
     if not metrics:
         return []
 
-    clip_end_s = float(metrics[-1].timestamp_s)
+    clip_end_s = float(metrics[-1].clip_timestamp_s)
     status_row = procedure_status_summary(metrics)[0]
     current_ids = set(status_row.get("current_table_track_ids", []))
     effective_ids = set(status_row.get("effective_table_track_ids", []))
@@ -938,6 +1082,10 @@ def table_team_summary(
     identity_map, _ = _table_identity_map(metrics)
     frame_times = {
         metric.frame_index: float(metric.timestamp_s)
+        for metric in metrics
+    }
+    frame_clip_times = {
+        metric.frame_index: float(metric.clip_timestamp_s)
         for metric in metrics
     }
 
@@ -961,6 +1109,8 @@ def table_team_summary(
                 "last_seen_frame": None,
                 "first_seen_s": None,
                 "last_seen_s": None,
+                "first_seen_clip_s": None,
+                "last_seen_clip_s": None,
                 "observed_table_frames": 0,
                 "table_frames": 0,
                 "role_counts": {},
@@ -989,6 +1139,14 @@ def table_team_summary(
             row.get("last_seen_s"),
             frame_times.get(summary.get("last_frame")),
         )
+        row["first_seen_clip_s"] = _min_optional(
+            row.get("first_seen_clip_s"),
+            frame_clip_times.get(summary.get("first_frame")),
+        )
+        row["last_seen_clip_s"] = _max_optional(
+            row.get("last_seen_clip_s"),
+            frame_clip_times.get(summary.get("last_frame")),
+        )
 
     for roster in [
         status_row.get("current_table_roster", []),
@@ -1015,6 +1173,8 @@ def table_team_summary(
                     "last_seen_frame": None,
                     "first_seen_s": None,
                     "last_seen_s": None,
+                    "first_seen_clip_s": None,
+                    "last_seen_clip_s": None,
                     "observed_table_frames": 0,
                     "table_frames": 0,
                     "role_counts": {},
@@ -1052,6 +1212,8 @@ def table_team_summary(
                 "last_seen_frame": None,
                 "first_seen_s": None,
                 "last_seen_s": None,
+                "first_seen_clip_s": None,
+                "last_seen_clip_s": None,
                 "observed_table_frames": 0,
                 "table_frames": 0,
                 "role_counts": {},
@@ -1077,6 +1239,14 @@ def table_team_summary(
         row["last_seen_s"] = _max_optional(
             row.get("last_seen_s"),
             interval.get("end_s"),
+        )
+        row["first_seen_clip_s"] = _min_optional(
+            row.get("first_seen_clip_s"),
+            interval.get("clip_start_s"),
+        )
+        row["last_seen_clip_s"] = _max_optional(
+            row.get("last_seen_clip_s"),
+            interval.get("clip_end_s"),
         )
         row["observed_table_frames"] += int(
             interval.get("observed_table_frames", 0) or 0
@@ -1107,9 +1277,10 @@ def table_team_summary(
 
         frames_seen = max(int(row.get("frames_seen", 0) or 0), table_frames)
         last_seen_s = row.get("last_seen_s")
+        last_seen_clip_s = row.get("last_seen_clip_s")
         age_from_clip_end_s = (
-            round(max(0.0, clip_end_s - float(last_seen_s)), 3)
-            if last_seen_s is not None
+            round(max(0.0, clip_end_s - float(last_seen_clip_s)), 3)
+            if last_seen_clip_s is not None
             else None
         )
         dominant_role = (
@@ -1150,6 +1321,8 @@ def table_team_summary(
             "last_seen_frame": row.get("last_seen_frame"),
             "first_seen_s": _round_optional(row.get("first_seen_s")),
             "last_seen_s": _round_optional(last_seen_s),
+            "first_seen_clip_s": _round_optional(row.get("first_seen_clip_s")),
+            "last_seen_clip_s": _round_optional(last_seen_clip_s),
             "age_from_clip_end_s": age_from_clip_end_s,
             "frames_seen": frames_seen,
             "observed_table_frames": int(row.get("observed_table_frames", 0) or 0),
@@ -1316,6 +1489,8 @@ def stage_staffing_summary(
                 "last_frame": metric.frame_index,
                 "start_s": metric.timestamp_s,
                 "end_s": metric.timestamp_s,
+                "clip_start_s": metric.clip_timestamp_s,
+                "clip_end_s": metric.clip_timestamp_s,
                 "frames": 0,
                 "room_view_frames": 0,
                 "non_room_view_frames": 0,
@@ -1329,6 +1504,14 @@ def stage_staffing_summary(
         accumulator["last_frame"] = max(accumulator["last_frame"], metric.frame_index)
         accumulator["start_s"] = min(accumulator["start_s"], metric.timestamp_s)
         accumulator["end_s"] = max(accumulator["end_s"], metric.timestamp_s)
+        accumulator["clip_start_s"] = min(
+            accumulator["clip_start_s"],
+            metric.clip_timestamp_s,
+        )
+        accumulator["clip_end_s"] = max(
+            accumulator["clip_end_s"],
+            metric.clip_timestamp_s,
+        )
         accumulator["frames"] += 1
         accumulator["table_counts"].append(state.table_count)
         is_room_view = _view_label(metric) == "room"
@@ -1349,6 +1532,8 @@ def stage_staffing_summary(
                     "last_frame": metric.frame_index,
                     "first_s": metric.timestamp_s,
                     "last_s": metric.timestamp_s,
+                    "first_clip_s": metric.clip_timestamp_s,
+                    "last_clip_s": metric.clip_timestamp_s,
                     "observed_table_frames": 0,
                     "role_counts": {},
                 },
@@ -1357,6 +1542,8 @@ def stage_staffing_summary(
             track["last_frame"] = max(track["last_frame"], metric.frame_index)
             track["first_s"] = min(track["first_s"], metric.timestamp_s)
             track["last_s"] = max(track["last_s"], metric.timestamp_s)
+            track["first_clip_s"] = min(track["first_clip_s"], metric.clip_timestamp_s)
+            track["last_clip_s"] = max(track["last_clip_s"], metric.clip_timestamp_s)
             track["observed_table_frames"] += 1
             track["role_counts"][role] = track["role_counts"].get(role, 0) + 1
 
@@ -1394,6 +1581,8 @@ def stage_staffing_summary(
                 "end_frame": accumulator["last_frame"],
                 "start_s": round(float(accumulator["start_s"]), 3),
                 "end_s": round(float(accumulator["end_s"]), 3),
+                "clip_start_s": round(float(accumulator["clip_start_s"]), 3),
+                "clip_end_s": round(float(accumulator["clip_end_s"]), 3),
                 "duration_s": round(
                     float(
                         max(
@@ -1681,7 +1870,11 @@ def _roster_snapshot_from_metric(
     return {
         "frame_index": metric.frame_index,
         "timestamp_s": round(float(metric.timestamp_s), 3),
-        "age_from_clip_end_s": round(max(0.0, clip_end_s - metric.timestamp_s), 3),
+        "clip_timestamp_s": round(float(metric.clip_timestamp_s), 3),
+        "age_from_clip_end_s": round(
+            max(0.0, clip_end_s - float(metric.clip_timestamp_s)),
+            3,
+        ),
         "stage": state.stage,
         "stage_label": state.stage_label,
         "table_count": state.table_count,
@@ -1700,6 +1893,7 @@ def _snapshot_rows(
                 "snapshot_type": snapshot_type,
                 "frame_index": snapshot.get("frame_index"),
                 "timestamp_s": snapshot.get("timestamp_s"),
+                "clip_timestamp_s": snapshot.get("clip_timestamp_s"),
                 "age_from_clip_end_s": snapshot.get("age_from_clip_end_s"),
                 "stage": snapshot.get("stage"),
                 "stage_label": snapshot.get("stage_label"),
@@ -1900,6 +2094,8 @@ def _timeline_item(
         "end_frame": metrics[end_index].frame_index,
         "start_s": metrics[start_index].timestamp_s,
         "end_s": metrics[end_index].timestamp_s,
+        "clip_start_s": metrics[start_index].clip_timestamp_s,
+        "clip_end_s": metrics[end_index].clip_timestamp_s,
         "peak_table_count": max(
             _tavr_state(metric).table_count
             for metric in segment_metrics
@@ -1997,6 +2193,8 @@ def _stage_handoff_item(
         "end_frame": stage_end.frame_index,
         "start_s": round(float(stage_start.timestamp_s), 3),
         "end_s": round(float(stage_end.timestamp_s), 3),
+        "clip_start_s": round(float(stage_start.clip_timestamp_s), 3),
+        "clip_end_s": round(float(stage_end.clip_timestamp_s), 3),
         "duration_s": round(float(duration_s), 3),
         "room_view_frames": room_view_frames,
         "non_room_view_frames": stage_frames - room_view_frames,
@@ -2057,6 +2255,8 @@ def _stage_roster_summary_item(
         "stage_label": handoff["stage_label"],
         "start_s": handoff["start_s"],
         "end_s": handoff["end_s"],
+        "clip_start_s": handoff.get("clip_start_s"),
+        "clip_end_s": handoff.get("clip_end_s"),
         "duration_s": handoff["duration_s"],
         "tracking_available_rate": handoff["tracking_available_rate"],
         "evidence_level": evidence.get("evidence_level"),
@@ -2144,6 +2344,8 @@ def _stage_evidence_item(
         "end_frame": end_metric.frame_index,
         "start_s": round(float(start_metric.timestamp_s), 3),
         "end_s": round(float(end_metric.timestamp_s), 3),
+        "clip_start_s": round(float(start_metric.clip_timestamp_s), 3),
+        "clip_end_s": round(float(end_metric.clip_timestamp_s), 3),
         "duration_s": round(float(duration_s), 3),
         "frames": frames,
         "room_view_frames": room_view_frames,
@@ -2289,6 +2491,7 @@ def _effective_table_status(
         return {
             "source": source,
             "timestamp_s": round(float(latest_metric.timestamp_s), 3),
+            "clip_timestamp_s": round(float(latest_metric.clip_timestamp_s), 3),
             "age_from_clip_end_s": 0.0,
             "stage": latest_state.stage,
             "stage_label": latest_state.stage_label,
@@ -2302,6 +2505,7 @@ def _effective_table_status(
         return {
             "source": "last_observed_room_view",
             "timestamp_s": last_observed.get("timestamp_s"),
+            "clip_timestamp_s": last_observed.get("clip_timestamp_s"),
             "age_from_clip_end_s": last_observed.get("age_from_clip_end_s"),
             "stage": last_observed.get("stage"),
             "stage_label": last_observed.get("stage_label"),
@@ -2313,6 +2517,7 @@ def _effective_table_status(
     return {
         "source": "no_room_table_evidence",
         "timestamp_s": None,
+        "clip_timestamp_s": None,
         "age_from_clip_end_s": None,
         "stage": None,
         "stage_label": None,
@@ -2603,8 +2808,10 @@ def _stage_started_event(
     return {
         "event_type": "stage_started",
         "timestamp_s": round(float(start_metric.timestamp_s), 3),
+        "clip_timestamp_s": round(float(start_metric.clip_timestamp_s), 3),
         "frame_index": start_metric.frame_index,
         "end_s": round(float(end_metric.timestamp_s), 3),
+        "clip_end_s": round(float(end_metric.clip_timestamp_s), 3),
         "duration_s": round(float(duration_s), 3),
         "stage": state.stage,
         "stage_label": state.stage_label,
@@ -2620,7 +2827,7 @@ def _stage_started_event(
         "roster": roster,
         "source": "stage_timeline",
         "label": (
-            f"{start_metric.timestamp_s:.1f}s stage started: "
+            f"{start_metric.clip_timestamp_s:.1f}s stage started: "
             f"{state.stage_label}"
         ),
     }
@@ -2640,8 +2847,10 @@ def _view_started_event(
     return {
         "event_type": "view_started",
         "timestamp_s": view_segment["start_s"],
+        "clip_timestamp_s": view_segment.get("clip_start_s"),
         "frame_index": view_segment["start_frame"],
         "end_s": view_segment["end_s"],
+        "clip_end_s": view_segment.get("clip_end_s"),
         "duration_s": view_segment["duration_s"],
         "stage": stage,
         "stage_label": stage_label,
@@ -2657,7 +2866,7 @@ def _view_started_event(
         "roster": [],
         "source": "view_segments",
         "label": (
-            f"{view_segment['start_s']:.1f}s "
+            f"{view_segment.get('clip_start_s', view_segment['start_s']):.1f}s "
             f"{view_segment['view']} view started"
         ),
     }
@@ -2668,8 +2877,10 @@ def _handoff_event(handoff: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "event_type": "table_handoff",
         "timestamp_s": handoff["start_s"],
+        "clip_timestamp_s": handoff.get("clip_start_s"),
         "frame_index": handoff["start_frame"],
         "end_s": handoff["end_s"],
+        "clip_end_s": handoff.get("clip_end_s"),
         "duration_s": handoff["duration_s"],
         "stage": handoff["stage"],
         "stage_label": handoff["stage_label"],
@@ -2696,8 +2907,10 @@ def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "event_type": "table_peak",
         "timestamp_s": peak.get("timestamp_s"),
+        "clip_timestamp_s": peak.get("clip_timestamp_s"),
         "frame_index": peak.get("frame_index"),
         "end_s": peak.get("timestamp_s"),
+        "clip_end_s": peak.get("clip_timestamp_s"),
         "duration_s": 0.0,
         "stage": peak.get("stage"),
         "stage_label": peak.get("stage_label"),
@@ -2715,7 +2928,7 @@ def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
         "roster": roster,
         "source": "peak_table_roster",
         "label": (
-            f"{peak.get('timestamp_s')}s table peak: "
+            f"{peak.get('clip_timestamp_s', peak.get('timestamp_s'))}s table peak: "
             f"{peak.get('table_count', 0)} active during "
             f"{peak.get('stage_label') or 'unknown stage'}"
         ),
@@ -2735,10 +2948,12 @@ def _handoff_roster_item(row: Dict[str, Any]) -> Dict[str, Any]:
         "room_coverage_ratio": row["room_coverage_ratio"],
         "first_seen_s": row["first_seen_s"],
         "last_seen_s": row["last_seen_s"],
+        "first_seen_clip_s": row["first_seen_clip_s"],
+        "last_seen_clip_s": row["last_seen_clip_s"],
         "label": (
             f"{_role_label(row['track_id'], row['table_team_role'], row['dominant_role'])} "
             f"{row['observed_table_frames']} frames "
-            f"{row['first_seen_s']:.1f}-{row['last_seen_s']:.1f}s"
+            f"{row['first_seen_clip_s']:.1f}-{row['last_seen_clip_s']:.1f}s"
         ),
     }
 
@@ -2810,6 +3025,8 @@ def _view_segment_item(
         "end_frame": end_metric.frame_index,
         "start_s": round(float(start_metric.timestamp_s), 3),
         "end_s": round(float(end_metric.timestamp_s), 3),
+        "clip_start_s": round(float(start_metric.clip_timestamp_s), 3),
+        "clip_end_s": round(float(end_metric.clip_timestamp_s), 3),
         "duration_s": round(float(duration_s), 3),
         "frames": len(segment_metrics),
         "mean_colorfulness": (
@@ -2826,8 +3043,8 @@ def _view_segment_item(
         "dominant_stage": _dominant_from_counts(stages),
         "stage_counts": stages,
         "label": (
-            f"{view} view {start_metric.timestamp_s:.1f}-"
-            f"{end_metric.timestamp_s:.1f}s"
+            f"{view} view {start_metric.clip_timestamp_s:.1f}-"
+            f"{end_metric.clip_timestamp_s:.1f}s"
         ),
     }
 
@@ -2848,6 +3065,9 @@ def _table_transition_event(
     return {
         "event_type": event_type,
         "timestamp_s": timestamp_s,
+        "clip_timestamp_s": coverage["first_seen_clip_s"]
+        if is_entry
+        else coverage["last_seen_clip_s"],
         "frame_index": frame,
         "track_id": coverage["track_id"],
         "canonical_table_id": coverage["canonical_table_id"],
@@ -2863,7 +3083,8 @@ def _table_transition_event(
         "tracking_available_rate": coverage["tracking_available_rate"],
         "observed_table_frames": coverage["observed_table_frames"],
         "label": (
-            f"{timestamp_s:.1f}s {event_type}: ID {coverage['track_id']} "
+            f"{(coverage['first_seen_clip_s'] if is_entry else coverage['last_seen_clip_s']):.1f}s "
+            f"{event_type}: ID {coverage['track_id']} "
             f"{coverage['table_team_role']} during {coverage['stage_label']}"
         ),
     }
@@ -5537,6 +5758,7 @@ def _table_observations(
                 {
                     "frame_index": metric.frame_index,
                     "timestamp_s": metric.timestamp_s,
+                    "clip_timestamp_s": metric.clip_timestamp_s,
                     "stage": state.stage,
                     "role": summary.dominant_role if summary else "unassigned",
                     "cx": detection.centroid[0] if detection else None,
@@ -5580,6 +5802,8 @@ def _table_identity_map(
                 "last_frame": interval["end_frame"],
                 "first_s": interval["start_s"],
                 "last_s": interval["end_s"],
+                "first_clip_s": interval["clip_start_s"],
+                "last_clip_s": interval["clip_end_s"],
                 "last_cx": interval.get("last_cx"),
                 "last_cy": interval.get("last_cy"),
                 "last_area": interval.get("last_area"),
@@ -5619,6 +5843,8 @@ def _table_identity_map(
             "last_seen_frame": group["last_frame"],
             "first_seen_s": group["first_s"],
             "last_seen_s": group["last_s"],
+            "first_seen_clip_s": group["first_clip_s"],
+            "last_seen_clip_s": group["last_clip_s"],
             "observed_table_frames": int(group["observed_table_frames"]),
             "role_counts": dict(sorted(group["role_counts"].items())),
             "stage_counts": dict(sorted(group["stage_counts"].items())),
@@ -5731,6 +5957,8 @@ def _merge_identity_interval(
     group["last_frame"] = max(group["last_frame"], interval["end_frame"])
     group["first_s"] = min(group["first_s"], interval["start_s"])
     group["last_s"] = max(group["last_s"], interval["end_s"])
+    group["first_clip_s"] = min(group["first_clip_s"], interval["clip_start_s"])
+    group["last_clip_s"] = max(group["last_clip_s"], interval["clip_end_s"])
     group["last_cx"] = interval.get("last_cx")
     group["last_cy"] = interval.get("last_cy")
     group["last_area"] = interval.get("last_area")
@@ -5777,6 +6005,8 @@ def _table_interval_item(
         "end_frame": end["frame_index"],
         "start_s": round(float(start["timestamp_s"]), 3),
         "end_s": round(float(end["timestamp_s"]), 3),
+        "clip_start_s": round(float(start["clip_timestamp_s"]), 3),
+        "clip_end_s": round(float(end["clip_timestamp_s"]), 3),
         "first_cx": start.get("cx"),
         "first_cy": start.get("cy"),
         "last_cx": end.get("cx"),
@@ -5807,6 +6037,8 @@ def _interval_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
                 "interval_duration_s": interval["interval_duration_s"],
                 "start_s": interval["start_s"],
                 "end_s": interval["end_s"],
+                "clip_start_s": interval["clip_start_s"],
+                "clip_end_s": interval["clip_end_s"],
                 "label": interval["label"],
             }
         )
@@ -5899,6 +6131,8 @@ def _stage_table_coverage_rows(
                     "last_frame": metric.frame_index,
                     "first_s": metric.timestamp_s,
                     "last_s": metric.timestamp_s,
+                    "first_clip_s": metric.clip_timestamp_s,
+                    "last_clip_s": metric.clip_timestamp_s,
                     "observed_table_frames": 0,
                     "role_counts": {},
                 },
@@ -5909,6 +6143,8 @@ def _stage_table_coverage_rows(
             track["last_frame"] = max(track["last_frame"], metric.frame_index)
             track["first_s"] = min(track["first_s"], metric.timestamp_s)
             track["last_s"] = max(track["last_s"], metric.timestamp_s)
+            track["first_clip_s"] = min(track["first_clip_s"], metric.clip_timestamp_s)
+            track["last_clip_s"] = max(track["last_clip_s"], metric.clip_timestamp_s)
             track["observed_table_frames"] += 1
             track["role_counts"][role] = track["role_counts"].get(role, 0) + 1
 
@@ -5937,6 +6173,8 @@ def _stage_table_coverage_rows(
             "stage_end_frame": stage_end.frame_index,
             "stage_start_s": round(float(stage_start.timestamp_s), 3),
             "stage_end_s": round(float(stage_end.timestamp_s), 3),
+            "stage_clip_start_s": round(float(stage_start.clip_timestamp_s), 3),
+            "stage_clip_end_s": round(float(stage_end.clip_timestamp_s), 3),
             "stage_duration_s": round(float(stage_duration_s), 3),
             "stage_room_view_frames": stage_room_view_frames,
             "stage_non_room_view_frames": stage_non_room_view_frames,
@@ -5952,6 +6190,8 @@ def _stage_table_coverage_rows(
             "last_seen_frame": track["last_frame"],
             "first_seen_s": round(float(track["first_s"]), 3),
             "last_seen_s": round(float(track["last_s"]), 3),
+            "first_seen_clip_s": round(float(track["first_clip_s"]), 3),
+            "last_seen_clip_s": round(float(track["last_clip_s"]), 3),
             "coverage_ratio": coverage_ratio,
             "room_coverage_ratio": room_coverage_ratio,
             "estimated_table_duration_s": round(float(estimated_duration_s), 3),

@@ -42,12 +42,28 @@ class FrameMetrics:
 
     frame_index: int
     timestamp_s: float
+    clip_frame_index: Optional[int] = None
+    clip_timestamp_s: Optional[float] = None
     detections: List[Detection] = field(default_factory=list)
     movement_px: float = 0.0
     zone_counts: Dict[str, int] = field(default_factory=dict)
     alert_flags: List[str] = field(default_factory=list)
     view_colorfulness: float = 0.0
     tavr: Optional[Any] = None
+
+    def __post_init__(self) -> None:
+        if self.clip_frame_index is None:
+            self.clip_frame_index = self.frame_index
+        if self.clip_timestamp_s is None:
+            self.clip_timestamp_s = self.timestamp_s
+
+    @property
+    def source_frame_index(self) -> int:
+        return self.frame_index
+
+    @property
+    def source_timestamp_s(self) -> float:
+        return self.timestamp_s
 
     @property
     def people_count(self) -> int:
@@ -68,6 +84,10 @@ class FrameMetrics:
         row = {
             "frame_index": self.frame_index,
             "timestamp_s": round(float(self.timestamp_s), 3),
+            "source_frame_index": self.source_frame_index,
+            "source_timestamp_s": round(float(self.source_timestamp_s), 3),
+            "clip_frame_index": self.clip_frame_index,
+            "clip_timestamp_s": round(float(self.clip_timestamp_s), 3),
             "people_count": self.people_count,
             "active_track_ids": tracks,
             "movement_px": round(float(self.movement_px), 2),
@@ -93,6 +113,10 @@ class TrackingSummary:
     alert_count: int
     dominant_tavr_stage: str = ""
     peak_table_count: int = 0
+    source_start_s: float = 0.0
+    source_end_s: float = 0.0
+    clip_start_s: float = 0.0
+    clip_end_s: float = 0.0
 
     @classmethod
     def from_metrics(cls, metrics: Sequence[FrameMetrics]) -> "TrackingSummary":
@@ -107,13 +131,21 @@ class TrackingSummary:
                 alert_count=0,
                 dominant_tavr_stage="",
                 peak_table_count=0,
+                source_start_s=0.0,
+                source_end_s=0.0,
+                clip_start_s=0.0,
+                clip_end_s=0.0,
             )
 
         counts = [metric.people_count for metric in metrics]
         track_ids = {
             detection.track_id for metric in metrics for detection in metric.detections
         }
-        duration = max(metric.timestamp_s for metric in metrics)
+        source_start_s = min(metric.source_timestamp_s for metric in metrics)
+        source_end_s = max(metric.source_timestamp_s for metric in metrics)
+        clip_start_s = min(float(metric.clip_timestamp_s) for metric in metrics)
+        clip_end_s = max(float(metric.clip_timestamp_s) for metric in metrics)
+        duration = clip_end_s
         movement = sum(metric.movement_px for metric in metrics)
         alert_count = sum(len(metric.alert_flags) for metric in metrics)
         tavr_states = [metric.tavr for metric in metrics if metric.tavr is not None]
@@ -129,6 +161,10 @@ class TrackingSummary:
             alert_count=alert_count,
             dominant_tavr_stage=dominant_tavr_stage,
             peak_table_count=peak_table_count,
+            source_start_s=round(float(source_start_s), 3),
+            source_end_s=round(float(source_end_s), 3),
+            clip_start_s=round(float(clip_start_s), 3),
+            clip_end_s=round(float(clip_end_s), 3),
         )
 
     def to_dict(self) -> Dict[str, object]:
@@ -142,6 +178,10 @@ class TrackingSummary:
             "alert_count": self.alert_count,
             "dominant_tavr_stage": self.dominant_tavr_stage,
             "peak_table_count": self.peak_table_count,
+            "source_start_s": self.source_start_s,
+            "source_end_s": self.source_end_s,
+            "clip_start_s": self.clip_start_s,
+            "clip_end_s": self.clip_end_s,
         }
 
 

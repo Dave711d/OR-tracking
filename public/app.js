@@ -288,6 +288,7 @@ function normalizeEvaluationPayload(payload) {
   return {
     caseName: payload.case || "evaluated_tavr_case",
     scoreSummary: payload.score_summary || {},
+    timebase: payload.timebase || asArray(tavr.timebase_summary)[0] || null,
     status: asArray(tavr.procedure_status_summary)[0] || null,
     packets: asArray(tavr.operator_stage_packet),
     team: asArray(tavr.table_team_summary),
@@ -1271,6 +1272,11 @@ function renderProcedureStatus(status = null, demo = null) {
   );
   appendInfoRow(
     procedureStatus,
+    "Clock",
+    formatClockRange(status, demo?.timebase),
+  );
+  appendInfoRow(
+    procedureStatus,
     "Effective table",
     `${status.effective_table_count ?? 0} staff; ${status.effective_table_source || "source n/a"}`,
   );
@@ -1303,7 +1309,7 @@ function renderBackendOperatorPacket(packets = [], status = null) {
   appendInfoRow(
     operatorPacket,
     packet.is_current_stage ? "Current stage" : "Observed stage",
-    `${packet.stage_label} ${formatSeconds(packet.start_s)}-${formatSeconds(packet.end_s)}`,
+    `${packet.stage_label} ${formatClockRange(packet, status)}`,
     { tone: packet.is_current_stage ? "current" : undefined },
   );
   appendInfoRow(
@@ -1469,7 +1475,7 @@ function renderBackendProcedureEvents(rows = []) {
       : `ID ${row.track_id ?? "n/a"} ${ROLE_LABELS[row.table_team_role] || row.table_team_role || ""}`;
     appendInfoRow(
       eventTimelineList,
-      `${formatSeconds(row.timestamp_s)} ${handoffLabel(row.event_type || "event")}`,
+      `${formatClockPoint(row)} ${handoffLabel(row.event_type || "event")}`,
       `${row.stage_label || row.view || "context"}; ${tableDetail}`,
       { source: row.source_table },
     );
@@ -1674,6 +1680,45 @@ function asArray(value) {
 
 function formatSeconds(value) {
   return value === null || value === undefined ? "n/a" : `${Number(value).toFixed(1)}s`;
+}
+
+function formatClockRange(row = {}, fallback = {}) {
+  const clipStart = firstDefined(row.clip_start_s, row.clip_timestamp_s, fallback?.clip_start_s);
+  const clipEnd = firstDefined(row.clip_end_s, row.clip_timestamp_s, fallback?.clip_end_s);
+  const sourceStart = firstDefined(row.source_start_s, row.start_s, row.timestamp_s, fallback?.source_start_s);
+  const sourceEnd = firstDefined(row.source_end_s, row.end_s, row.timestamp_s, fallback?.source_end_s);
+  const clipLabel = sameClockPoint(clipStart, clipEnd)
+    ? `clip ${formatSeconds(clipStart)}`
+    : `clip ${formatSeconds(clipStart)}-${formatSeconds(clipEnd)}`;
+  if (!clockDiffers(clipStart, sourceStart) && !clockDiffers(clipEnd, sourceEnd)) {
+    return clipLabel;
+  }
+  const sourceLabel = sameClockPoint(sourceStart, sourceEnd)
+    ? `source ${formatSeconds(sourceStart)}`
+    : `source ${formatSeconds(sourceStart)}-${formatSeconds(sourceEnd)}`;
+  return `${clipLabel} / ${sourceLabel}`;
+}
+
+function formatClockPoint(row = {}) {
+  const clip = firstDefined(row.clip_timestamp_s, row.clip_start_s, row.timestamp_s);
+  const source = firstDefined(row.timestamp_s, row.source_timestamp_s, row.source_start_s);
+  if (!clockDiffers(clip, source)) return formatSeconds(clip);
+  return `${formatSeconds(clip)} / src ${formatSeconds(source)}`;
+}
+
+function firstDefined(...values) {
+  return values.find((value) => value !== null && value !== undefined);
+}
+
+function sameClockPoint(first, second) {
+  return first === null || first === undefined || second === null || second === undefined
+    ? false
+    : Math.abs(Number(first) - Number(second)) < 0.05;
+}
+
+function clockDiffers(first, second) {
+  if (first === null || first === undefined || second === null || second === undefined) return false;
+  return Math.abs(Number(first) - Number(second)) >= 0.05;
 }
 
 function formatNumber(value) {

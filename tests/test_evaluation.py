@@ -219,6 +219,49 @@ def test_table_presence_intervals_group_by_track_and_gap() -> None:
     assert intervals[2]["dominant_role"] == "table_operator"
 
 
+def test_score_tavr_metrics_respects_label_timebase() -> None:
+    metrics = [
+        _table_metric(300, 10.0, "access_sheathing", [7]),
+        _table_metric(301, 10.1, "access_sheathing", [7]),
+    ]
+    metrics[0].clip_frame_index = 0
+    metrics[0].clip_timestamp_s = 0.0
+    metrics[1].clip_frame_index = 1
+    metrics[1].clip_timestamp_s = 0.1
+
+    clip_score = score_tavr_metrics(
+        metrics,
+        {
+            "timebase": "clip",
+            "stage_segments": [
+                {"start_s": 0.0, "end_s": 0.1, "stage": "access_sheathing"}
+            ],
+            "table_count_segments": [
+                {"start_s": 0.0, "end_s": 0.1, "min_count": 1}
+            ],
+        },
+    )
+    source_score = score_tavr_metrics(
+        metrics,
+        {
+            "timebase": "source",
+            "stage_segments": [
+                {"start_s": 10.0, "end_s": 10.1, "stage": "access_sheathing"}
+            ],
+            "table_count_segments": [
+                {"start_s": 10.0, "end_s": 10.1, "min_count": 1}
+            ],
+        },
+    )
+
+    assert clip_score["timebase"]["label_timebase"] == "clip"
+    assert clip_score["stage_score"]["accuracy"] == 1.0
+    assert clip_score["table_count_score"]["pass_rate"] == 1.0
+    assert source_score["timebase"]["label_timebase"] == "source"
+    assert source_score["stage_score"]["accuracy"] == 1.0
+    assert source_score["table_count_score"]["pass_rate"] == 1.0
+
+
 def test_stage_table_coverage_splits_tracks_by_stage_segment() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),

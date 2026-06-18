@@ -162,9 +162,12 @@ def _run_analysis(
             roi=roi,
             write_annotated_video=write_video,
             progress_callback=on_progress,
-        )
+    )
     progress.empty()
 
+    tavr_summary = summarize_tavr_metrics(result.metrics)
+    timebase_rows = tavr_summary.get("timebase_summary", [])
+    timebase = timebase_rows[0] if timebase_rows else {}
     summary = result.summary.to_dict()
     metric_cols = st.columns(7)
     metric_cols[0].metric("Frames", summary["frames_processed"])
@@ -174,6 +177,8 @@ def _run_analysis(
     metric_cols[4].metric("Activity", summary["activity_score"])
     metric_cols[5].metric("TAVR stage", summary.get("dominant_tavr_stage") or "n/a")
     metric_cols[6].metric("Peak table", summary.get("peak_table_count", 0))
+    if timebase:
+        st.caption(_timebase_label(timebase))
 
     rows = [metric.to_row() for metric in result.metrics]
     metrics_df = pd.DataFrame(rows)
@@ -188,7 +193,6 @@ def _run_analysis(
         if latest.get("who_at_table"):
             st.success(f"At table now: {latest['who_at_table']}")
 
-    tavr_summary = summarize_tavr_metrics(result.metrics)
     run_stem = result.csv_path.name.replace("_metrics.csv", "")
     tavr_csv_paths = write_tavr_summary_csvs("outputs", run_stem, tavr_summary)
     status_rows = tavr_summary.get("procedure_status_summary", [])
@@ -441,6 +445,8 @@ def _run_analysis(
         display_columns = [
             column
             for column in [
+                "clip_timestamp_s",
+                "source_timestamp_s",
                 "timestamp_s",
                 "people_count",
                 "tavr_stage_label",
@@ -606,6 +612,7 @@ def _procedure_event_rows(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
         rows.append(
             {
                 "timestamp_s": item["timestamp_s"],
+                "clip_timestamp_s": item.get("clip_timestamp_s"),
                 "event_type": item["event_type"],
                 "stage_label": item.get("stage_label") or "n/a",
                 "view": item.get("view") or "n/a",
@@ -648,6 +655,7 @@ def _procedure_status_rows(status_rows: list[dict[str, Any]]) -> list[dict[str, 
                     item.get("effective_table_roster", [])
                 ),
                 "last_observed_table_s": item.get("last_observed_table_s"),
+                "last_observed_clip_s": item.get("last_observed_clip_s"),
                 "last_observed_stage": (
                     item.get("last_observed_stage_label") or "n/a"
                 ),
@@ -704,6 +712,7 @@ def _table_team_rows(team_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "last_observed": _yes_no(item.get("is_last_observed_table_member")),
                 "peak": _yes_no(item.get("is_peak_table_member")),
                 "last_seen_s": item.get("last_seen_s"),
+                "last_seen_clip_s": item.get("last_seen_clip_s"),
                 "age_s": item.get("age_from_clip_end_s"),
                 "table_frames": item.get("table_frames", 0),
                 "table_presence_ratio": item.get("table_presence_ratio"),
@@ -727,6 +736,8 @@ def _table_identity_rows(identity_rows: list[dict[str, Any]]) -> list[dict[str, 
                 "role_confidence": item.get("table_team_role_confidence"),
                 "first_seen_s": item.get("first_seen_s"),
                 "last_seen_s": item.get("last_seen_s"),
+                "first_seen_clip_s": item.get("first_seen_clip_s"),
+                "last_seen_clip_s": item.get("last_seen_clip_s"),
                 "table_frames": item.get("observed_table_frames", 0),
             }
         )
@@ -766,6 +777,27 @@ def _count_label(counts: dict[str, int]) -> str:
     return ", ".join(
         f"{key}:{value}" for key, value in sorted(counts.items()) if value
     )
+
+
+def _timebase_label(timebase: dict[str, Any]) -> str:
+    clip = (
+        f"clip {_seconds_label(timebase.get('clip_start_s'))}-"
+        f"{_seconds_label(timebase.get('clip_end_s'))}"
+    )
+    source = (
+        f"source {_seconds_label(timebase.get('source_start_s'))}-"
+        f"{_seconds_label(timebase.get('source_end_s'))}"
+    )
+    return (
+        f"Clock: {clip}; {source}; "
+        f"offset {_seconds_label(timebase.get('source_offset_s'))}"
+    )
+
+
+def _seconds_label(value: Any) -> str:
+    if value is None:
+        return "n/a"
+    return f"{float(value):.1f}s"
 
 
 def _yes_no(value: Any) -> str:
