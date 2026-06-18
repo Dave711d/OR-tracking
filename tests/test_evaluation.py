@@ -450,10 +450,21 @@ def test_procedure_event_timeline_combines_stage_view_handoff_and_peak() -> None
         and event["table_count"] == 2
         for event in events
     )
+    deployment_start = next(
+        event
+        for event in events
+        if event["event_type"] == "stage_started"
+        and event["stage"] == "valve_deployment"
+    )
+    assert deployment_start["table_canonical_ids"] == [1]
+    assert deployment_start["roster"][0]["canonical_table_id"] == 1
+    assert deployment_start["roster"][0]["label"].startswith("Person 1:")
+    assert "people Person 1" in deployment_start["label"]
     assert any(
         event["event_type"] == "table_peak"
         and event["stage"] == "valve_deployment"
         and event["table_count"] == 2
+        and event["table_canonical_ids"] == [1, 2]
         for event in events
     )
 
@@ -874,6 +885,7 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
                     "role": "table_operator",
                     "handoff_type": "initial_table_roster",
                     "min_tracks": 1,
+                    "required_table_canonical_ids": [1],
                 }
             ],
         },
@@ -894,8 +906,11 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
     )
     assert handoff_event["dominant_role"] == "imaging"
     assert handoff_event["table_team_role"] == "table_operator"
+    assert handoff_event["canonical_table_id"] == 1
+    assert handoff_event["table_canonical_ids"] == [1]
     assert handoff_event["roster"][0]["dominant_role"] == "imaging"
     assert handoff_event["roster"][0]["table_team_role"] == "table_operator"
+    assert handoff_event["roster"][0]["canonical_table_id"] == 1
 
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_table_coverage_score"]["pass_rate"] == 1.0
@@ -1355,6 +1370,8 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "event_type" in event_csv
     assert "table_handoff" in event_csv
     assert "table_team_role" in event_csv
+    assert "canonical_table_id" in event_csv
+    assert "table_canonical_ids" in event_csv
     assert "snapshot_type" in snapshots_csv
     assert "canonical_table_id" in snapshots_csv
     assert "merged_track_ids" in snapshots_csv

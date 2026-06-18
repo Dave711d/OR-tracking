@@ -316,6 +316,11 @@ The label file can include:
   counts, continued/new/dropped table identities, tracking and observable
   rates, mean confidence, effective table source, required or forbidden quality
   flags, and required or forbidden packet text fragments.
+- `event_timeline_expectations`: expected operator timeline events for stage
+  starts, view changes, table handoffs, and table peaks. Expectations can
+  constrain event type, stage, view, handoff type, timing, tracking
+  availability, table count, matching role, and required canonical table-person
+  IDs via `required_table_canonical_ids`.
 - `table_team_expectations`: expected table-team rows, such as requiring no
   tracks in fluoroscopy-only clips, requiring a `recent_last_observed` row from
   the last room-view roster, requiring an `active_current` row in a live room

@@ -414,11 +414,13 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "tracking_available",
         "table_count",
         "track_id",
+        "canonical_table_id",
         "dominant_role",
         "table_team_role",
         "table_team_role_confidence",
         "handoff_type",
         "table_track_ids",
+        "table_canonical_ids",
         "roster",
         "source",
         "label",
@@ -1899,9 +1901,12 @@ def procedure_event_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     if not metrics:
         return []
 
+    identity_map, _ = _table_identity_map(metrics)
     events: List[Dict[str, Any]] = []
     for segment_index, segment_metrics in enumerate(_stage_metric_segments(metrics)):
-        events.append(_stage_started_event(segment_index, segment_metrics))
+        events.append(
+            _stage_started_event(segment_index, segment_metrics, identity_map)
+        )
 
     metrics_by_frame = {metric.frame_index: metric for metric in metrics}
     for view_segment in view_segments(metrics):
@@ -1914,6 +1919,7 @@ def procedure_event_timeline(metrics: Sequence[FrameMetrics]) -> List[Dict[str, 
     for stage_segment in tavr_stage_timeline(metrics):
         peak = stage_segment.get("peak_table_roster", {})
         if peak.get("table_count", 0) > 0:
+            peak = _enrich_table_snapshot_identities(peak, identity_map)
             events.append(_table_peak_event(peak))
 
     event_order = {
@@ -3094,6 +3100,7 @@ def _stage_evidence_level(
 def _stage_started_event(
     segment_index: int,
     segment_metrics: Sequence[FrameMetrics],
+    identity_map: Dict[int, Dict[str, Any]],
 ) -> Dict[str, Any]:
     start_metric = segment_metrics[0]
     end_metric = segment_metrics[-1]
@@ -3103,7 +3110,9 @@ def _stage_started_event(
         0.0,
         end_metric.timestamp_s - start_metric.timestamp_s + sample_period_s,
     )
-    roster = _roster_from_state(state)
+    roster = _enrich_roster_identities(_roster_from_state(state), identity_map)
+    lead = roster[0] if roster else None
+    canonical_ids = _canonical_table_ids_from_roster(roster)
     return {
         "event_type": "stage_started",
         "timestamp_s": round(float(start_metric.timestamp_s), 3),
@@ -3117,17 +3126,21 @@ def _stage_started_event(
         "view": _view_label(start_metric),
         "tracking_available": _view_label(start_metric) == "room",
         "table_count": state.table_count,
-        "track_id": None,
-        "dominant_role": None,
-        "table_team_role": None,
-        "table_team_role_confidence": None,
+        "track_id": lead.get("track_id") if lead else None,
+        "canonical_table_id": lead.get("canonical_table_id") if lead else None,
+        "dominant_role": lead.get("dominant_role") if lead else None,
+        "table_team_role": lead.get("table_team_role") if lead else None,
+        "table_team_role_confidence": (
+            lead.get("table_team_role_confidence") if lead else None
+        ),
         "handoff_type": None,
         "table_track_ids": list(state.table_track_ids),
+        "table_canonical_ids": canonical_ids,
         "roster": roster,
         "source": "stage_timeline",
         "label": (
             f"{start_metric.clip_timestamp_s:.1f}s stage started: "
-            f"{state.stage_label}"
+            f"{state.stage_label}; people {_person_ids_text(canonical_ids)}"
         ),
     }
 
@@ -3157,11 +3170,13 @@ def _view_started_event(
         "tracking_available": view_segment["tracking_available"],
         "table_count": view_segment["peak_table_count"],
         "track_id": None,
+        "canonical_table_id": None,
         "dominant_role": None,
         "table_team_role": None,
         "table_team_role_confidence": None,
         "handoff_type": None,
         "table_track_ids": [],
+        "table_canonical_ids": [],
         "roster": [],
         "source": "view_segments",
         "label": (
@@ -3187,6 +3202,7 @@ def _handoff_event(handoff: Dict[str, Any]) -> Dict[str, Any]:
         "tracking_available": bool(handoff["tracking_available_rate"]),
         "table_count": handoff["active_table_track_count"],
         "track_id": lead_track_id,
+        "canonical_table_id": handoff.get("lead_canonical_table_id"),
         "dominant_role": handoff.get("lead_dominant_role"),
         "table_team_role": handoff.get("lead_table_team_role"),
         "table_team_role_confidence": handoff.get("lead_table_team_role_confidence"),
@@ -3194,6 +3210,7 @@ def _handoff_event(handoff: Dict[str, Any]) -> Dict[str, Any]:
         "table_track_ids": [
             item["track_id"] for item in handoff["active_table_roster"]
         ],
+        "table_canonical_ids": handoff.get("active_table_canonical_ids", []),
         "roster": handoff["active_table_roster"],
         "source": "stage_handoff_summary",
         "label": handoff["label"],
@@ -3217,6 +3234,7 @@ def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
         "tracking_available": True,
         "table_count": peak.get("table_count", 0),
         "track_id": lead.get("track_id") if lead else None,
+        "canonical_table_id": lead.get("canonical_table_id") if lead else None,
         "dominant_role": lead.get("dominant_role") if lead else None,
         "table_team_role": lead.get("table_team_role") if lead else None,
         "table_team_role_confidence": (
@@ -3224,6 +3242,7 @@ def _table_peak_event(peak: Dict[str, Any]) -> Dict[str, Any]:
         ),
         "handoff_type": None,
         "table_track_ids": [item["track_id"] for item in roster],
+        "table_canonical_ids": _canonical_table_ids_from_roster(roster),
         "roster": roster,
         "source": "peak_table_roster",
         "label": (
@@ -3384,7 +3403,8 @@ def _table_transition_event(
         "observed_table_frames": coverage["observed_table_frames"],
         "label": (
             f"{(coverage['first_seen_clip_s'] if is_entry else coverage['last_seen_clip_s']):.1f}s "
-            f"{event_type}: ID {coverage['track_id']} "
+            f"{event_type}: Person {coverage['canonical_table_id']} "
+            f"(ID {coverage['track_id']}) "
             f"{coverage['table_team_role']} during {coverage['stage_label']}"
         ),
     }
@@ -6046,6 +6066,20 @@ def _score_event_candidate(
     min_table_count = expectation.get("min_table_count")
     max_table_count = expectation.get("max_table_count")
     tracking_available = expectation.get("tracking_available")
+    required_canonical_ids = {
+        int(value)
+        for value in expectation.get(
+            "required_table_canonical_ids",
+            expectation.get("required_canonical_table_ids", []),
+        )
+    }
+    event_canonical_ids = set(
+        int(value)
+        for value in event.get(
+            "table_canonical_ids",
+            _canonical_table_ids_from_roster(event.get("roster", [])),
+        )
+    )
     roster_matches = _roster_role_matches(event.get("roster", []), role, dominant_role)
     checks = {
         "min_tracks": len(roster_matches) >= min_tracks,
@@ -6061,6 +6095,9 @@ def _score_event_candidate(
             tracking_available is None
             or bool(event.get("tracking_available")) == bool(tracking_available)
         ),
+        "required_table_canonical_ids": required_canonical_ids.issubset(
+            event_canonical_ids
+        ),
     }
     return {
         "event_type": event["event_type"],
@@ -6072,6 +6109,8 @@ def _score_event_candidate(
         "handoff_type": event.get("handoff_type"),
         "table_count": event.get("table_count", 0),
         "track_id": event.get("track_id"),
+        "canonical_table_id": event.get("canonical_table_id"),
+        "table_canonical_ids": event.get("table_canonical_ids", []),
         "dominant_role": event.get("dominant_role"),
         "table_team_role": event.get("table_team_role"),
         "table_team_role_confidence": event.get("table_team_role_confidence"),

@@ -294,6 +294,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
             "canonical_table_id" in row
             for row in tavr["stage_table_coverage"]
         )
+        assert all(
+            "table_canonical_ids" in row
+            for row in tavr["procedure_event_timeline"]
+        )
         assert event_count >= demo["min_events"]
 
     strong_payload = load_public_demo_payload("sentara-1800-evaluation.json")
@@ -301,6 +305,16 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert any(len(row["merged_track_ids"]) > 1 for row in strong_identities)
     strong_rosters = strong_payload["tavr"]["stage_roster_summary"]
     assert any(8 in row["active_table_canonical_ids"] for row in strong_rosters)
+    fallback_payload = load_public_demo_payload(
+        "sentara-900-static-fallback-evaluation.json"
+    )
+    stage_start = next(
+        row
+        for row in fallback_payload["tavr"]["procedure_event_timeline"]
+        if row["event_type"] == "stage_started"
+    )
+    assert stage_start["table_canonical_ids"] == [1, 2]
+    assert "Person 1" in stage_start["roster"][0]["label"]
 
 
 def test_static_demo_loads_backend_evaluation_replay() -> None:
