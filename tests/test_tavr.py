@@ -109,6 +109,41 @@ def test_tavr_workflow_remembers_track_role_history() -> None:
     assert "7:table_operator:frames=3" in row["track_role_summary"]
 
 
+def test_tavr_workflow_keeps_separate_recent_table_roster_for_dropouts() -> None:
+    analyzer = TAVRWorkflowAnalyzer(min_stage_frames=0, recent_table_hold_frames=2)
+    detection = Detection(7, (10, 10, 20, 40), (20, 30), 700)
+
+    current = analyzer.update(
+        [detection],
+        {"table": 1},
+        [7],
+        {"table_operator": [7]},
+        0,
+        10,
+    )
+    dropped = analyzer.update([], {}, [], {}, 1, 0)
+    reappeared_away = analyzer.update(
+        [detection],
+        {"entry": 1},
+        [],
+        {"entry_supply": [7]},
+        2,
+        10,
+    )
+    aged_out = analyzer.update([], {}, [], {}, 5, 0)
+
+    assert current.table_track_ids == [7]
+    assert current.recent_table_track_ids == [7]
+    assert dropped.table_track_ids == []
+    assert dropped.recent_table_track_ids == [7]
+    assert dropped.to_row_fields()["who_at_table"] == ""
+    assert dropped.to_row_fields()["recent_who_at_table"] == (
+        "ID 7 table_operator table=100%"
+    )
+    assert reappeared_away.recent_table_track_ids == []
+    assert aged_out.recent_table_track_ids == []
+
+
 def test_tavr_workflow_can_start_from_seeded_stage() -> None:
     analyzer = TAVRWorkflowAnalyzer(
         initial_stage="valve_deployment",

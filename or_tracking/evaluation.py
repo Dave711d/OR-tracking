@@ -4647,7 +4647,22 @@ def _roster_snapshot_score(
         snapshot_type = str(expectation.get("snapshot_type", "last_observed"))
         role = expectation.get("role")
         dominant_role = expectation.get("dominant_role")
-        min_tracks = int(expectation.get("min_tracks", 1))
+        expected_canonical_ids = _expected_int_set(
+            expectation,
+            "expected_canonical_table_ids",
+            "expected_table_canonical_ids",
+        )
+        required_canonical_ids = _expected_int_set(
+            expectation,
+            "required_canonical_table_ids",
+            "required_table_canonical_ids",
+        ) or set()
+        min_tracks = int(
+            expectation.get(
+                "min_tracks",
+                0 if expected_canonical_ids == set() else 1,
+            )
+        )
         min_table_count = expectation.get("min_table_count")
         max_age_from_clip_end_s = expectation.get("max_age_from_clip_end_s")
         snapshot_matches = [
@@ -4655,6 +4670,11 @@ def _roster_snapshot_score(
             for row in snapshot_rows
             if row["snapshot_type"] == snapshot_type
         ]
+        snapshot_canonical_ids = {
+            int(row["canonical_table_id"])
+            for row in snapshot_matches
+            if row.get("canonical_table_id") is not None
+        }
         role_matches = [
             row
             for row in snapshot_matches
@@ -4675,6 +4695,13 @@ def _roster_snapshot_score(
             "min_tracks": len(role_matches) >= min_tracks,
             "min_table_count": (
                 min_table_count is None or table_count >= int(min_table_count)
+            ),
+            "required_canonical_table_ids": required_canonical_ids.issubset(
+                snapshot_canonical_ids
+            ),
+            "expected_canonical_table_ids": (
+                expected_canonical_ids is None
+                or snapshot_canonical_ids == expected_canonical_ids
             ),
             "max_age_from_clip_end_s": (
                 max_age_from_clip_end_s is None
@@ -4698,6 +4725,12 @@ def _roster_snapshot_score(
                 "matched_rows": role_matches,
                 "matched_count": len(role_matches),
                 "table_count": table_count,
+                "canonical_table_ids": sorted(snapshot_canonical_ids),
+                "expected_canonical_table_ids": (
+                    sorted(expected_canonical_ids)
+                    if expected_canonical_ids is not None
+                    else None
+                ),
                 "age_from_clip_end_s": (
                     round(age_from_clip_end_s, 3)
                     if age_from_clip_end_s is not None
@@ -4761,6 +4794,16 @@ def _expected_text_fragments(values: Any) -> List[str]:
     if isinstance(values, str):
         return [values]
     return [str(value) for value in values]
+
+
+def _expected_int_set(
+    expectation: Dict[str, Any],
+    *keys: str,
+) -> Optional[set[int]]:
+    for key in keys:
+        if key in expectation:
+            return {int(value) for value in expectation.get(key, [])}
+    return None
 
 
 def _operator_snapshot_status_expectation(
@@ -5581,6 +5624,22 @@ def _score_procedure_status_candidate(
         int(value)
         for value in expectation.get("required_peak_canonical_table_ids", [])
     }
+    expected_current_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_current_canonical_table_ids",
+    )
+    expected_effective_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_effective_canonical_table_ids",
+    )
+    expected_last_observed_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_last_observed_canonical_table_ids",
+    )
+    expected_peak_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_peak_canonical_table_ids",
+    )
     required_quality_flags = set(expectation.get("required_quality_flags", []))
     forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
     actual_quality_flags = set(row.get("quality_flag_codes", []))
@@ -5715,6 +5774,22 @@ def _score_procedure_status_candidate(
         "required_peak_canonical_table_ids": (
             required_peak_canonical_ids.issubset(peak_canonical_ids)
         ),
+        "expected_current_canonical_table_ids": (
+            expected_current_canonical_ids is None
+            or current_canonical_ids == expected_current_canonical_ids
+        ),
+        "expected_effective_canonical_table_ids": (
+            expected_effective_canonical_ids is None
+            or effective_canonical_ids == expected_effective_canonical_ids
+        ),
+        "expected_last_observed_canonical_table_ids": (
+            expected_last_observed_canonical_ids is None
+            or last_observed_canonical_ids == expected_last_observed_canonical_ids
+        ),
+        "expected_peak_canonical_table_ids": (
+            expected_peak_canonical_ids is None
+            or peak_canonical_ids == expected_peak_canonical_ids
+        ),
         "required_quality_flags": required_quality_flags.issubset(
             actual_quality_flags
         ),
@@ -5740,16 +5815,36 @@ def _score_procedure_status_candidate(
         "mean_confidence": row["mean_confidence"],
         "current_table_count": row["current_table_count"],
         "current_table_canonical_ids": row["current_table_canonical_ids"],
+        "expected_current_canonical_table_ids": (
+            sorted(expected_current_canonical_ids)
+            if expected_current_canonical_ids is not None
+            else None
+        ),
         "last_observed_table_count": row["last_observed_table_count"],
         "last_observed_table_canonical_ids": row[
             "last_observed_table_canonical_ids"
         ],
+        "expected_last_observed_canonical_table_ids": (
+            sorted(expected_last_observed_canonical_ids)
+            if expected_last_observed_canonical_ids is not None
+            else None
+        ),
         "last_observed_age_from_clip_end_s": row[
             "last_observed_age_from_clip_end_s"
         ],
         "peak_table_count": row["peak_table_count"],
         "peak_table_canonical_ids": row["peak_table_canonical_ids"],
+        "expected_peak_canonical_table_ids": (
+            sorted(expected_peak_canonical_ids)
+            if expected_peak_canonical_ids is not None
+            else None
+        ),
         "effective_table_canonical_ids": row["effective_table_canonical_ids"],
+        "expected_effective_canonical_table_ids": (
+            sorted(expected_effective_canonical_ids)
+            if expected_effective_canonical_ids is not None
+            else None
+        ),
         "quality_flag_codes": row["quality_flag_codes"],
         "operator_summary": row["operator_summary"],
         "checks": checks,
@@ -5810,6 +5905,14 @@ def _score_operator_packet_candidate(
         int(value)
         for value in expectation.get("required_effective_canonical_table_ids", [])
     }
+    expected_active_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_active_canonical_table_ids",
+    )
+    expected_effective_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_effective_canonical_table_ids",
+    )
     required_quality_flags = set(expectation.get("required_quality_flags", []))
     forbidden_quality_flags = set(expectation.get("forbidden_quality_flags", []))
     actual_quality_flags = set(row.get("quality_flag_codes", []))
@@ -5958,6 +6061,14 @@ def _score_operator_packet_candidate(
         "required_effective_canonical_table_ids": (
             required_effective_canonical_ids.issubset(effective_canonical_ids)
         ),
+        "expected_active_canonical_table_ids": (
+            expected_active_canonical_ids is None
+            or active_canonical_ids == expected_active_canonical_ids
+        ),
+        "expected_effective_canonical_table_ids": (
+            expected_effective_canonical_ids is None
+            or effective_canonical_ids == expected_effective_canonical_ids
+        ),
         "required_quality_flags": required_quality_flags.issubset(
             actual_quality_flags
         ),
@@ -5994,9 +6105,19 @@ def _score_operator_packet_candidate(
         "active_table_track_ids": row.get("active_table_track_ids", []),
         "effective_table_track_ids": row.get("effective_table_track_ids", []),
         "active_table_canonical_ids": row.get("active_table_canonical_ids", []),
+        "expected_active_canonical_table_ids": (
+            sorted(expected_active_canonical_ids)
+            if expected_active_canonical_ids is not None
+            else None
+        ),
         "effective_table_canonical_ids": row.get(
             "effective_table_canonical_ids",
             [],
+        ),
+        "expected_effective_canonical_table_ids": (
+            sorted(expected_effective_canonical_ids)
+            if expected_effective_canonical_ids is not None
+            else None
         ),
         "new_track_ids": row.get("new_track_ids", []),
         "dropped_track_ids": row.get("dropped_track_ids", []),

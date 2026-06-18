@@ -189,6 +189,8 @@ def write_metrics_csv(path: str | Path, metrics: List[FrameMetrics]) -> None:
         "table_count",
         "table_track_ids",
         "who_at_table",
+        "recent_table_track_ids",
+        "recent_who_at_table",
         "role_counts",
         "role_track_ids",
         "track_role_summary",

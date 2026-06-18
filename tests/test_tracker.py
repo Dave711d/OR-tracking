@@ -283,6 +283,8 @@ def test_tavr_synthetic_footage_produces_ordered_stage_trace(tmp_path: Path) -> 
     assert "tavr_stage_label" in csv_text
     assert "table_track_ids" in csv_text
     assert "who_at_table" in csv_text
+    assert "recent_table_track_ids" in csv_text
+    assert "recent_who_at_table" in csv_text
     assert "role_counts" in csv_text
     assert "role_track_ids" in csv_text
     assert "track_role_summary" in csv_text

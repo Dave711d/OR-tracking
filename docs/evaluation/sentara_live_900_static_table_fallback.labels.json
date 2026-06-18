@@ -256,12 +256,28 @@
         2,
         3
       ],
+      "expected_current_canonical_table_ids": [],
+      "expected_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_last_observed_canonical_table_ids": [
         1,
         2,
         3
       ],
+      "expected_last_observed_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_peak_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_peak_canonical_table_ids": [
         1,
         2,
         3
@@ -299,12 +315,28 @@
         2,
         3
       ],
+      "expected_current_canonical_table_ids": [],
+      "expected_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_last_observed_canonical_table_ids": [
         1,
         2,
         3
       ],
+      "expected_last_observed_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_peak_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_peak_canonical_table_ids": [
         1,
         2,
         3
@@ -377,6 +409,16 @@
         2,
         3
       ],
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
+      "expected_effective_canonical_table_ids": [
+        1,
+        2,
+        3
+      ],
       "required_quality_flags": [
         "low_stage_confidence",
         "non_room_view"
@@ -444,14 +486,24 @@
       "role": "table_operator",
       "min_tracks": 3,
       "min_table_count": 3,
-      "max_age_from_clip_end_s": 30.0
+      "max_age_from_clip_end_s": 30.0,
+      "expected_canonical_table_ids": [
+        1,
+        2,
+        3
+      ]
     },
     {
       "snapshot_type": "peak",
       "role": "table_operator",
       "min_tracks": 3,
       "min_table_count": 3,
-      "max_age_from_clip_end_s": 30.0
+      "max_age_from_clip_end_s": 30.0,
+      "expected_canonical_table_ids": [
+        1,
+        2,
+        3
+      ]
     }
   ],
   "quality_flag_expectations": [

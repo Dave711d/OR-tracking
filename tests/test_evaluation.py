@@ -736,6 +736,101 @@ def test_operator_snapshot_score_combines_stage_table_and_canonical_people() -> 
     assert candidate["checks"]["required_current_canonical_table_ids"] is True
 
 
+def test_exact_procedure_status_canonical_people_rejects_extra_people() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+    ]
+    actual_ids = procedure_status_summary(metrics)[0]["current_table_canonical_ids"]
+    assert len(actual_ids) == 2
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "procedure_status_expectations": [
+                {
+                    "current_stage": "valve_deployment",
+                    "required_current_canonical_table_ids": [actual_ids[0]],
+                    "expected_current_canonical_table_ids": [actual_ids[0]],
+                }
+            ]
+        },
+    )
+
+    expectation = score["procedure_status_score"]["expectations"][0]
+    candidate = expectation["matched_candidates"][0]
+    assert score["procedure_status_score"]["pass_rate"] == 0.0
+    assert candidate["checks"]["required_current_canonical_table_ids"] is True
+    assert candidate["checks"]["expected_current_canonical_table_ids"] is False
+    assert candidate["current_table_canonical_ids"] == actual_ids
+    assert candidate["expected_current_canonical_table_ids"] == [actual_ids[0]]
+
+
+def test_exact_operator_packet_canonical_people_rejects_extra_people() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+    ]
+    actual_ids = operator_stage_packet(metrics)[0]["active_table_canonical_ids"]
+    assert len(actual_ids) == 2
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "operator_packet_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "required_active_canonical_table_ids": [actual_ids[0]],
+                    "expected_active_canonical_table_ids": [actual_ids[0]],
+                }
+            ]
+        },
+    )
+
+    expectation = score["operator_packet_score"]["expectations"][0]
+    candidate = expectation["matched_candidates"][0]
+    assert score["operator_packet_score"]["pass_rate"] == 0.0
+    assert candidate["checks"]["required_active_canonical_table_ids"] is True
+    assert candidate["checks"]["expected_active_canonical_table_ids"] is False
+    assert candidate["active_table_canonical_ids"] == actual_ids
+    assert candidate["expected_active_canonical_table_ids"] == [actual_ids[0]]
+
+
+def test_exact_roster_snapshot_canonical_people_rejects_extra_people() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7, 8]),
+        _table_metric(1, 0.1, "valve_deployment", [7, 8]),
+    ]
+    actual_ids = sorted(
+        {
+            row["canonical_table_id"]
+            for row in summarize_tavr_metrics(metrics)["table_roster_snapshots"]
+            if row["snapshot_type"] == "current"
+        }
+    )
+    assert len(actual_ids) == 2
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "roster_snapshot_expectations": [
+                {
+                    "snapshot_type": "current",
+                    "required_canonical_table_ids": [actual_ids[0]],
+                    "expected_canonical_table_ids": [actual_ids[0]],
+                }
+            ]
+        },
+    )
+
+    expectation = score["roster_snapshot_score"]["expectations"][0]
+    assert score["roster_snapshot_score"]["pass_rate"] == 0.0
+    assert expectation["checks"]["required_canonical_table_ids"] is True
+    assert expectation["checks"]["expected_canonical_table_ids"] is False
+    assert expectation["canonical_table_ids"] == actual_ids
+    assert expectation["expected_canonical_table_ids"] == [actual_ids[0]]
+
+
 def test_operator_status_snapshots_capture_critical_replay_points() -> None:
     metrics = [
         _table_metric(0, 0.0, "access_sheathing", [7]),

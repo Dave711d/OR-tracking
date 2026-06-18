@@ -215,8 +215,13 @@ For TAVR runs, CSV rows include `tavr_stage`, `tavr_stage_label`,
 `tavr_confidence`, `table_count`, `table_track_ids`, `role_counts`,
 `view_colorfulness`, and `tavr_signals`. The role/roster layer also emits
 `who_at_table`,
-`role_track_ids`, and `track_role_summary` so a test run can be audited by track
-ID rather than only by frame-level counts.
+`recent_table_track_ids`, `recent_who_at_table`, `role_track_ids`, and
+`track_role_summary` so a test run can be audited by track ID rather than only
+by frame-level counts. `who_at_table` is the fresh current-frame sighting;
+`recent_who_at_table` is a short visual hold for people who were just seen at
+the table and have not yet reappeared elsewhere, which makes brief occlusions
+and motion-tracker dropouts easier to audit without inflating the current table
+count.
 
 Broadcast footage can switch the ROI from room camera to fluoroscopy. Frames
 that look like non-room / fluoroscopy views are flagged as `non_room_view`, and

@@ -247,6 +247,19 @@
       "min_last_observed_table_count": 1,
       "max_last_observed_age_from_clip_end_s": 18.0,
       "min_peak_table_count": 4,
+      "expected_current_canonical_table_ids": [],
+      "expected_effective_canonical_table_ids": [
+        9
+      ],
+      "expected_last_observed_canonical_table_ids": [
+        9
+      ],
+      "expected_peak_canonical_table_ids": [
+        1,
+        3,
+        5,
+        6
+      ],
       "required_quality_flags": [
         "rapid_stage_progression",
         "early_terminal_stage",
@@ -273,12 +286,28 @@
         3,
         6
       ],
+      "expected_current_canonical_table_ids": [
+        1,
+        3,
+        6
+      ],
       "required_effective_canonical_table_ids": [
         1,
         3,
         6
       ],
+      "expected_effective_canonical_table_ids": [
+        1,
+        3,
+        6
+      ],
       "required_peak_canonical_table_ids": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "expected_peak_canonical_table_ids": [
         1,
         3,
         4,
@@ -301,10 +330,23 @@
       "required_effective_canonical_table_ids": [
         9
       ],
+      "expected_current_canonical_table_ids": [],
+      "expected_effective_canonical_table_ids": [
+        9
+      ],
       "required_last_observed_canonical_table_ids": [
         9
       ],
+      "expected_last_observed_canonical_table_ids": [
+        9
+      ],
       "required_peak_canonical_table_ids": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "expected_peak_canonical_table_ids": [
         1,
         3,
         5,
@@ -339,6 +381,20 @@
         "early_terminal_stage",
         "low_stage_confidence",
         "non_room_view"
+      ],
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "expected_effective_canonical_table_ids": [
+        9
       ],
       "required_packet_text": [
         "Current stage: Closure / finish",
@@ -408,7 +464,10 @@
       "role": "table_operator",
       "min_tracks": 1,
       "min_table_count": 1,
-      "max_age_from_clip_end_s": 18.0
+      "max_age_from_clip_end_s": 18.0,
+      "expected_canonical_table_ids": [
+        9
+      ]
     }
   ],
   "quality_flag_expectations": [

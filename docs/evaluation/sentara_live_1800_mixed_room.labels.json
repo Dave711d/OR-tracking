@@ -209,8 +209,22 @@
         8,
         10
       ],
+      "expected_current_canonical_table_ids": [],
+      "expected_effective_canonical_table_ids": [
+        8,
+        10
+      ],
       "required_last_observed_canonical_table_ids": [
         8,
+        10
+      ],
+      "expected_last_observed_canonical_table_ids": [
+        8,
+        10
+      ],
+      "expected_peak_canonical_table_ids": [
+        8,
+        9,
         10
       ],
       "required_quality_flags": [
@@ -235,10 +249,21 @@
       "required_current_canonical_table_ids": [
         10
       ],
+      "expected_current_canonical_table_ids": [
+        10
+      ],
       "required_effective_canonical_table_ids": [
         10
       ],
+      "expected_effective_canonical_table_ids": [
+        10
+      ],
       "required_peak_canonical_table_ids": [
+        8,
+        9,
+        10
+      ],
+      "expected_peak_canonical_table_ids": [
         8,
         9,
         10
@@ -261,11 +286,25 @@
         8,
         10
       ],
+      "expected_current_canonical_table_ids": [],
+      "expected_effective_canonical_table_ids": [
+        8,
+        10
+      ],
       "required_last_observed_canonical_table_ids": [
         8,
         10
       ],
+      "expected_last_observed_canonical_table_ids": [
+        8,
+        10
+      ],
       "required_peak_canonical_table_ids": [
+        8,
+        9,
+        10
+      ],
+      "expected_peak_canonical_table_ids": [
         8,
         9,
         10
@@ -291,6 +330,22 @@
       "min_mean_confidence": 0.5,
       "min_effective_table_count": 2,
       "required_effective_canonical_table_ids": [
+        8,
+        10
+      ],
+      "expected_active_canonical_table_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "expected_effective_canonical_table_ids": [
         8,
         10
       ],
@@ -371,7 +426,11 @@
       "role": "table_operator",
       "min_tracks": 1,
       "min_table_count": 1,
-      "max_age_from_clip_end_s": 5.0
+      "max_age_from_clip_end_s": 5.0,
+      "expected_canonical_table_ids": [
+        8,
+        10
+      ]
     }
   ],
   "quality_flag_expectations": [

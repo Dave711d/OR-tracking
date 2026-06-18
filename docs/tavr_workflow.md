@@ -64,6 +64,11 @@ The current model uses deterministic room-video heuristics:
 - Persistent role history per track, so "who is at the table" is reported as
   stable track IDs with dominant role and table-presence ratio rather than only
   a transient frame count.
+- A short recent-table hold that keeps a separate `recent_who_at_table` audit
+  field when a table-side person briefly disappears behind an occlusion or a
+  motion-tracking dropout. The fresh `who_at_table` / `table_count` fields stay
+  current-frame only; the recent field is explicitly stale evidence and is
+  cleared as soon as that track reappears away from the table or ages out.
 - A colorfulness guardrail for broadcast ROIs that switch to fluoroscopy or
   other non-room views. Those frames are flagged as `non_room_view`, and
   staff/table detections are suppressed so imaging motion does not become a
@@ -314,7 +319,8 @@ The label file can include:
   source/count/freshness, evidence level, observable rate, mean confidence,
   current table count, last-observed table count/freshness, peak table count,
   required current/effective/last-observed/peak canonical table-person IDs, and
-  required or forbidden quality flags.
+  exact current/effective/last-observed/peak canonical table-person ID sets via
+  `expected_*_canonical_table_ids`, plus required or forbidden quality flags.
 - `operator_snapshot_expectations`: expected timestamped operator status
   snapshots for the combined question "what stage is underway, and who is at the
   table?" Labels can use `timestamp_s` / `at_s` with `tolerance_s`, or a
@@ -326,8 +332,11 @@ The label file can include:
   including stage/current-vs-prior status, stage evidence status, next stage,
   handoff type, evidence level, lead role, active/canonical/effective table
   counts, continued/new/dropped table identities, tracking and observable
-  rates, mean confidence, effective table source, required or forbidden quality
-  flags, and required or forbidden packet text fragments.
+  rates, mean confidence, effective table source, required active/effective
+  canonical table IDs, exact active/effective canonical table ID sets via
+  `expected_active_canonical_table_ids` and
+  `expected_effective_canonical_table_ids`, required or forbidden quality flags,
+  and required or forbidden packet text fragments.
 - `event_timeline_expectations`: expected operator timeline events for stage
   starts, view changes, table handoffs, and table peaks. Expectations can
   constrain event type, stage, view, handoff type, timing, tracking
@@ -357,7 +366,9 @@ The label file can include:
   raw dominant role, and minimum matching roster tracks.
 - `roster_snapshot_expectations`: expected current, last-observed, or peak
   roster snapshots, such as requiring at least one table-operator track in the
-  last-observed room-view table roster.
+  last-observed room-view table roster. Use `expected_canonical_table_ids` when
+  the label should fail on extra invented table people rather than only proving
+  that required people were present.
 - `quality_flag_expectations`: expected quality flags, such as requiring
   `non_room_view` and `low_stage_confidence` to cover a fluoroscopy-only ROI.
 

@@ -65,6 +65,7 @@ class MotionTrackerConfig:
     tavr_min_confidence_to_advance: float = 0.42
     tavr_advance_margin: float = 0.06
     tavr_min_stage_frames: int = 30
+    tavr_recent_table_hold_frames: int = 12
 
 
 @dataclass
@@ -194,6 +195,7 @@ class ORActivityTracker:
                 min_confidence_to_advance=self.config.tavr_min_confidence_to_advance,
                 advance_margin=self.config.tavr_advance_margin,
                 min_stage_frames=self.config.tavr_min_stage_frames,
+                recent_table_hold_frames=self.config.tavr_recent_table_hold_frames,
             )
             if self.config.enable_tavr
             else None

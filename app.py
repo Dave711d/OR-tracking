@@ -192,6 +192,12 @@ def _run_analysis(
         )
         if latest.get("who_at_table"):
             st.success(f"At table now: {latest['who_at_table']}")
+        elif latest.get("recent_who_at_table"):
+            st.warning(
+                "Recently at table: "
+                f"{latest['recent_who_at_table']} "
+                "(brief visual hold; current frame is not a fresh table sighting)"
+            )
 
     run_stem = result.csv_path.name.replace("_metrics.csv", "")
     tavr_csv_paths = write_tavr_summary_csvs("outputs", run_stem, tavr_summary)
@@ -454,6 +460,8 @@ def _run_analysis(
                 "table_count",
                 "table_track_ids",
                 "who_at_table",
+                "recent_table_track_ids",
+                "recent_who_at_table",
                 "role_counts",
                 "track_role_summary",
                 "movement_px",

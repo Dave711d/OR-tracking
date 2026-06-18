@@ -89,6 +89,8 @@ class TrackRoleSummary:
     last_frame: int
     table_frames: int
     role_counts: Dict[str, int]
+    last_table_frame: Optional[int] = None
+    last_seen_at_table: bool = False
 
     @property
     def table_presence_ratio(self) -> float:
@@ -116,6 +118,8 @@ class _TrackRoleHistory:
     last_frame: int
     frames_seen: int = 0
     table_frames: int = 0
+    last_table_frame: Optional[int] = None
+    last_seen_at_table: bool = False
     role_counts: Dict[str, int] = field(default_factory=dict)
 
     def update(self, frame_index: int, roles: Sequence[str], at_table: bool) -> None:
@@ -123,6 +127,8 @@ class _TrackRoleHistory:
         self.frames_seen += 1
         if at_table:
             self.table_frames += 1
+            self.last_table_frame = frame_index
+        self.last_seen_at_table = at_table
         for role in roles or ("unassigned",):
             self.role_counts[role] = self.role_counts.get(role, 0) + 1
 
@@ -135,6 +141,8 @@ class _TrackRoleHistory:
             last_frame=self.last_frame,
             table_frames=self.table_frames,
             role_counts=dict(sorted(self.role_counts.items())),
+            last_table_frame=self.last_table_frame,
+            last_seen_at_table=self.last_seen_at_table,
         )
 
 
@@ -152,6 +160,8 @@ class TAVRFrameState:
     track_role_summaries: Dict[int, TrackRoleSummary]
     signals: Dict[str, float]
     note: str
+    recent_table_track_ids: List[int] = field(default_factory=list)
+    recent_table_summaries: Dict[int, TrackRoleSummary] = field(default_factory=dict)
 
     def to_row_fields(self) -> Dict[str, object]:
         track_summaries = [
@@ -163,6 +173,11 @@ class TAVRFrameState:
             for track_id in self.table_track_ids
             if track_id in self.track_role_summaries
         ]
+        recent_table_summaries = [
+            self.recent_table_summaries[track_id].to_who_at_table()
+            for track_id in self.recent_table_track_ids
+            if track_id in self.recent_table_summaries
+        ]
         return {
             "tavr_stage": self.stage,
             "tavr_stage_label": self.stage_label,
@@ -170,6 +185,10 @@ class TAVRFrameState:
             "table_count": self.table_count,
             "table_track_ids": ",".join(str(track_id) for track_id in self.table_track_ids),
             "who_at_table": "; ".join(table_summaries),
+            "recent_table_track_ids": ",".join(
+                str(track_id) for track_id in self.recent_table_track_ids
+            ),
+            "recent_who_at_table": "; ".join(recent_table_summaries),
             "role_counts": ",".join(
                 f"{role}:{count}" for role, count in sorted(self.role_counts.items())
             ),
@@ -192,6 +211,7 @@ class TAVRWorkflowAnalyzer:
     min_confidence_to_advance: float = 0.42
     advance_margin: float = 0.06
     min_stage_frames: int = 30
+    recent_table_hold_frames: int = 12
     current_stage_index: int = 0
     current_stage_start_frame: int = 0
     track_histories: Dict[int, _TrackRoleHistory] = field(default_factory=dict)
@@ -231,6 +251,11 @@ class TAVRWorkflowAnalyzer:
             role_track_ids=normalized_role_track_ids,
             frame_index=frame_index,
         )
+        recent_table_summaries = self._recent_table_summaries(
+            current_table_track_ids=table_track_ids,
+            frame_index=frame_index,
+        )
+        recent_table_track_ids = sorted(recent_table_summaries)
         signals = _signals(zone_counts, len(detections), movement_px)
         signals["stage_observable"] = 1.0 if stage_observable else 0.0
         if not stage_observable and stage_hold_reason:
@@ -248,6 +273,8 @@ class TAVRWorkflowAnalyzer:
                 track_role_summaries=track_role_summaries,
                 signals=signals,
                 note=_stage_hold_note(stage, stage_hold_reason),
+                recent_table_track_ids=recent_table_track_ids,
+                recent_table_summaries=recent_table_summaries,
             )
         stage_scores = _stage_scores(signals, stage_frame)
         stage_index, confidence = self._choose_stage(stage_scores, stage_frame)
@@ -266,6 +293,8 @@ class TAVRWorkflowAnalyzer:
             track_role_summaries=track_role_summaries,
             signals=signals,
             note=TAVR_STAGE_NOTES[stage],
+            recent_table_track_ids=recent_table_track_ids,
+            recent_table_summaries=recent_table_summaries,
         )
 
     def _update_track_histories(
@@ -298,6 +327,28 @@ class TAVRWorkflowAnalyzer:
             )
             active_summaries[detection.track_id] = history.snapshot()
         return active_summaries
+
+    def _recent_table_summaries(
+        self,
+        current_table_track_ids: Sequence[int],
+        frame_index: int,
+    ) -> Dict[int, TrackRoleSummary]:
+        recent: Dict[int, TrackRoleSummary] = {}
+        current_ids = set(current_table_track_ids)
+        for track_id in current_ids:
+            history = self.track_histories.get(track_id)
+            if history is not None:
+                recent[track_id] = history.snapshot()
+
+        for track_id, history in self.track_histories.items():
+            if track_id in recent:
+                continue
+            if not history.last_seen_at_table or history.last_table_frame is None:
+                continue
+            if frame_index - history.last_table_frame > self.recent_table_hold_frames:
+                continue
+            recent[track_id] = history.snapshot()
+        return recent
 
     def _choose_stage(self, scores: Mapping[str, float], frame_index: int) -> Tuple[int, float]:
         current_stage = TAVR_STAGE_ORDER[self.current_stage_index]
