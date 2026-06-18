@@ -1536,7 +1536,7 @@ function renderOperatorPacket(stage = null, summary = null, elapsedSeconds = 0, 
       handoff: segment?.handoffType || "initial_no_table_evidence",
     },
     {
-      label: "Active table",
+      label: "Current table",
       value: `${summary.tableSide} staff; IDs ${activeIds}`,
     },
     {
@@ -1698,8 +1698,10 @@ function renderBackendOperatorPacket(packets = [], status = null) {
   );
   appendInfoRow(
     operatorPacket,
-    "Active table",
-    `${packet.active_table_track_count ?? 0} staff; ${formatPersonIds(packet.active_table_canonical_ids)}; raw ${formatIdList(packet.active_table_track_ids)}`,
+    "Stage roster",
+    `${packet.stage_table_track_count ?? packet.active_table_track_count ?? 0} tracked; ${formatPersonIds(
+      packet.stage_table_canonical_ids || packet.active_table_canonical_ids,
+    )}; raw ${formatIdList(packet.stage_table_track_ids || packet.active_table_track_ids)}`,
   );
   appendInfoRow(
     operatorPacket,

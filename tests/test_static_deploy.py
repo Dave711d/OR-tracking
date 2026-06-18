@@ -286,7 +286,13 @@ def test_static_demo_surfaces_operator_stage_packet() -> None:
     assert "function hasDistinctBrowserTable" in app_js
     assert "lastObservedTableSnapshot" in app_js
     assert "BROWSER_RECENT_TABLE_HOLD_SECONDS" in app_js
+    assert 'label: "Current table"' in app_js
     assert "label: \"Effective table\"" in app_js
+    assert '"Stage roster"' in app_js
+    assert "stage_table_track_count" in app_js
+    assert "stage_table_canonical_ids" in app_js
+    assert "stage_table_track_ids" in app_js
+    assert "Active table" not in app_js
     assert "table_roster_held_from_room_view" in app_js
     assert "tableSnapshot?.rows?.some(({ staticFallback }) => staticFallback)" in app_js
     assert "currentStageRosterSegment" in app_js
