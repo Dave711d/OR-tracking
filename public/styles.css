@@ -226,6 +226,7 @@ select {
 .identity-list div,
 .stage-roster-list div,
 .operator-packet div,
+.operator-answer div,
 .procedure-status-list div,
 .event-list div,
 .quality-list div,
@@ -256,6 +257,7 @@ select {
   overflow-wrap: anywhere;
 }
 
+.operator-answer,
 .stage-table-brief {
   background: var(--panel-2);
   border: 1px solid var(--line);
@@ -269,6 +271,7 @@ select {
   z-index: 2;
 }
 
+.operator-answer div,
 .stage-table-brief div {
   display: grid;
   gap: 3px 8px;
@@ -276,6 +279,7 @@ select {
   min-width: 0;
 }
 
+.operator-answer span,
 .stage-table-brief span {
   color: var(--muted);
   font-size: 12px;
@@ -283,6 +287,7 @@ select {
   line-height: 1.2;
 }
 
+.operator-answer b,
 .stage-table-brief b {
   color: var(--accent);
   font-size: 13px;
@@ -292,6 +297,7 @@ select {
   text-align: right;
 }
 
+.operator-answer em,
 .stage-table-brief em {
   color: var(--muted);
   font-size: 11px;
@@ -303,14 +309,26 @@ select {
   text-align: right;
 }
 
+.operator-answer {
+  border-color: rgba(55, 214, 163, 0.36);
+  position: static;
+}
+
+.operator-answer div[data-context="effective"] b,
 .stage-table-brief div[data-context="effective"] b {
   color: var(--warn);
 }
 
+.operator-answer div[data-kind="handoff"] b,
 .stage-table-brief div[data-kind="handoff"] b {
   color: var(--blue);
 }
 
+.operator-answer div[data-context="warn"] b {
+  color: var(--warn);
+}
+
+.operator-answer div[data-context="empty"] b,
 .stage-table-brief div[data-context="empty"] b {
   color: var(--muted);
 }

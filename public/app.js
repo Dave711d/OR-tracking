@@ -9,6 +9,8 @@ import {
   formatPersonId,
   formatPersonIds,
   normalizeEvaluationPayload,
+  operatorAnswerRows,
+  operatorAnswerRowsFromSnapshots,
   packetForStatus,
   replaySnapshotAt,
   replaySnapshotLabel,
@@ -39,6 +41,7 @@ const cellSizeInput = document.querySelector("#cellSize");
 const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
+const operatorAnswer = document.querySelector("#operatorAnswer");
 const stageTableBrief = document.querySelector("#stageTableBrief");
 const tablePresenceSummary = document.querySelector("#tablePresenceSummary");
 const tableRoster = document.querySelector("#tableRoster");
@@ -369,6 +372,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   elapsedMetric.textContent = formatSeconds(eventTimeSeconds(status));
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
+  renderOperatorAnswer(operatorAnswerRows(status, packet, stageRoster, demo.milestones));
   renderStageTableBrief(stageTableBriefRows(status, packet, demo.milestones, stageRoster));
   renderBackendTableRoster(status, demo.presenceIntervals);
   renderProcedureStatus(status, demo);
@@ -1015,16 +1019,30 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
   updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
-  renderStageTableBrief(stageTableBriefRowsFromSnapshots({
+  const evidenceLabel = stage.stageHoldReason
+    ? stage.stageHoldReason.replaceAll("_", " ")
+    : `confidence ${formatNumber(stage.confidence)}`;
+  const progress = browserProcedureProgressBrief(stage.key);
+  const handoff = browserStageHandoffBrief(currentStageRosterSegment);
+  renderOperatorAnswer(operatorAnswerRowsFromSnapshots({
     stageLabel: stage.label,
-    evidenceLabel: stage.stageHoldReason
-      ? stage.stageHoldReason.replaceAll("_", " ")
-      : `confidence ${formatNumber(stage.confidence)}`,
-    timeLabel: `${formatSeconds(elapsedSeconds)}`,
-    progress: browserProcedureProgressBrief(stage.key),
+    evidenceLabel,
+    progress,
     currentTable,
     effectiveTable: tableSnapshot,
-    handoff: browserStageHandoffBrief(currentStageRosterSegment),
+    handoff,
+    currentView: stage.stageHoldReason ? "non-room/held" : "room",
+    trackingAvailable: !stage.stageHoldReason,
+    qualityFlags: operatorQualityFlags(stage, summary, tableSnapshot),
+  }));
+  renderStageTableBrief(stageTableBriefRowsFromSnapshots({
+    stageLabel: stage.label,
+    evidenceLabel,
+    timeLabel: `${formatSeconds(elapsedSeconds)}`,
+    progress,
+    currentTable,
+    effectiveTable: tableSnapshot,
+    handoff,
   }));
   renderTableRoster(currentTable, tableSnapshot);
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
@@ -1875,6 +1893,30 @@ function appendTablePresenceRow(labelText, snapshot, countLabel, context) {
   tablePresenceSummary.append(row);
 }
 
+function renderOperatorAnswer(rows = []) {
+  operatorAnswer.replaceChildren();
+  const answerRows = rows.length ? rows : [{
+    kind: "stage",
+    label: "Stage",
+    value: "Idle",
+    detail: "No procedure stage yet",
+    context: "empty",
+  }];
+  answerRows.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    const detail = document.createElement("em");
+    row.dataset.kind = item.kind;
+    row.dataset.context = item.context || "empty";
+    label.textContent = item.label;
+    value.textContent = item.value;
+    detail.textContent = item.detail || "";
+    row.append(label, value, detail);
+    operatorAnswer.append(row);
+  });
+}
+
 function renderStageTableBrief(rows = []) {
   stageTableBrief.replaceChildren();
   const briefRows = rows.length ? rows : [{
@@ -2523,6 +2565,7 @@ function resetMetrics(options = {}) {
   tableSideMetric.textContent = "0";
   setEmptyState("No video loaded", "Choose a local MP4, MOV, or M4V file.");
   renderTableRoster([]);
+  renderOperatorAnswer();
   renderStageTableBrief();
   renderTableTeam();
   renderStageCoverage();

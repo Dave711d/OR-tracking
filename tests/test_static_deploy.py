@@ -543,6 +543,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert 'id="milestoneList"' in index_html
     assert 'id="eventTimelineList"' in index_html
     assert 'id="qualityFlagList"' in index_html
+    assert 'id="operatorAnswer"' in index_html
+    assert "Current operator answer" in index_html
     assert "Evaluated demo" in index_html
     assert "Replay" in index_html
     assert "At table now" in index_html
@@ -588,6 +590,11 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "normalizeEvaluationPayload" in app_js
     assert "export function normalizeEvaluationPayload" in replay_js
     assert "export function replayOperatorProjection" in replay_js
+    assert "operatorAnswerRows" in app_js
+    assert "operatorAnswerRowsFromSnapshots" in app_js
+    assert "export function operatorAnswerRows" in replay_js
+    assert "export function operatorAnswerRowsFromSnapshots" in replay_js
+    assert "function renderOperatorAnswer" in app_js
     assert "scoreVerificationRows" in app_js
     assert "export function scoreVerificationRows" in replay_js
     assert "Stage verification" in replay_js
@@ -647,6 +654,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "export function stageTableBriefRows" in replay_js
     assert "stageTableBriefRowsFromSnapshots" in app_js
     assert "export function stageTableBriefRowsFromSnapshots" in replay_js
+    assert ".operator-answer" in styles
     assert "Procedure progress" in replay_js
     assert "export function procedureProgressBrief" in replay_js
     assert "export function stageTableBriefProgressRows" in replay_js
@@ -663,8 +671,10 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "export function stageTableBriefHandoffRows" in replay_js
     assert "function browserStageHandoffBrief" in app_js
     assert "function browserProcedureProgressBrief" in app_js
-    assert "progress: browserProcedureProgressBrief(stage.key)" in app_js
-    assert "handoff: browserStageHandoffBrief(currentStageRosterSegment)" in app_js
+    assert "const progress = browserProcedureProgressBrief(stage.key)" in app_js
+    assert "progress," in app_js
+    assert "const handoff = browserStageHandoffBrief(currentStageRosterSegment)" in app_js
+    assert "handoff," in app_js
     assert "function renderStageTableBrief" in app_js
     assert ".stage-table-brief" in styles
     assert "position: sticky" in styles

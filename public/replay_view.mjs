@@ -158,8 +158,104 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
         status.effective_table_canonical_ids,
       ),
     } : null,
+    operatorAnswerRows: operatorAnswerRows(
+      status,
+      latestPacket,
+      selectedStageRoster,
+      demo.milestones,
+    ),
     scoreVerificationRows: scoreVerificationRows(demo.scoreSummary, status),
   };
+}
+
+export function operatorAnswerRows(
+  status = {},
+  packet = null,
+  stageRoster = null,
+  milestones = [],
+) {
+  const stageLabel = status.current_stage_label || packet?.stage_label || "Stage n/a";
+  const evidence = status.current_stage_evidence_status || status.evidence_level ||
+    packet?.stage_evidence_status || packet?.evidence_level || "evidence n/a";
+  return operatorAnswerRowsFromSnapshots({
+    stageLabel,
+    evidenceLabel: String(evidence).replaceAll("_", " "),
+    progress: procedureProgressBrief(status, packet, milestones),
+    currentTable: currentTableSnapshot(status),
+    effectiveTable: effectiveTableSnapshot(status),
+    handoff: packet ? {
+      handoffType: packet.handoff_type,
+      activeIds: packet.active_table_canonical_ids,
+      continuedIds: packet.continued_canonical_table_ids,
+      newIds: packet.new_canonical_table_ids,
+      droppedIds: packet.dropped_canonical_table_ids,
+      withinStageEntryIds: packet.within_stage_entry_canonical_table_ids,
+      withinStageExitIds: packet.within_stage_exit_canonical_table_ids,
+    } : null,
+    stageRoster,
+    currentView: status.current_view,
+    trackingAvailable: status.tracking_available,
+    qualityFlags: status.quality_flag_codes || packet?.quality_flag_codes,
+  });
+}
+
+export function operatorAnswerRowsFromSnapshots({
+  stageLabel = "Stage n/a",
+  evidenceLabel = "",
+  progress = null,
+  currentTable = {},
+  effectiveTable = null,
+  handoff = null,
+  stageRoster = null,
+  currentView = "",
+  trackingAvailable = null,
+  qualityFlags = [],
+} = {}) {
+  const current = normalizedTableSnapshot(currentTable);
+  const effective = normalizedTableSnapshot(effectiveTable || current);
+  const progressDetail = operatorProgressDetail(progress);
+  const handoffRows = operatorHandoffAnswerRows(handoff, stageRoster);
+  const flags = asArray(qualityFlags).map((flag) => (
+    typeof flag === "string" ? flag : flag?.code
+  )).filter(Boolean);
+  const trackingDetail = [
+    currentView ? `view ${currentView}` : "",
+    trackingAvailable === null || trackingAvailable === undefined
+      ? ""
+      : `tracking ${trackingAvailable ? "yes" : "no"}`,
+  ].filter(Boolean).join("; ");
+
+  return [
+    {
+      kind: "stage",
+      label: "Stage",
+      value: stageLabel,
+      detail: [evidenceLabel, progressDetail].filter(Boolean).join("; "),
+      context: "current",
+    },
+    {
+      kind: "visible",
+      label: "Visible now",
+      value: `${current.count} visible`,
+      detail: tableSnapshotDetail(current),
+      context: current.count ? "current" : "empty",
+    },
+    {
+      kind: "effective",
+      label: "Effective table",
+      value: `${effective.count} effective`,
+      detail: tableSnapshotDetail(effective),
+      context: effective.count ? "effective" : "empty",
+    },
+    ...handoffRows,
+    {
+      kind: "quality",
+      label: "Quality",
+      value: flags.length ? flags.join(", ") : "none",
+      detail: trackingDetail,
+      context: flags.length ? "warn" : "current",
+    },
+  ];
 }
 
 export function scoreVerificationRows(scoreSummary = {}, status = {}) {
@@ -402,6 +498,88 @@ export function stageTableBriefHandoffRows(handoff = null) {
     ].join("; "),
     context: hasAnyPeople ? "handoff" : "empty",
   }];
+}
+
+function operatorProgressDetail(progress = null) {
+  if (!progress) return "";
+  const stageIndex = Number(progress.stageIndex);
+  const totalStages = Number(progress.totalStages || TAVR_STAGE_PROGRESS.length);
+  const ordinal = Number.isFinite(stageIndex) ? stageIndex + 1 : null;
+  const stageProgress = ordinal === null ? "" : `${ordinal}/${totalStages} stages`;
+  const observedCount = progress.observedCount;
+  const observedTotal = progress.observedTotal || totalStages;
+  return [
+    stageProgress,
+    `next ${progress.nextLabel || "unknown"}`,
+    observedCount === null || observedCount === undefined
+      ? ""
+      : `observed ${observedCount}/${observedTotal}`,
+  ].filter(Boolean).join("; ");
+}
+
+function operatorHandoffAnswerRows(handoff = null, stageRoster = null) {
+  const activeCount = operatorStageRosterCount(stageRoster, handoff);
+  if (!handoff && !stageRoster) {
+    return [{
+      kind: "handoff",
+      label: "Stage roster",
+      value: "no stage roster",
+      detail: "",
+      context: "empty",
+    }];
+  }
+
+  const handoffType = handoff?.handoffType || handoff?.handoff_type ||
+    stageRoster?.handoff_type || "unknown";
+  const continuedIds = asArray(
+    handoff?.continuedIds ?? handoff?.continued_canonical_table_ids ??
+    stageRoster?.continued_canonical_table_ids,
+  );
+  const newIds = asArray(
+    handoff?.newIds ?? handoff?.new_canonical_table_ids ??
+    stageRoster?.new_canonical_table_ids,
+  );
+  const droppedIds = asArray(
+    handoff?.droppedIds ?? handoff?.dropped_canonical_table_ids ??
+    stageRoster?.dropped_canonical_table_ids,
+  );
+  const withinStageEntryIds = asArray(
+    handoff?.withinStageEntryIds ?? handoff?.within_stage_entry_canonical_table_ids ??
+    stageRoster?.within_stage_entry_canonical_table_ids,
+  );
+  const withinStageExitIds = asArray(
+    handoff?.withinStageExitIds ?? handoff?.within_stage_exit_canonical_table_ids ??
+    stageRoster?.within_stage_exit_canonical_table_ids,
+  );
+  const detail = [
+    handoffLabel(handoffType),
+    formatBriefPersonIds(continuedIds, "continued"),
+    formatBriefPersonIds(newIds, "new"),
+    formatBriefPersonIds(droppedIds, "dropped"),
+    formatBriefPersonIds(withinStageEntryIds, "entered"),
+    formatBriefPersonIds(withinStageExitIds, "exited"),
+  ].join("; ");
+  return [{
+    kind: "handoff",
+    label: "Stage roster",
+    value: `${activeCount} stage people`,
+    detail,
+    context: activeCount ? "handoff" : "empty",
+  }];
+}
+
+function operatorStageRosterCount(stageRoster = null, handoff = null) {
+  const activeIds = asArray(
+    handoff?.activeIds ?? handoff?.active_table_canonical_ids ??
+    stageRoster?.active_table_canonical_ids,
+  );
+  if (activeIds.length) return activeIds.length;
+  const activeCount = Number(
+    stageRoster?.canonical_table_identity_count ??
+    stageRoster?.active_table_track_count,
+  );
+  if (Number.isFinite(activeCount)) return activeCount;
+  return asArray(stageRoster?.active_table_roster).length;
 }
 
 export function focusedReplayEvents(events = [], status = {}, maxVisible = 12) {

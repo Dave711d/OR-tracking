@@ -275,11 +275,14 @@ cases. The sticky stage/table brief shows the current procedure stage,
 canonical stage progress, next expected stage, stage handoff type, stage-wide
 roster contacts with core-vs-brief dwell, current visible table roster, and
 effective held table context so the replay can be scanned before opening the
-deeper tables. The procedure-status panel also surfaces evaluated score rows
-for stage status, operator snapshots, table-person intervals/status, and
-no-table negative clips. When the replay scrubber moves, the lower stage-roster
-and event timeline evidence panes are focused on the selected snapshot's stage
-rather than showing a stale whole-case prefix. The packet text uses
+deeper tables. A `Current operator answer` panel now combines the current
+stage, visible table, effective table, stage roster handoff, next stage, and
+quality flags into one compact answer. The procedure-status panel also surfaces
+evaluated score rows for stage status, operator snapshots, table-person
+intervals/status, and no-table negative clips. When the replay scrubber moves,
+the lower stage-roster and event timeline evidence panes are focused on the
+selected snapshot's stage rather than showing a stale whole-case prefix. The
+packet text uses
 `stage roster people` for everyone seen table-side during that stage and keeps
 `latest table status` as the current/effective answer to who is at the table
 now. Stage roster and operator packet cards show canonical people for
