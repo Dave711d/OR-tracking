@@ -107,6 +107,7 @@ def test_vercel_static_demo_files_are_present() -> None:
 
     assert (public / "index.html").exists()
     assert (public / "app.js").exists()
+    assert (public / "browser_identity.mjs").exists()
     assert (public / "styles.css").exists()
     for demo in PUBLIC_EVALUATION_DEMOS:
         assert (public / "demo-data" / demo["file"]).exists()
@@ -216,6 +217,20 @@ def test_static_demo_surfaces_stage_roster_summary() -> None:
     assert "function classifyStageRosterHandoff" in app_js
     assert "stageRosterSegments = []" in app_js
     assert ".stage-roster-list" in styles
+
+
+def test_static_demo_canonicalizes_browser_table_identities() -> None:
+    index_html = Path("public/index.html").read_text(encoding="utf-8")
+    app_js = Path("public/app.js").read_text(encoding="utf-8")
+    identity_js = Path("public/browser_identity.mjs").read_text(encoding="utf-8")
+
+    assert 'type="module" src="/app.js"' in index_html
+    assert 'import { BrowserTableIdentityTracker } from "./browser_identity.mjs";' in app_js
+    assert "browserIdentityTracker.update(summary.tableRoster, elapsedSeconds)" in app_js
+    assert "renderBrowserTableIdentities()" in app_js
+    assert "canonicalizeBrowserSummary(summarizeBoxes(boxes), elapsedSeconds)" in app_js
+    assert "class BrowserTableIdentityTracker" in identity_js
+    assert "projectedCentroidDistance" in identity_js
 
 
 def test_static_demo_surfaces_operator_stage_packet() -> None:

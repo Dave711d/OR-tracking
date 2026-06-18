@@ -33,8 +33,9 @@ streamlit run app.py --server.headless true
 ## Vercel
 
 The Vercel deployment is a static browser demo. It does client-side video motion
-tracking using `public/app.js`, so it does not need Python, ffmpeg, or server
-storage.
+tracking using `public/app.js` plus browser-side canonical table identity
+stitching in `public/browser_identity.mjs`, so it does not need Python, ffmpeg,
+or server storage.
 
 `.vercelignore` intentionally excludes `app.py` and the Python package from the
 Vercel upload so Vercel does not auto-detect the Streamlit entrypoint as a Python

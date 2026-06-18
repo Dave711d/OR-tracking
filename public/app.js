@@ -1,3 +1,5 @@
+import { BrowserTableIdentityTracker } from "./browser_identity.mjs";
+
 const input = document.querySelector("#videoInput");
 const video = document.querySelector("#sourceVideo");
 const overlay = document.querySelector("#overlayCanvas");
@@ -210,6 +212,7 @@ const EVALUATION_DEMOS = [
 
 let previousFrame = null;
 let activityHistory = [];
+let browserIdentityTracker = new BrowserTableIdentityTracker();
 let tableTeam = new Map();
 let stageCoverage = new Map();
 let stageRosterSegments = [];
@@ -963,7 +966,7 @@ function drawSparkline(activity) {
 
 function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded review") {
   const stage = normalizeStage(stageInput);
-  const summary = summarizeBoxes(boxes);
+  const summary = canonicalizeBrowserSummary(summarizeBoxes(boxes), elapsedSeconds);
   const tableSnapshot = updateBrowserTableSnapshot(summary, elapsedSeconds, stage);
   stageMetric.textContent = stage.confidence === undefined
     ? stage.label
@@ -974,6 +977,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
   renderTableRoster(tableSnapshot);
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
+  renderBrowserTableIdentities();
   updateStageCoverage(stage, summary.tableRoster, elapsedSeconds);
   updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
   renderOperatorPacket(stage, summary, elapsedSeconds, tableSnapshot);
@@ -1043,13 +1047,27 @@ function summarizeBoxes(boxes) {
       summary.tableSide += 1;
       summary.tableRoster.push({
         id: box.id || `M${index + 1}`,
+        rawId: box.id || `M${index + 1}`,
         role: roleKey || "motion",
+        x: box.x,
+        y: box.y,
+        w: box.w,
+        h: box.h,
         staticFallback: Boolean(box.staticFallback),
       });
     }
   });
 
   return summary;
+}
+
+function canonicalizeBrowserSummary(summary, elapsedSeconds) {
+  const tableRoster = browserIdentityTracker.update(summary.tableRoster, elapsedSeconds);
+  return {
+    ...summary,
+    tableSide: tableRoster.length,
+    tableRoster,
+  };
 }
 
 function updateBrowserTableSnapshot(summary, elapsedSeconds, stage) {
@@ -1109,8 +1127,10 @@ function updateBrowserTableSnapshot(summary, elapsedSeconds, stage) {
 }
 
 function copyBrowserRoster(roster) {
-  return roster.map(({ id, role, staticFallback }) => ({
+  return roster.map(({ id, rawId, rawIds, role, staticFallback }) => ({
     id,
+    rawId,
+    rawIds: rawIds || (rawId ? [rawId] : [id]),
     role,
     staticFallback: Boolean(staticFallback),
   }));
@@ -1160,10 +1180,11 @@ function updateStageCoverage(stage, roster, elapsedSeconds) {
 
 function updateTableTeam(roster, elapsedSeconds, stage) {
   const currentIds = new Set(roster.map(({ id }) => id));
-  roster.forEach(({ id, role }) => {
+  roster.forEach(({ id, role, rawId, rawIds }) => {
     const item = tableTeam.get(id) || {
       id,
       role,
+      rawIds: new Set(),
       frames: 0,
       firstSeen: elapsedSeconds,
       lastSeen: elapsedSeconds,
@@ -1171,6 +1192,7 @@ function updateTableTeam(roster, elapsedSeconds, stage) {
       status: "active_current",
     };
     item.role = role;
+    (rawIds || [rawId || id]).forEach((value) => item.rawIds.add(value));
     item.frames += 1;
     item.firstSeen = Math.min(item.firstSeen, elapsedSeconds);
     item.lastSeen = Math.max(item.lastSeen, elapsedSeconds);
@@ -1222,12 +1244,33 @@ function renderTableTeam() {
     const value = document.createElement("b");
     const roleLabel = ROLE_LABELS[item.role] || item.role;
     const stageLabel = dominantStageLabel(item.stages);
+    const rawLabel = item.rawIds?.size
+      ? `; raw ${compactIdList([...item.rawIds].sort(), 4)}`
+      : "";
     row.dataset.status = item.status.replaceAll("_", "-");
     label.textContent = `${item.id} ${roleLabel}: ${statusLabel(item.status)}`;
-    value.textContent = `${item.frames}f last ${item.lastSeen.toFixed(1)}s; ${stageLabel}`;
+    value.textContent = `${item.frames}f${rawLabel}; last ${item.lastSeen.toFixed(1)}s; ${stageLabel}`;
     row.append(label, value);
     tableTeamList.append(row);
   });
+}
+
+function renderBrowserTableIdentities() {
+  tableIdentityList.replaceChildren();
+  const groups = browserIdentityTracker.groups().slice(0, 8);
+  if (!groups.length) {
+    appendInfoRow(tableIdentityList, "None yet", "");
+    return;
+  }
+
+  groups.forEach((group) => {
+    appendInfoRow(
+      tableIdentityList,
+      `${group.id} ${ROLE_LABELS[group.role] || group.role}`,
+      `${group.frames}f; raw ${compactIdList(group.rawIds, 4)}; last ${group.lastSeen.toFixed(1)}s`,
+    );
+  });
+  appendOverflowRow(tableIdentityList, browserIdentityTracker.groups().length, groups.length, "identities");
 }
 
 function renderStageCoverage() {
@@ -1849,10 +1892,11 @@ function renderTableRoster(tableSnapshot) {
   const ageSuffix = tableSnapshot?.ageSeconds === null || tableSnapshot?.ageSeconds === undefined
     ? ""
     : `; age ${formatSeconds(tableSnapshot.ageSeconds)}`;
-  roster.forEach(({ id, role }) => {
+  roster.forEach(({ id, role, rawIds }) => {
     const item = document.createElement("li");
     const roleLabel = ROLE_LABELS[role] || role;
-    item.textContent = `${sourceLabel}: ${id} - ${roleLabel}${ageSuffix}`;
+    const rawSuffix = rawIds?.length ? `; raw ${compactIdList(rawIds, 3)}` : "";
+    item.textContent = `${sourceLabel}: ${id} - ${roleLabel}${rawSuffix}${ageSuffix}`;
     tableRoster.append(item);
   });
 }
@@ -2122,6 +2166,7 @@ function resetMetrics(options = {}) {
   if (!options.keepSyntheticMode) syntheticMode = false;
   previousFrame = null;
   activityHistory = [];
+  browserIdentityTracker = new BrowserTableIdentityTracker();
   tableTeam = new Map();
   stageCoverage = new Map();
   stageRosterSegments = [];

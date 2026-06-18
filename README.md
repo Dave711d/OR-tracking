@@ -85,6 +85,10 @@ For low-motion room-view review, pass `--static-table-fallback` to opt into the
 same conservative table-zone silhouette fallback exposed in the apps. This stays
 off by default so default footage regressions do not silently count static
 equipment as staff.
+The Vercel browser uploader also canonicalizes table-side detections into stable
+person IDs across short raw-ID gaps, crossings, and held non-room views, so the
+live "who is at the table" panels track people rather than per-frame motion
+cluster labels.
 
 To compare output against expected stage/table labels:
 
