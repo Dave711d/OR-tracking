@@ -360,8 +360,13 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
         "event_timeline_pass_rate",
         "quality_flag_pass_rate",
     }
-    full_room_cases = {"sentara_1800_mixed_room", "sentara_2700_room_post"}
-    full_room_required = {
+    five_section_contract_cases = {
+        "sentara_900_room_to_fluoro_low_motion",
+        "sentara_1800_mixed_room",
+        "sentara_2700_room_post",
+        "sentara_900_static_table_fallback",
+    }
+    five_section_required = {
         "table_presence_pass_rate",
         "stage_staffing_pass_rate",
         "stage_handoff_pass_rate",
@@ -392,7 +397,7 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
             assert required <= set(DEFAULT_THRESHOLDS), case["name"]
             if case["name"] in stage_labelled_cases:
                 assert "stage_accuracy" in required, case["name"]
-            if case["name"] in full_room_cases:
-                assert full_room_required <= required, case["name"]
+            if case["name"] in five_section_contract_cases:
+                assert five_section_required <= required, case["name"]
             if case["name"] in full_procedure_cases:
                 assert full_procedure_required <= required, case["name"]

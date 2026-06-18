@@ -4,8 +4,11 @@
   "thresholds": {
     "stage_accuracy": 1.0,
     "table_count_pass_rate": 1.0,
+    "table_presence_pass_rate": 1.0,
+    "stage_staffing_pass_rate": 1.0,
     "stage_table_coverage_pass_rate": 1.0,
     "table_transition_pass_rate": 1.0,
+    "stage_handoff_pass_rate": 1.0,
     "stage_evidence_pass_rate": 1.0,
     "procedure_milestone_pass_rate": 1.0,
     "procedure_status_pass_rate": 1.0,
@@ -38,8 +41,11 @@
       "required_score_checks": [
         "stage_accuracy",
         "table_count_pass_rate",
+        "table_presence_pass_rate",
+        "stage_staffing_pass_rate",
         "stage_table_coverage_pass_rate",
         "table_transition_pass_rate",
+        "stage_handoff_pass_rate",
         "stage_roster_pass_rate",
         "stage_evidence_pass_rate",
         "procedure_milestone_pass_rate",

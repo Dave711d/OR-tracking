@@ -19,11 +19,42 @@
       "min_within_range_rate": 0.95
     }
   ],
+  "table_presence_expectations": [
+    {
+      "role": "table_operator",
+      "max_intervals": 0
+    }
+  ],
+  "stage_staffing_expectations": [
+    {
+      "stage": "access_sheathing",
+      "role": "table_operator",
+      "max_tracks": 0,
+      "max_peak_count": 0,
+      "max_mean_count": 0,
+      "max_table_occupancy_rate": 0,
+      "max_room_mean_count": 0,
+      "max_room_table_occupancy_rate": 0,
+      "max_canonical_table_identity_count": 0,
+      "max_tracking_available_rate": 0.2
+    }
+  ],
   "stage_table_coverage_expectations": [
     {
       "stage": "access_sheathing",
       "stage_segment_index": 0,
       "max_tracks": 0
+    }
+  ],
+  "stage_handoff_expectations": [
+    {
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "handoff_type": "initial_no_table_evidence",
+      "max_active_tracks": 0,
+      "max_new_tracks": 0,
+      "max_continued_tracks": 0,
+      "max_dropped_tracks": 0
     }
   ],
   "table_transition_expectations": [
@@ -121,6 +152,51 @@
       ]
     }
   ],
+  "operator_snapshot_expectations": [
+    {
+      "timestamp_s": 4.204,
+      "tolerance_s": 0.12,
+      "required_snapshot_reasons": [
+        "view_start"
+      ],
+      "stage": "access_sheathing",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "weak_visual_support",
+      "next_stage": "angio_alignment_crossing",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "max_table_count": 0,
+      "max_effective_table_count": 0,
+      "max_last_observed_table_count": 0,
+      "max_peak_table_count": 0
+    },
+    {
+      "timestamp_s": 29.963,
+      "tolerance_s": 0.12,
+      "required_snapshot_reasons": [
+        "clip_end",
+        "stage_end",
+        "view_end"
+      ],
+      "stage": "access_sheathing",
+      "current_stage_status": "current_observed",
+      "stage_evidence_status": "weak_visual_support",
+      "next_stage": "angio_alignment_crossing",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "max_table_count": 0,
+      "max_effective_table_count": 0,
+      "max_last_observed_table_count": 0,
+      "max_peak_table_count": 0,
+      "required_quality_flags": [
+        "low_stage_confidence",
+        "non_room_view",
+        "low_motion_room_view"
+      ]
+    }
+  ],
   "operator_packet_expectations": [
     {
       "stage": "access_sheathing",
@@ -151,6 +227,23 @@
         "next Angio alignment / crossing",
         "quality flags low_stage_confidence, non_room_view, low_motion_room_view"
       ]
+    }
+  ],
+  "roster_snapshot_expectations": [
+    {
+      "snapshot_type": "current",
+      "role": "table_operator",
+      "expected_canonical_table_ids": []
+    },
+    {
+      "snapshot_type": "last_observed",
+      "role": "table_operator",
+      "expected_canonical_table_ids": []
+    },
+    {
+      "snapshot_type": "peak",
+      "role": "table_operator",
+      "expected_canonical_table_ids": []
     }
   ],
   "table_team_expectations": [

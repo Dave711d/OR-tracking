@@ -24,6 +24,42 @@
       "min_within_range_rate": 1.0
     }
   ],
+  "table_presence_expectations": [
+    {
+      "start_s": 0.0,
+      "end_s": 4.3,
+      "role": "table_operator",
+      "min_intervals": 2,
+      "max_intervals": 2,
+      "min_observed_table_frames": 90
+    },
+    {
+      "start_s": 4.5,
+      "end_s": 29.9,
+      "role": "table_operator",
+      "max_intervals": 0,
+      "min_observed_table_frames": 3
+    }
+  ],
+  "stage_staffing_expectations": [
+    {
+      "stage": "access_sheathing",
+      "role": "table_operator",
+      "min_tracks": 3,
+      "max_tracks": 3,
+      "min_observed_table_frames": 5,
+      "min_peak_count": 3,
+      "max_peak_count": 3,
+      "min_tracking_available_rate": 0.1,
+      "max_tracking_available_rate": 0.2,
+      "min_room_mean_count": 1.5,
+      "max_room_mean_count": 1.8,
+      "min_room_table_occupancy_rate": 0.8,
+      "max_room_table_occupancy_rate": 0.9,
+      "min_canonical_table_identity_count": 3,
+      "max_canonical_table_identity_count": 3
+    }
+  ],
   "event_timeline_expectations": [
     {
       "event_type": "stage_started",
@@ -137,6 +173,23 @@
       "entered_during_stage": true,
       "exited_during_stage": true,
       "required_label_text": "Access / sheathing"
+    }
+  ],
+  "stage_handoff_expectations": [
+    {
+      "stage": "access_sheathing",
+      "stage_segment_index": 0,
+      "role": "table_operator",
+      "handoff_type": "initial_table_roster",
+      "lead_role": "table_operator",
+      "min_active_tracks": 3,
+      "max_active_tracks": 3,
+      "min_new_tracks": 3,
+      "max_new_tracks": 3,
+      "max_continued_tracks": 0,
+      "max_dropped_tracks": 0,
+      "min_lead_observed_table_frames": 90,
+      "min_tracking_available_rate": 0.1
     }
   ],
   "table_transition_expectations": [

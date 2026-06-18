@@ -1200,6 +1200,67 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
     assert score["event_timeline_score"]["pass_rate"] == 1.0
 
 
+def test_negative_table_presence_staffing_and_handoff_maxima() -> None:
+    labels = {
+        "table_presence_expectations": [
+            {
+                "role": "table_operator",
+                "max_intervals": 0,
+            }
+        ],
+        "stage_staffing_expectations": [
+            {
+                "stage": "access_sheathing",
+                "role": "table_operator",
+                "max_tracks": 0,
+                "max_peak_count": 0,
+                "max_mean_count": 0,
+                "max_table_occupancy_rate": 0,
+                "max_room_mean_count": 0,
+                "max_room_table_occupancy_rate": 0,
+                "max_canonical_table_identity_count": 0,
+            }
+        ],
+        "stage_handoff_expectations": [
+            {
+                "stage": "access_sheathing",
+                "handoff_type": "initial_no_table_evidence",
+                "max_active_tracks": 0,
+                "max_new_tracks": 0,
+                "max_continued_tracks": 0,
+                "max_dropped_tracks": 0,
+            }
+        ],
+    }
+    no_table_metrics = [
+        _table_metric(index, index / 10, "access_sheathing", [])
+        for index in range(3)
+    ]
+    table_metrics = [
+        _table_metric(index, index / 10, "access_sheathing", [7])
+        for index in range(3)
+    ]
+
+    clean_score = score_tavr_metrics(no_table_metrics, labels)
+    phantom_score = score_tavr_metrics(table_metrics, labels)
+
+    assert clean_score["table_presence_score"]["pass_rate"] == 1.0
+    assert clean_score["stage_staffing_score"]["pass_rate"] == 1.0
+    assert clean_score["stage_handoff_score"]["pass_rate"] == 1.0
+    assert phantom_score["table_presence_score"]["pass_rate"] == 0.0
+    assert phantom_score["table_presence_score"]["expectations"][0]["checks"][
+        "max_intervals"
+    ] is False
+    assert phantom_score["stage_staffing_score"]["pass_rate"] == 0.0
+    assert phantom_score["stage_staffing_score"]["expectations"][0]["checks"][
+        "max_tracks"
+    ] is False
+    assert phantom_score["stage_handoff_score"]["pass_rate"] == 0.0
+    assert phantom_score["stage_handoff_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]["checks"]["max_active_tracks"] is False
+
+
 def test_stage_table_coverage_expectation_requires_match_by_default() -> None:
     metrics = [
         _table_metric(

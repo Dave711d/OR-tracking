@@ -3812,7 +3812,13 @@ def _table_presence_score(
     for expectation in expectations:
         role = expectation.get("role")
         dominant_role = expectation.get("dominant_role")
-        min_intervals = int(expectation.get("min_intervals", 1))
+        min_intervals = int(
+            expectation.get(
+                "min_intervals",
+                0 if "max_intervals" in expectation else 1,
+            )
+        )
+        max_intervals = expectation.get("max_intervals")
         min_observed_table_frames = int(expectation.get("min_observed_table_frames", 3))
         overlapping = [
             interval
@@ -3821,7 +3827,13 @@ def _table_presence_score(
             and _role_expectation_matches(interval, role, dominant_role)
             and interval["observed_table_frames"] >= min_observed_table_frames
         ]
-        expectation_pass = len(overlapping) >= min_intervals
+        checks = {
+            "min_intervals": len(overlapping) >= min_intervals,
+            "max_intervals": (
+                max_intervals is None or len(overlapping) <= int(max_intervals)
+            ),
+        }
+        expectation_pass = all(checks.values())
         if expectation_pass:
             passed += 1
         scored_expectations.append(
@@ -3831,9 +3843,11 @@ def _table_presence_score(
                 "role": role,
                 "dominant_role": dominant_role,
                 "min_intervals": min_intervals,
+                "max_intervals": max_intervals,
                 "min_observed_table_frames": min_observed_table_frames,
                 "matched_intervals": overlapping,
                 "matched_count": len(overlapping),
+                "checks": checks,
                 "passed": expectation_pass,
             }
         )
@@ -3862,14 +3876,23 @@ def _stage_staffing_score(
         role = expectation.get("role")
         dominant_role = expectation.get("dominant_role")
         min_tracks = int(expectation.get("min_tracks", 0))
+        max_tracks = expectation.get("max_tracks")
         min_observed_table_frames = int(expectation.get("min_observed_table_frames", 1))
         min_peak_count = expectation.get("min_peak_count")
+        max_peak_count = expectation.get("max_peak_count")
         min_mean_count = expectation.get("min_mean_count")
+        max_mean_count = expectation.get("max_mean_count")
         min_table_occupancy_rate = expectation.get("min_table_occupancy_rate")
+        max_table_occupancy_rate = expectation.get("max_table_occupancy_rate")
         min_tracking_available_rate = expectation.get("min_tracking_available_rate")
+        max_tracking_available_rate = expectation.get("max_tracking_available_rate")
         min_room_mean_count = expectation.get("min_room_mean_count")
+        max_room_mean_count = expectation.get("max_room_mean_count")
         min_room_table_occupancy_rate = expectation.get(
             "min_room_table_occupancy_rate"
+        )
+        max_room_table_occupancy_rate = expectation.get(
+            "max_room_table_occupancy_rate"
         )
         min_canonical_table_identity_count = expectation.get(
             "min_canonical_table_identity_count"
@@ -3890,11 +3913,21 @@ def _stage_staffing_score(
         checks = {
             "stage_present": stage_summary is not None,
             "min_tracks": len(matching_roster) >= min_tracks,
+            "max_tracks": (
+                max_tracks is None or len(matching_roster) <= int(max_tracks)
+            ),
             "min_peak_count": (
                 min_peak_count is None
                 or (
                     stage_summary is not None
                     and stage_summary["peak_table_count"] >= min_peak_count
+                )
+            ),
+            "max_peak_count": (
+                max_peak_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["peak_table_count"] <= max_peak_count
                 )
             ),
             "min_mean_count": (
@@ -3905,12 +3938,29 @@ def _stage_staffing_score(
                     and stage_summary["mean_table_count"] >= min_mean_count
                 )
             ),
+            "max_mean_count": (
+                max_mean_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["mean_table_count"] is not None
+                    and stage_summary["mean_table_count"] <= max_mean_count
+                )
+            ),
             "min_table_occupancy_rate": (
                 min_table_occupancy_rate is None
                 or (
                     stage_summary is not None
                     and stage_summary["table_occupancy_rate"] is not None
                     and stage_summary["table_occupancy_rate"] >= min_table_occupancy_rate
+                )
+            ),
+            "max_table_occupancy_rate": (
+                max_table_occupancy_rate is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["table_occupancy_rate"] is not None
+                    and stage_summary["table_occupancy_rate"]
+                    <= max_table_occupancy_rate
                 )
             ),
             "min_tracking_available_rate": (
@@ -3922,12 +3972,29 @@ def _stage_staffing_score(
                     >= min_tracking_available_rate
                 )
             ),
+            "max_tracking_available_rate": (
+                max_tracking_available_rate is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["tracking_available_rate"] is not None
+                    and stage_summary["tracking_available_rate"]
+                    <= max_tracking_available_rate
+                )
+            ),
             "min_room_mean_count": (
                 min_room_mean_count is None
                 or (
                     stage_summary is not None
                     and stage_summary["mean_room_table_count"] is not None
                     and stage_summary["mean_room_table_count"] >= min_room_mean_count
+                )
+            ),
+            "max_room_mean_count": (
+                max_room_mean_count is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["mean_room_table_count"] is not None
+                    and stage_summary["mean_room_table_count"] <= max_room_mean_count
                 )
             ),
             "min_room_table_occupancy_rate": (
@@ -3937,6 +4004,15 @@ def _stage_staffing_score(
                     and stage_summary["room_table_occupancy_rate"] is not None
                     and stage_summary["room_table_occupancy_rate"]
                     >= min_room_table_occupancy_rate
+                )
+            ),
+            "max_room_table_occupancy_rate": (
+                max_room_table_occupancy_rate is None
+                or (
+                    stage_summary is not None
+                    and stage_summary["room_table_occupancy_rate"] is not None
+                    and stage_summary["room_table_occupancy_rate"]
+                    <= max_room_table_occupancy_rate
                 )
             ),
             "min_canonical_table_identity_count": (
@@ -3966,13 +4042,22 @@ def _stage_staffing_score(
                 "role": role,
                 "dominant_role": dominant_role,
                 "min_tracks": min_tracks,
+                "max_tracks": max_tracks,
                 "min_observed_table_frames": min_observed_table_frames,
                 "min_peak_count": min_peak_count,
+                "max_peak_count": max_peak_count,
                 "min_mean_count": min_mean_count,
+                "max_mean_count": max_mean_count,
                 "min_table_occupancy_rate": min_table_occupancy_rate,
+                "max_table_occupancy_rate": max_table_occupancy_rate,
                 "min_tracking_available_rate": min_tracking_available_rate,
+                "max_tracking_available_rate": max_tracking_available_rate,
                 "min_room_mean_count": min_room_mean_count,
+                "max_room_mean_count": max_room_mean_count,
                 "min_room_table_occupancy_rate": min_room_table_occupancy_rate,
+                "max_room_table_occupancy_rate": (
+                    max_room_table_occupancy_rate
+                ),
                 "canonical_table_identity_count": (
                     stage_summary.get("canonical_table_identity_count")
                     if stage_summary is not None
@@ -4164,9 +4249,13 @@ def _stage_handoff_score(
         lead_role = expectation.get("lead_role")
         lead_dominant_role = expectation.get("lead_dominant_role")
         min_active_tracks = int(expectation.get("min_active_tracks", 0))
+        max_active_tracks = expectation.get("max_active_tracks")
         min_new_tracks = int(expectation.get("min_new_tracks", 0))
+        max_new_tracks = expectation.get("max_new_tracks")
         min_continued_tracks = int(expectation.get("min_continued_tracks", 0))
+        max_continued_tracks = expectation.get("max_continued_tracks")
         min_dropped_tracks = int(expectation.get("min_dropped_tracks", 0))
+        max_dropped_tracks = expectation.get("max_dropped_tracks")
         min_lead_observed_table_frames = int(
             expectation.get("min_lead_observed_table_frames", 0)
         )
@@ -4191,9 +4280,13 @@ def _stage_handoff_score(
                 lead_dominant_role=lead_dominant_role,
                 expected_handoff_types=expected_handoff_types,
                 min_active_tracks=min_active_tracks,
+                max_active_tracks=max_active_tracks,
                 min_new_tracks=min_new_tracks,
+                max_new_tracks=max_new_tracks,
                 min_continued_tracks=min_continued_tracks,
+                max_continued_tracks=max_continued_tracks,
                 min_dropped_tracks=min_dropped_tracks,
+                max_dropped_tracks=max_dropped_tracks,
                 min_lead_observed_table_frames=min_lead_observed_table_frames,
                 min_tracking_available_rate=min_tracking_available_rate,
             )
@@ -4214,9 +4307,13 @@ def _stage_handoff_score(
                 if expected_handoff_types
                 else None,
                 "min_active_tracks": min_active_tracks,
+                "max_active_tracks": max_active_tracks,
                 "min_new_tracks": min_new_tracks,
+                "max_new_tracks": max_new_tracks,
                 "min_continued_tracks": min_continued_tracks,
+                "max_continued_tracks": max_continued_tracks,
                 "min_dropped_tracks": min_dropped_tracks,
+                "max_dropped_tracks": max_dropped_tracks,
                 "min_lead_observed_table_frames": min_lead_observed_table_frames,
                 "min_tracking_available_rate": min_tracking_available_rate,
                 "matched_candidates": scored_candidates,
@@ -6565,9 +6662,13 @@ def _score_handoff_candidate(
     lead_dominant_role: Optional[str],
     expected_handoff_types: set[str],
     min_active_tracks: int,
+    max_active_tracks: Optional[int],
     min_new_tracks: int,
+    max_new_tracks: Optional[int],
     min_continued_tracks: int,
+    max_continued_tracks: Optional[int],
     min_dropped_tracks: int,
+    max_dropped_tracks: Optional[int],
     min_lead_observed_table_frames: int,
     min_tracking_available_rate: Optional[float],
 ) -> Dict[str, Any]:
@@ -6593,9 +6694,23 @@ def _score_handoff_candidate(
             or handoff["handoff_type"] in expected_handoff_types
         ),
         "min_active_tracks": len(active_matches) >= min_active_tracks,
+        "max_active_tracks": (
+            max_active_tracks is None or len(active_matches) <= int(max_active_tracks)
+        ),
         "min_new_tracks": len(new_matches) >= min_new_tracks,
+        "max_new_tracks": (
+            max_new_tracks is None or len(new_matches) <= int(max_new_tracks)
+        ),
         "min_continued_tracks": len(continued_matches) >= min_continued_tracks,
+        "max_continued_tracks": (
+            max_continued_tracks is None
+            or len(continued_matches) <= int(max_continued_tracks)
+        ),
         "min_dropped_tracks": len(dropped_matches) >= min_dropped_tracks,
+        "max_dropped_tracks": (
+            max_dropped_tracks is None
+            or len(dropped_matches) <= int(max_dropped_tracks)
+        ),
         "lead_role": lead_role is None or handoff["lead_role"] == lead_role,
         "lead_dominant_role": (
             lead_dominant_role is None

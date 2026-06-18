@@ -33,16 +33,21 @@
       "required_score_checks": [
         "stage_accuracy",
         "table_count_pass_rate",
+        "table_presence_pass_rate",
+        "stage_staffing_pass_rate",
         "stage_table_coverage_pass_rate",
         "table_transition_pass_rate",
+        "stage_handoff_pass_rate",
         "stage_roster_pass_rate",
         "stage_evidence_pass_rate",
         "procedure_milestone_pass_rate",
         "procedure_status_pass_rate",
+        "operator_snapshot_pass_rate",
         "operator_packet_pass_rate",
         "table_team_pass_rate",
         "table_identity_group_pass_rate",
         "event_timeline_pass_rate",
+        "roster_snapshot_pass_rate",
         "quality_flag_pass_rate"
       ]
     },
