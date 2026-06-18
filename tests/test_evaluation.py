@@ -1094,6 +1094,60 @@ def test_table_person_status_score_rejects_unmapped_forbidden_person_id() -> Non
     )
 
 
+def test_table_person_status_score_accepts_empty_no_table_rosters() -> None:
+    clean_metrics = [
+        _table_metric(0, 0.0, "valve_deployment", []),
+        _table_metric(1, 0.1, "valve_deployment", []),
+    ]
+    labels = {
+        "table_person_status_expectations": [
+            {
+                "status_id": "no_table_people",
+                "source": "procedure_status",
+                "stage": "valve_deployment",
+                "persons": [],
+                "expected_current_person_ids": [],
+                "expected_effective_person_ids": [],
+                "expected_last_observed_person_ids": [],
+                "expected_peak_person_ids": [],
+            }
+        ]
+    }
+
+    clean_score = score_tavr_metrics(clean_metrics, labels)
+    clean_candidate = clean_score["table_person_status_score"]["expectations"][0][
+        "matched_candidates"
+    ][0]
+    assert clean_score["table_person_status_score"]["pass_rate"] == 1.0
+    assert clean_candidate["persons"] == []
+    assert clean_candidate["rosters"]["current"]["actual_canonical_table_ids"] == []
+    assert (
+        clean_candidate["rosters"]["effective"]["checks"][
+            "expected_effective_person_ids"
+        ]
+        is True
+    )
+
+    false_positive_metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+    ]
+    false_positive_score = score_tavr_metrics(false_positive_metrics, labels)
+    false_positive_candidate = false_positive_score["table_person_status_score"][
+        "expectations"
+    ][0]["matched_candidates"][0]
+    assert false_positive_score["table_person_status_score"]["pass_rate"] == 0.0
+    assert false_positive_candidate["rosters"]["current"][
+        "extra_canonical_table_ids"
+    ] == [1]
+    assert (
+        false_positive_candidate["rosters"]["current"]["checks"][
+            "expected_current_person_ids"
+        ]
+        is False
+    )
+
+
 def test_exact_operator_packet_canonical_people_rejects_extra_people() -> None:
     metrics = [
         _table_metric(0, 0.0, "valve_deployment", [7, 8]),
@@ -2849,6 +2903,51 @@ def test_table_person_interval_score_rejects_split_person_identity() -> None:
     assert person["canonical_table_ids"] == [1, 2]
     assert person["checks"]["max_canonical_table_ids"] is False
     assert expectation["checks"]["all_persons_passed"] is False
+
+
+def test_table_person_interval_score_accepts_empty_no_table_window() -> None:
+    clean_metrics = [
+        _table_metric(0, 0.0, "valve_deployment", []),
+        _table_metric(1, 0.1, "valve_deployment", []),
+    ]
+    labels = {
+        "table_person_interval_expectations": [
+            {
+                "window_id": "no_table_people",
+                "start_s": 0.0,
+                "end_s": 0.1,
+                "stage": "valve_deployment",
+                "persons": [],
+                "expected_person_count": 0,
+                "max_persons": 0,
+                "max_total_canonical_table_ids": 0,
+            }
+        ]
+    }
+
+    clean_score = score_tavr_metrics(clean_metrics, labels)
+    clean_expectation = clean_score["table_person_interval_score"][
+        "expectations"
+    ][0]
+    assert clean_score["table_person_interval_score"]["pass_rate"] == 1.0
+    assert clean_expectation["candidate_canonical_table_ids"] == []
+    assert clean_expectation["matched_person_count"] == 0
+    assert clean_expectation["checks"]["max_total_canonical_table_ids"] is True
+
+    false_positive_metrics = [
+        _table_metric(0, 0.0, "valve_deployment", [7]),
+        _table_metric(1, 0.1, "valve_deployment", [7]),
+    ]
+    false_positive_score = score_tavr_metrics(false_positive_metrics, labels)
+    false_positive_expectation = false_positive_score[
+        "table_person_interval_score"
+    ]["expectations"][0]
+    assert false_positive_score["table_person_interval_score"]["pass_rate"] == 0.0
+    assert false_positive_expectation["candidate_canonical_table_ids"] == [1]
+    assert (
+        false_positive_expectation["checks"]["max_total_canonical_table_ids"]
+        is False
+    )
 
 
 def test_parse_roi_accepts_normalized_crop() -> None:

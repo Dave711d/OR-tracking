@@ -28,6 +28,8 @@
   },
   "score_summary": {
     "table_count_score": 1.0,
+    "table_person_interval_score": 1.0,
+    "table_person_status_score": 1.0,
     "stage_table_coverage_score": 1.0,
     "table_transition_score": 1.0,
     "stage_roster_score": 1.0,

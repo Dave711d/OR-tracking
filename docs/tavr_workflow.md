@@ -485,7 +485,8 @@ The current local Sentara suite covers:
   weak because most frames are non-room and low-confidence. The app's opt-in
   static table fallback can be used for manual low-motion review, but the
   default suite keeps this case conservative unless static staff are visually
-  proven.
+  proven. Human-labelled no-table windows and status rosters now require zero
+  current/effective/last/peak table people.
 - `sentara_900_static_table_fallback`: the opt-in version of the same slice,
   proving static fallback can recover the three-person table roster before the
   fluoroscopy switch while keeping the procedure stage held at
@@ -508,7 +509,8 @@ The current local Sentara suite covers:
   table staff, should be flagged `non_room_view`, and should emit non-room
   timeline events with zero table count, zero table-transition events, and zero
   canonical table-person groups. Stage evidence and stage-roster labels should
-  remain `held_non_room` / no-table-evidence.
+  remain `held_non_room` / no-table-evidence. Human-labelled no-table person
+  checks require empty interval and status rosters throughout the slice.
 - `sentara_2700_room_post`: post-deployment / closure room-view segment with
   stage, table count, presence, staffing, room-view occupancy, quality, and
   post-deploy-to-closure handoff expectations. Event-timeline labels verify the

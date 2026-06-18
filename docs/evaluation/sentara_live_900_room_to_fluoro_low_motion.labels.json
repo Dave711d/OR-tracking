@@ -25,6 +25,19 @@
       "max_intervals": 0
     }
   ],
+  "table_person_interval_expectations": [
+    {
+      "window_id": "weak_room_to_fluoro_no_table_people",
+      "annotation_source": "human_frame_review_2026-06-18",
+      "start_s": 0.0,
+      "end_s": 29.9,
+      "stage": "access_sheathing",
+      "persons": [],
+      "expected_person_count": 0,
+      "max_persons": 0,
+      "max_total_canonical_table_ids": 0
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "access_sheathing",
@@ -158,6 +171,39 @@
         "non_room_view",
         "low_motion_room_view"
       ]
+    }
+  ],
+  "table_person_status_expectations": [
+    {
+      "status_id": "fluoro_view_start_no_table_people",
+      "annotation_source": "human_frame_review_2026-06-18",
+      "source": "operator_snapshot",
+      "timestamp_s": 4.204,
+      "tolerance_s": 0.12,
+      "required_snapshot_reasons": ["view_start"],
+      "stage": "access_sheathing",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "persons": [],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": [],
+      "expected_last_observed_person_ids": [],
+      "expected_peak_person_ids": []
+    },
+    {
+      "status_id": "final_no_table_people",
+      "annotation_source": "human_frame_review_2026-06-18",
+      "source": "procedure_status",
+      "stage": "access_sheathing",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "persons": [],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": [],
+      "expected_last_observed_person_ids": [],
+      "expected_peak_person_ids": []
     }
   ],
   "operator_snapshot_expectations": [

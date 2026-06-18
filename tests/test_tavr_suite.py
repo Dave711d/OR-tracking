@@ -405,6 +405,8 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
     person_interval_cases = {
         "sentara_1800_mixed_room",
         "sentara_2700_room_post",
+        "sentara_2400_fluoro_negative",
+        "sentara_900_room_to_fluoro_low_motion",
         "sentara_900_static_table_fallback",
     }
 

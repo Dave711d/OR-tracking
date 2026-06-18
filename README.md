@@ -128,9 +128,11 @@ thresholds, including `operator_packet_pass_rate`,
 `operator_snapshot_pass_rate` for timestamped "who plus stage" checks,
 `table_presence_pass_rate` for exact canonical table-person intervals, and
 `table_person_interval_pass_rate` for human-labelled table-person windows that
-detect missed people, extra tracker people, and identity fragmentation, and
+detect missed people, extra tracker people, identity fragmentation, and
+no-table negative windows, and
 `table_person_status_pass_rate` for human-labelled current/effective/last/peak
-table rosters at operator status snapshots or the final procedure summary, and
+table rosters or explicit empty rosters at operator status snapshots or the
+final procedure summary, and
 `table_identity_group_pass_rate` when packet, snapshot, or canonical
 table-person expectations are labelled.
 Operator snapshot expectations are scored only against exported
@@ -267,8 +269,9 @@ latest/effective table IDs, next stage, and quality flags.
 The `Evaluated demo` replay selector loads compact backend artifacts from the
 Sentara 900s, 1800s, 2400s, and 2700s windows plus the full synthetic TAVR
 workflow, including weak visual support, held non-room context, recent
-room-view hold, static-fallback review, closure peak/last-observed labelled
-table people, and all-eight-stage table identity cases. The sticky stage/table
+room-view hold, no-table person negative checks, static-fallback review, closure
+peak/last-observed labelled table people, and all-eight-stage table identity
+cases. The sticky stage/table
 brief shows the current procedure stage, canonical
 stage progress, next expected stage, stage handoff type, stage-wide roster
 contacts with core-vs-brief dwell, current visible table roster, and effective

@@ -12,6 +12,19 @@
       "min_within_range_rate": 0.95
     }
   ],
+  "table_person_interval_expectations": [
+    {
+      "window_id": "fluoroscopy_only_no_table_people",
+      "annotation_source": "human_frame_review_2026-06-18",
+      "start_s": 0.0,
+      "end_s": 29.9,
+      "stage": "valve_deployment",
+      "persons": [],
+      "expected_person_count": 0,
+      "max_persons": 0,
+      "max_total_canonical_table_ids": 0
+    }
+  ],
   "stage_table_coverage_expectations": [
     {
       "stage": "valve_deployment",
@@ -109,6 +122,38 @@
         "low_stage_confidence",
         "non_room_view"
       ]
+    }
+  ],
+  "table_person_status_expectations": [
+    {
+      "status_id": "fluoroscopy_snapshot_no_table_people",
+      "annotation_source": "human_frame_review_2026-06-18",
+      "source": "operator_snapshot",
+      "timestamp_s": 29.9,
+      "tolerance_s": 0.12,
+      "stage": "valve_deployment",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "persons": [],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": [],
+      "expected_last_observed_person_ids": [],
+      "expected_peak_person_ids": []
+    },
+    {
+      "status_id": "final_fluoroscopy_no_table_people",
+      "annotation_source": "human_frame_review_2026-06-18",
+      "source": "procedure_status",
+      "stage": "valve_deployment",
+      "current_view": "non_room",
+      "tracking_available": false,
+      "effective_table_source": "no_room_table_evidence",
+      "persons": [],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": [],
+      "expected_last_observed_person_ids": [],
+      "expected_peak_person_ids": []
     }
   ],
   "operator_snapshot_expectations": [
