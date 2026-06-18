@@ -286,13 +286,16 @@ The label file can include:
   requiring zero coverage rows in fluoroscopy-only clips, or constraining
   observed table frames, coverage ratio, room-view coverage ratio, tracking
   availability, table-role confidence, merged raw track IDs, entry/exit flags,
-  and label text.
+  and label text. Use `required_merged_track_ids` for subset checks and
+  `expected_merged_track_ids` when a curated fixture must match the raw-ID
+  stitching exactly.
 - `table_transition_expectations`: expected table entry, exit, stage-start
   presence, or stage-end presence events. Labels can require minimum/maximum
   matching events, zero events in non-room clips, stage/segment/time windows,
   operator-facing role, raw dominant role, track/canonical IDs, merged raw track
   IDs, observed table frames, coverage ratios, tracking availability, table-role
-  confidence, and label text.
+  confidence, and label text. `expected_merged_track_ids` is available here too
+  for exact entry/exit identity stitching checks.
 - `stage_handoff_expectations`: expected stage-boundary roster behavior, such as
   requiring a deployment-stage `table_roster_started` event, a closure-stage
   `roster_added` event, a lead role, minimum active/new/continued/dropped track
@@ -366,7 +369,9 @@ The label file can include:
   Expectations can constrain operator-facing role, raw dominant role, canonical
   group ID, representative raw track ID, merged raw track IDs, observed table
   frames, stage-specific frames, first/last seen timing, and minimum/maximum
-  group counts.
+  group counts. Use `required_merged_track_ids` to require a subset of raw
+  fragments, and `expected_merged_track_ids` when an over-merge should fail the
+  curated fixture.
 - `event_timeline_expectations`: expected chronological review events, such as
   requiring a room-view return at deployment, a closure-stage roster-added event,
   a table peak, or a non-room event with zero table count. Expectations can

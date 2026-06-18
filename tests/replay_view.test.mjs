@@ -5,6 +5,7 @@ import { test } from "node:test";
 import {
   effectiveTableSnapshot,
   eventTimeSeconds,
+  focusedReplayEvents,
   normalizeEvaluationPayload,
   packetForStatus,
   replayOperatorProjection,
@@ -168,6 +169,36 @@ test("replay snapshots select matching operator packets by stage and time", asyn
   assert.equal(final.current_stage, "closure_finish");
   assert.equal(packetForStatus(demo.packets, final).stage, "closure_finish");
   assert.match(replaySnapshotLabel(deployment, deploymentIndex, demo.statusSnapshots.length), /Valve deployment/);
+});
+
+test("focused replay events stay scoped to the selected snapshot stage", async () => {
+  const payload = await demoPayload("synthetic-full-tavr-evaluation.json");
+  const demo = normalizeEvaluationPayload(payload, { label: "Full synthetic workflow" });
+  const final = replaySnapshotAt(demo);
+  const focused = focusedReplayEvents(demo.events, final, 12);
+  const compact = focusedReplayEvents(demo.events, final, 3);
+
+  assert.equal(final.current_stage, "closure_finish");
+  assert.equal(focused.focused, true);
+  assert.deepEqual(new Set(focused.rows.map((row) => row.stage)), new Set(["closure_finish"]));
+  assert.deepEqual(
+    focused.rows.map((row) => row.event_type),
+    [
+      "stage_started",
+      "table_handoff",
+      "table_present_at_stage_start",
+      "table_present_at_stage_start",
+      "table_exit",
+      "table_peak",
+      "table_present_at_stage_end",
+    ],
+  );
+  assert.equal(focused.rows.find((row) => row.event_type === "table_handoff").handoff_type, "roster_changed");
+  assert.equal(focused.rows.some((row) => row.stage === "access_sheathing"), false);
+  assert.equal(compact.rows.length, 3);
+  assert.equal(compact.rows[0].event_type, "stage_started");
+  assert.equal(compact.rows[1].event_type, "table_handoff");
+  assert.ok(compact.hiddenBefore > 0);
 });
 
 test("replay projection can represent an earlier selected snapshot", async () => {

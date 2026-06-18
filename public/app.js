@@ -5,6 +5,7 @@ import {
   currentTableSnapshot,
   effectiveTableSnapshot,
   eventTimeSeconds,
+  focusedReplayEvents,
   formatPersonId,
   formatPersonIds,
   normalizeEvaluationPayload,
@@ -340,9 +341,7 @@ function renderEvaluationReplay(demo) {
   renderBackendTableTeam(demo.team);
   renderBackendTableIdentities(demo.identities);
   renderBackendStageCoverage(demo.stageCoverage);
-  renderBackendStageRoster(demo.stageRosters);
   renderBackendProcedureMilestones(demo.milestones);
-  renderBackendProcedureEvents(demo.events);
   renderBackendQualityFlags(demo.qualityFlags);
   renderEvaluationReplaySnapshot(demo, selectedIndex);
 }
@@ -374,6 +373,8 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   renderProcedureStatus(status, demo);
   renderBackendStatusSnapshots(demo.statusSnapshots, selectedIndex);
   renderBackendOperatorPacket(demo.packets, status);
+  renderBackendStageRoster(demo.stageRosters, stageRoster);
+  renderBackendProcedureEvents(demo.events, status);
 }
 
 function populateInitialStageOptions() {
@@ -1900,28 +1901,69 @@ function renderBackendStageCoverage(rows = []) {
   appendOverflowRow(stageCoverageList, rows.length, visibleRows.length, "coverage rows");
 }
 
-function renderBackendStageRoster(rows = []) {
+function renderBackendStageRoster(rows = [], selectedRoster = null) {
   stageRosterList.replaceChildren();
   if (!rows.length) {
     appendInfoRow(stageRosterList, "None yet", "");
     return;
   }
 
-  rows.slice().reverse().forEach((row) => {
+  const selectedIndex = selectedRoster
+    ? rows.findIndex((row) => sameStageRosterRow(row, selectedRoster))
+    : -1;
+  const visibleRows = selectedIndex >= 0
+    ? [rows[selectedIndex]]
+    : rows.slice().reverse();
+
+  visibleRows.forEach((row) => {
+    const selected = selectedIndex >= 0 && sameStageRosterRow(row, selectedRoster);
     appendInfoRow(
       stageRosterList,
-      `${row.stage_label}: ${handoffLabel(row.handoff_type || "unknown")}`,
-      [
-        `peak ${row.peak_table_count ?? 0}`,
-        formatPersonIds(row.active_table_canonical_ids, "stage roster people"),
-        formatPersonIds(row.continued_canonical_table_ids, "continued people"),
-        formatPersonIds(row.new_canonical_table_ids, "new people"),
-        formatPersonIds(row.dropped_canonical_table_ids, "dropped people"),
-        `tracking ${formatPercent(row.tracking_available_rate)}`,
-      ].join("; "),
-      { handoff: row.handoff_type },
+      `${selected ? "Selected " : ""}${row.stage_label}: ${handoffLabel(row.handoff_type || "unknown")}`,
+      stageRosterDetail(row),
+      {
+        handoff: row.handoff_type,
+        tone: selected ? "current" : undefined,
+      },
     );
   });
+  if (selectedIndex >= 0) {
+    if (selectedIndex > 0) {
+      appendInfoRow(stageRosterList, "Earlier stage rosters", `${selectedIndex} hidden`, {
+        tone: "quiet",
+      });
+    }
+    const laterCount = rows.length - selectedIndex - 1;
+    if (laterCount > 0) {
+      appendInfoRow(stageRosterList, "Later stage rosters", `${laterCount} hidden`, {
+        tone: "quiet",
+      });
+    }
+  }
+}
+
+function sameStageRosterRow(row = {}, selected = {}) {
+  const rowSegment = row.stage_segment_index;
+  const selectedSegment = selected.stage_segment_index;
+  if (rowSegment !== null && rowSegment !== undefined &&
+      selectedSegment !== null && selectedSegment !== undefined) {
+    return Number(rowSegment) === Number(selectedSegment);
+  }
+  return row.stage === selected.stage &&
+    !timesDiffer(row.clip_start_s ?? row.start_s, selected.clip_start_s ?? selected.start_s);
+}
+
+function stageRosterDetail(row = {}) {
+  return [
+    `peak ${row.peak_table_count ?? 0}`,
+    formatPersonIds(row.active_table_canonical_ids, "stage roster people"),
+    formatPersonIds(row.continued_canonical_table_ids, "continued people"),
+    formatPersonIds(row.new_canonical_table_ids, "new people"),
+    formatPersonIds(row.dropped_canonical_table_ids, "dropped people"),
+    `entered raw IDs ${formatIdList(row.within_stage_entry_track_ids)}`,
+    `exited raw IDs ${formatIdList(row.within_stage_exit_track_ids)}`,
+    `tracking ${formatPercent(row.tracking_available_rate)}`,
+  ].join("; ");
 }
 
 function renderBackendProcedureMilestones(rows = []) {
@@ -1943,14 +1985,20 @@ function renderBackendProcedureMilestones(rows = []) {
   });
 }
 
-function renderBackendProcedureEvents(rows = []) {
+function renderBackendProcedureEvents(rows = [], status = null) {
   eventTimelineList.replaceChildren();
   if (!rows.length) {
     appendInfoRow(eventTimelineList, "None yet", "");
     return;
   }
 
-  const visibleRows = rows.slice(0, 12);
+  const focused = status ? focusedReplayEvents(rows, status, 12) : null;
+  const visibleRows = focused?.rows?.length ? focused.rows : rows.slice(0, 12);
+  if (focused?.hiddenBefore) {
+    appendInfoRow(eventTimelineList, "Earlier selected-stage events", `${focused.hiddenBefore} hidden`, {
+      tone: "quiet",
+    });
+  }
   visibleRows.forEach((row) => {
     appendInfoRow(
       eventTimelineList,
@@ -1959,7 +2007,14 @@ function renderBackendProcedureEvents(rows = []) {
       { source: row.source_table },
     );
   });
-  appendOverflowRow(eventTimelineList, rows.length, visibleRows.length, "events");
+  if (focused?.hiddenAfter) {
+    appendInfoRow(eventTimelineList, "Later selected-stage events", `${focused.hiddenAfter} hidden`, {
+      tone: "quiet",
+    });
+  }
+  if (!focused) {
+    appendOverflowRow(eventTimelineList, rows.length, visibleRows.length, "events");
+  }
 }
 
 function renderBackendQualityFlags(rows = []) {

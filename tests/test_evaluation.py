@@ -1548,6 +1548,74 @@ def test_table_identity_stitching_merges_sequential_fragmented_tracks() -> None:
     )
 
 
+def test_exact_merged_track_ids_rejects_overmerged_identity_and_coverage() -> None:
+    metrics = [
+        _table_metric(
+            0,
+            0.0,
+            "valve_deployment",
+            [7],
+            centroids_by_track={7: (120, 220)},
+        ),
+        _table_metric(
+            1,
+            0.1,
+            "valve_deployment",
+            [8],
+            centroids_by_track={8: (123, 222)},
+        ),
+        _table_metric(
+            2,
+            0.2,
+            "valve_deployment",
+            [9],
+            centroids_by_track={9: (126, 224)},
+        ),
+    ]
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_identity_group_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "required_merged_track_ids": [7, 8],
+                    "expected_merged_track_ids": [7, 8],
+                    "min_groups": 1,
+                }
+            ],
+            "stage_table_coverage_expectations": [
+                {
+                    "stage": "valve_deployment",
+                    "role": "table_operator",
+                    "required_merged_track_ids": [7, 8],
+                    "expected_merged_track_ids": [7, 8],
+                    "min_tracks": 1,
+                }
+            ],
+        },
+    )
+
+    identity_candidate = score["table_identity_group_score"]["expectations"][0][
+        "candidate_checks"
+    ][0]
+    coverage_candidate = score["stage_table_coverage_score"]["expectations"][0][
+        "candidate_checks"
+    ][0]
+
+    assert score["table_identity_group_score"]["pass_rate"] == 0.0
+    assert identity_candidate["checks"]["required_merged_track_ids"] is True
+    assert identity_candidate["checks"]["expected_merged_track_ids"] is False
+    assert identity_candidate["merged_track_ids"] == [7, 8, 9]
+    assert identity_candidate["expected_merged_track_ids"] == [7, 8]
+    assert score["stage_table_coverage_score"]["pass_rate"] == 0.0
+    assert coverage_candidate["checks"]["required_merged_track_ids"] is True
+    assert coverage_candidate["checks"]["expected_merged_track_ids"] is False
+    assert coverage_candidate["merged_track_ids"] == [7, 8, 9]
+    assert coverage_candidate["expected_merged_track_ids"] == [7, 8]
+
+
 def test_table_identity_stitching_preserves_people_through_crossing_fragments() -> None:
     metrics = [
         _table_metric(

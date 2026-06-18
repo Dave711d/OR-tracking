@@ -4748,6 +4748,7 @@ def _table_identity_group_score(
                 or expectation.get("required_stage"),
                 "min_groups": min_groups,
                 "max_groups": max_groups,
+                "candidate_checks": scored_candidates,
                 "matched_candidates": matched_candidates,
                 "matched_count": matched_count,
                 "candidate_count": len(scored_candidates),
@@ -5029,6 +5030,29 @@ def _canonical_table_id_score(
     )
 
 
+def _merged_track_id_score(
+    row: Dict[str, Any],
+    expectation: Dict[str, Any],
+) -> tuple[Dict[str, bool], Dict[str, Any]]:
+    actual_ids = {int(value) for value in row.get("merged_track_ids", [])}
+    required_ids = _expected_int_set(expectation, "required_merged_track_ids") or set()
+    expected_ids = _expected_int_set(expectation, "expected_merged_track_ids")
+    return (
+        {
+            "required_merged_track_ids": required_ids.issubset(actual_ids),
+            "expected_merged_track_ids": (
+                expected_ids is None or actual_ids == expected_ids
+            ),
+        },
+        {
+            "merged_track_ids": sorted(actual_ids),
+            "expected_merged_track_ids": (
+                sorted(expected_ids) if expected_ids is not None else None
+            ),
+        },
+    )
+
+
 def _operator_snapshot_status_expectation(
     expectation: Dict[str, Any],
 ) -> Dict[str, Any]:
@@ -5279,9 +5303,6 @@ def _score_stage_table_coverage_candidate(
     dominant_role = expectation.get("dominant_role")
     track_id = expectation.get("track_id")
     canonical_table_id = expectation.get("canonical_table_id")
-    required_merged_track_ids = {
-        int(track_id) for track_id in expectation.get("required_merged_track_ids", [])
-    }
     min_observed_table_frames = expectation.get("min_observed_table_frames")
     max_observed_table_frames = expectation.get("max_observed_table_frames")
     min_coverage_ratio = expectation.get("min_coverage_ratio")
@@ -5309,6 +5330,7 @@ def _score_stage_table_coverage_candidate(
     )
     label_text = row.get("label", "")
     merged_track_ids = {int(track_id) for track_id in row.get("merged_track_ids", [])}
+    merged_checks, merged_details = _merged_track_id_score(row, expectation)
     checks = {
         "role": role is None or row.get("table_team_role") == role,
         "dominant_role": (
@@ -5319,9 +5341,7 @@ def _score_stage_table_coverage_candidate(
             canonical_table_id is None
             or row.get("canonical_table_id") == int(canonical_table_id)
         ),
-        "required_merged_track_ids": required_merged_track_ids.issubset(
-            merged_track_ids
-        ),
+        **merged_checks,
         "min_observed_table_frames": (
             min_observed_table_frames is None
             or row.get("observed_table_frames", 0)
@@ -5399,13 +5419,13 @@ def _score_stage_table_coverage_candidate(
             fragment in label_text for fragment in forbidden_label_text
         ),
     }
-    return {
+    result = {
         "stage_segment_index": row["stage_segment_index"],
         "stage": row["stage"],
         "stage_label": row["stage_label"],
         "track_id": row["track_id"],
         "canonical_table_id": row["canonical_table_id"],
-        "merged_track_ids": row.get("merged_track_ids", []),
+        "merged_track_ids": sorted(merged_track_ids),
         "dominant_role": row.get("dominant_role"),
         "table_team_role": row.get("table_team_role"),
         "table_team_role_confidence": row.get("table_team_role_confidence"),
@@ -5423,6 +5443,8 @@ def _score_stage_table_coverage_candidate(
         "checks": checks,
         "passed": all(checks.values()),
     }
+    result.update(merged_details)
+    return result
 
 
 def _score_table_transition_candidate(
@@ -5433,9 +5455,6 @@ def _score_table_transition_candidate(
     dominant_role = expectation.get("dominant_role")
     track_id = expectation.get("track_id")
     canonical_table_id = expectation.get("canonical_table_id")
-    required_merged_track_ids = {
-        int(track_id) for track_id in expectation.get("required_merged_track_ids", [])
-    }
     min_observed_table_frames = expectation.get("min_observed_table_frames")
     max_observed_table_frames = expectation.get("max_observed_table_frames")
     min_coverage_ratio = expectation.get("min_coverage_ratio")
@@ -5456,6 +5475,7 @@ def _score_table_transition_candidate(
     merged_track_ids = {
         int(track_id) for track_id in event.get("merged_track_ids", [])
     }
+    merged_checks, merged_details = _merged_track_id_score(event, expectation)
     checks = {
         "role": role is None or event.get("table_team_role") == role,
         "dominant_role": (
@@ -5466,9 +5486,7 @@ def _score_table_transition_candidate(
             canonical_table_id is None
             or event.get("canonical_table_id") == int(canonical_table_id)
         ),
-        "required_merged_track_ids": required_merged_track_ids.issubset(
-            merged_track_ids
-        ),
+        **merged_checks,
         "min_observed_table_frames": (
             min_observed_table_frames is None
             or event.get("observed_table_frames", 0)
@@ -5526,7 +5544,7 @@ def _score_table_transition_candidate(
             fragment in label_text for fragment in forbidden_label_text
         ),
     }
-    return {
+    result = {
         "event_type": event["event_type"],
         "timestamp_s": event["timestamp_s"],
         "frame_index": event["frame_index"],
@@ -5535,7 +5553,7 @@ def _score_table_transition_candidate(
         "stage_label": event["stage_label"],
         "track_id": event["track_id"],
         "canonical_table_id": event["canonical_table_id"],
-        "merged_track_ids": event.get("merged_track_ids", []),
+        "merged_track_ids": sorted(merged_track_ids),
         "dominant_role": event.get("dominant_role"),
         "table_team_role": event.get("table_team_role"),
         "table_team_role_confidence": event.get("table_team_role_confidence"),
@@ -5547,6 +5565,8 @@ def _score_table_transition_candidate(
         "checks": checks,
         "passed": all(checks.values()),
     }
+    result.update(merged_details)
+    return result
 
 
 def _score_stage_roster_candidate(
@@ -6614,9 +6634,6 @@ def _score_table_identity_group_candidate(
     canonical_table_id = expectation.get("canonical_table_id")
     role = expectation.get("role") or expectation.get("table_team_role")
     dominant_role = expectation.get("dominant_role")
-    required_merged_track_ids = {
-        int(track_id) for track_id in expectation.get("required_merged_track_ids", [])
-    }
     required_stage = expectation.get("stage") or expectation.get("required_stage")
     min_stage_frames = expectation.get("min_stage_frames")
     max_stage_frames = expectation.get("max_stage_frames")
@@ -6634,6 +6651,7 @@ def _score_table_identity_group_candidate(
     merged_track_ids = {
         int(track_id) for track_id in group.get("merged_track_ids", [])
     }
+    merged_checks, merged_details = _merged_track_id_score(group, expectation)
     stage_counts = group.get("stage_counts", {})
     stage_frames = (
         int(stage_counts.get(required_stage, 0))
@@ -6650,9 +6668,7 @@ def _score_table_identity_group_candidate(
         "dominant_role": (
             dominant_role is None or group.get("dominant_role") == dominant_role
         ),
-        "required_merged_track_ids": required_merged_track_ids.issubset(
-            merged_track_ids
-        ),
+        **merged_checks,
         "min_merged_track_count": (
             min_merged_track_count is None
             or len(merged_track_ids) >= int(min_merged_track_count)
@@ -6702,10 +6718,10 @@ def _score_table_identity_group_candidate(
             or group.get("last_seen_s") <= float(max_last_seen_s)
         ),
     }
-    return {
+    result = {
         "canonical_table_id": group.get("canonical_table_id"),
         "track_id": group.get("track_id"),
-        "merged_track_ids": group.get("merged_track_ids", []),
+        "merged_track_ids": sorted(merged_track_ids),
         "dominant_role": group.get("dominant_role"),
         "table_team_role": group.get("table_team_role"),
         "table_team_role_confidence": group.get("table_team_role_confidence"),
@@ -6717,6 +6733,8 @@ def _score_table_identity_group_candidate(
         "checks": checks,
         "passed": all(checks.values()),
     }
+    result.update(merged_details)
+    return result
 
 
 def _membership_expectation_matches(

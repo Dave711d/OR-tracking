@@ -341,6 +341,50 @@ export function stageTableBriefHandoffRows(handoff = null) {
   }];
 }
 
+export function focusedReplayEvents(events = [], status = {}, maxVisible = 12) {
+  const rows = asArray(events);
+  if (!rows.length) {
+    return { rows: [], hiddenBefore: 0, hiddenAfter: 0, focused: false };
+  }
+
+  const stage = status.current_stage || status.stage;
+  const time = statusTimeSeconds(status);
+  const candidates = stage
+    ? rows.filter((event) => event.stage === stage)
+    : rows;
+  const scopedRows = candidates.length ? candidates : rows;
+  const ranked = scopedRows
+    .map((event, index) => ({
+      event,
+      index,
+      time: eventTimeSeconds(event),
+      priority: replayEventPriority(event),
+    }))
+    .sort((a, b) => (
+      a.priority - b.priority ||
+      Math.abs(a.time - time) - Math.abs(b.time - time) ||
+      a.time - b.time ||
+      a.index - b.index
+    ));
+  const selected = ranked
+    .slice(0, Math.max(1, Number(maxVisible) || 12))
+    .sort((a, b) => a.time - b.time || a.index - b.index);
+  const selectedIndexes = new Set(selected.map((item) => item.index));
+  const hiddenBefore = scopedRows.filter((event, index) => (
+    !selectedIndexes.has(index) && eventTimeSeconds(event) < time
+  )).length;
+  const hiddenAfter = scopedRows.filter((event, index) => (
+    !selectedIndexes.has(index) && eventTimeSeconds(event) >= time
+  )).length;
+
+  return {
+    rows: selected.map((item) => item.event),
+    hiddenBefore,
+    hiddenAfter,
+    focused: Boolean(stage || Number.isFinite(time)),
+  };
+}
+
 export function eventTimeSeconds(event) {
   return Number(
     event.clip_timestamp_s ??
@@ -363,6 +407,12 @@ export function statusTimeSeconds(status = {}) {
     status.source_start_s ??
     0,
   );
+}
+
+function replayEventPriority(event = {}) {
+  if (event.event_type === "stage_started") return 0;
+  if (event.event_type === "table_handoff") return 1;
+  return 2;
 }
 
 export function latestOperatorPacket(packets) {

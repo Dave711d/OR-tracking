@@ -259,10 +259,13 @@ cases. The sticky stage/table brief shows the current procedure stage, canonical
 stage progress, next expected stage, stage handoff type, stage-wide roster
 contacts with core-vs-brief dwell, current visible table roster, and effective
 held table context so the replay can be scanned before opening the deeper
-tables. The packet text uses `stage roster people` for everyone seen table-side
-during that stage and keeps `latest table status` as the current/effective answer
-to who is at the table now. Refresh those public replay JSON files after
-rerunning the local suites with:
+tables. When the replay scrubber moves, the lower stage-roster and event
+timeline evidence panes are focused on the selected snapshot's stage rather
+than showing a stale whole-case prefix. The packet text uses
+`stage roster people` for everyone seen table-side during that stage and keeps
+`latest table status` as the current/effective answer to who is at the table
+now. Refresh those public replay JSON files after rerunning the local suites
+with:
 
 ```bash
 python3 export_public_demo_data.py

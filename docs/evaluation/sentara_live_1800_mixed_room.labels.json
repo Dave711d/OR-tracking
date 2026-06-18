@@ -494,6 +494,7 @@
       "stage": "valve_deployment",
       "role": "table_operator",
       "required_merged_track_ids": [18, 21, 22],
+      "expected_merged_track_ids": [18, 21, 22],
       "min_merged_track_count": 3,
       "min_observed_table_frames": 30,
       "min_stage_frames": 30

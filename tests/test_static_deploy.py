@@ -544,6 +544,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "requestId !== evaluationReplayRequestId" in app_js
     assert "eventTimeSeconds" in app_js
     assert "export function eventTimeSeconds" in replay_js
+    assert "focusedReplayEvents" in app_js
+    assert "export function focusedReplayEvents" in replay_js
     assert "export function statusTimeSeconds" in replay_js
     assert "event.clip_timestamp_s" in replay_js
     assert "event.clip_start_s" in replay_js
@@ -563,6 +565,10 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "export function stageRosterForStatus" in replay_js
     assert "export function stageRosterBriefRows" in replay_js
     assert "stageRosterForStatus(demo.stageRosters, status, packet)" in app_js
+    assert "renderBackendStageRoster(demo.stageRosters, stageRoster);" in app_js
+    assert "renderBackendProcedureEvents(demo.events, status);" in app_js
+    assert "function sameStageRosterRow" in app_js
+    assert "Earlier selected-stage events" in app_js
     assert "Stage roster" in replay_js
     assert "stage roster people" in app_js
     assert "Stage handoff" in replay_js
