@@ -267,8 +267,9 @@ latest/effective table IDs, next stage, and quality flags.
 The `Evaluated demo` replay selector loads compact backend artifacts from the
 Sentara 900s, 1800s, 2400s, and 2700s windows plus the full synthetic TAVR
 workflow, including weak visual support, held non-room context, recent
-room-view hold, static-fallback review, and all-eight-stage table identity
-cases. The sticky stage/table brief shows the current procedure stage, canonical
+room-view hold, static-fallback review, closure peak/last-observed labelled
+table people, and all-eight-stage table identity cases. The sticky stage/table
+brief shows the current procedure stage, canonical
 stage progress, next expected stage, stage handoff type, stage-wide roster
 contacts with core-vs-brief dwell, current visible table roster, and effective
 held table context so the replay can be scanned before opening the deeper

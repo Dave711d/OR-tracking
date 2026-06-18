@@ -87,6 +87,8 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_identity_groups": 9,
         "min_coverage_rows": 8,
         "min_presence_intervals": 8,
+        "table_person_interval_score": 1.0,
+        "table_person_status_score": 1.0,
         "min_events": 12,
     },
     {

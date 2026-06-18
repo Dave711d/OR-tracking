@@ -518,8 +518,11 @@ The current local Sentara suite covers:
   addition with continued and new table-side tracks. Identity-group labels
   verify nine canonical table people in the closure segment and preserve the
   long-running post-deploy table operator as one auditable table-person group.
-  Stage-evidence labels keep both post-deploy and closure stages weak because
-  the visual confidence is low and closure is partly non-room.
+  Human-labelled table-person windows verify the crowded closure peak and the
+  late room-view table hold, and status-roster labels verify both the peak
+  current/effective/last/peak roster and the final non-room last-observed table
+  answer. Stage-evidence labels keep both post-deploy and closure stages weak
+  because the visual confidence is low and closure is partly non-room.
 
 ## Caveats
 

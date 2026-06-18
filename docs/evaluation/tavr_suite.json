@@ -144,6 +144,8 @@
         "stage_accuracy",
         "table_count_pass_rate",
         "table_presence_pass_rate",
+        "table_person_interval_pass_rate",
+        "table_person_status_pass_rate",
         "stage_staffing_pass_rate",
         "stage_table_coverage_pass_rate",
         "table_transition_pass_rate",
