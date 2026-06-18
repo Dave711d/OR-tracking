@@ -147,6 +147,10 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
         "tracking_available_rate",
         "handoff_type",
         "peak_table_count",
+        "stage_table_track_count",
+        "stage_table_track_ids",
+        "stage_table_canonical_ids",
+        "stage_table_roster_summary",
         "active_table_track_count",
         "canonical_table_identity_count",
         "lead_track_id",
@@ -975,6 +979,13 @@ def operator_stage_packet(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any
             "tracking_available_rate": roster.get("tracking_available_rate"),
             "handoff_type": roster.get("handoff_type"),
             "peak_table_count": roster.get("peak_table_count", 0),
+            "stage_table_track_count": roster.get("active_table_track_count", 0),
+            "stage_table_track_ids": roster.get("active_table_track_ids", []),
+            "stage_table_canonical_ids": roster.get(
+                "active_table_canonical_ids",
+                [],
+            ),
+            "stage_table_roster_summary": roster.get("roster_summary", "none"),
             "active_table_track_count": roster.get("active_table_track_count", 0),
             "canonical_table_identity_count": roster.get(
                 "canonical_table_identity_count",
@@ -3080,8 +3091,15 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
     observable_rate = _maybe_percent_label(row.get("observable_rate"))
     mean_confidence = _maybe_float_label(row.get("mean_confidence"))
     handoff = _text_status_label(row.get("handoff_type"))
-    active_ids = _track_ids_text(row.get("active_table_track_ids", []))
-    active_people = _person_ids_text(row.get("active_table_canonical_ids", []))
+    stage_table_ids = _track_ids_text(
+        row.get("stage_table_track_ids", row.get("active_table_track_ids", []))
+    )
+    stage_table_people = _person_ids_text(
+        row.get(
+            "stage_table_canonical_ids",
+            row.get("active_table_canonical_ids", []),
+        )
+    )
     new_ids = _track_ids_text(row.get("new_track_ids", []))
     new_people = _person_ids_text(row.get("new_canonical_table_ids", []))
     dropped_ids = _track_ids_text(row.get("dropped_track_ids", []))
@@ -3095,10 +3113,10 @@ def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
         f"confidence {mean_confidence}, "
         f"observable {observable_rate}; handoff {handoff}; "
         f"peak table {row.get('peak_table_count', 0)}; "
-        f"active people {active_people} (raw IDs {active_ids}); "
+        f"stage roster people {stage_table_people} (raw IDs {stage_table_ids}); "
         f"new people {new_people} (raw IDs {new_ids}); "
         f"dropped people {dropped_people} (raw IDs {dropped_ids}); "
-        f"roster {row.get('roster_summary') or 'none'}"
+        f"roster {row.get('stage_table_roster_summary') or row.get('roster_summary') or 'none'}"
     )
     if row.get("is_current_stage"):
         effective_people = _person_ids_text(
@@ -6121,6 +6139,8 @@ def _score_operator_packet_candidate(
     lead_role = expectation.get("lead_role") or expectation.get("lead_table_team_role")
     min_peak_table_count = expectation.get("min_peak_table_count")
     max_peak_table_count = expectation.get("max_peak_table_count")
+    min_stage_table_tracks = expectation.get("min_stage_table_track_count")
+    max_stage_table_tracks = expectation.get("max_stage_table_track_count")
     min_active_tracks = expectation.get(
         "min_active_tracks",
         expectation.get("min_active_table_track_count"),
@@ -6148,6 +6168,10 @@ def _score_operator_packet_candidate(
     required_active_track_ids = {
         int(track_id) for track_id in expectation.get("required_active_track_ids", [])
     }
+    required_stage_table_track_ids = {
+        int(track_id)
+        for track_id in expectation.get("required_stage_table_track_ids", [])
+    }
     required_effective_track_ids = {
         int(track_id)
         for track_id in expectation.get("required_effective_track_ids", [])
@@ -6155,6 +6179,15 @@ def _score_operator_packet_candidate(
     required_active_canonical_ids = {
         int(value)
         for value in expectation.get("required_active_canonical_table_ids", [])
+    }
+    required_stage_table_canonical_ids = {
+        int(value)
+        for value in (
+            expectation.get(
+                "required_stage_table_canonical_ids",
+                expectation.get("required_stage_table_canonical_table_ids", []),
+            )
+        )
     }
     required_effective_canonical_ids = {
         int(value)
@@ -6164,6 +6197,15 @@ def _score_operator_packet_candidate(
         expectation,
         "expected_active_canonical_table_ids",
     )
+    expected_stage_table_canonical_ids = _expected_int_set(
+        expectation,
+        "expected_stage_table_canonical_ids",
+    )
+    if expected_stage_table_canonical_ids is None:
+        expected_stage_table_canonical_ids = _expected_int_set(
+            expectation,
+            "expected_stage_table_canonical_table_ids",
+        )
     expected_effective_canonical_ids = _expected_int_set(
         expectation,
         "expected_effective_canonical_table_ids",
@@ -6178,6 +6220,13 @@ def _score_operator_packet_candidate(
         expectation.get("forbidden_packet_text")
     )
     packet_text = row.get("operator_packet", "")
+    stage_table_track_ids = {
+        int(track_id)
+        for track_id in row.get(
+            "stage_table_track_ids",
+            row.get("active_table_track_ids", []),
+        )
+    }
     active_track_ids = {
         int(track_id) for track_id in row.get("active_table_track_ids", [])
     }
@@ -6186,6 +6235,13 @@ def _score_operator_packet_candidate(
     }
     active_canonical_ids = {
         int(value) for value in row.get("active_table_canonical_ids", [])
+    }
+    stage_table_canonical_ids = {
+        int(value)
+        for value in row.get(
+            "stage_table_canonical_ids",
+            row.get("active_table_canonical_ids", []),
+        )
     }
     effective_canonical_ids = {
         int(value) for value in row.get("effective_table_canonical_ids", [])
@@ -6221,6 +6277,20 @@ def _score_operator_packet_candidate(
         "max_peak_table_count": (
             max_peak_table_count is None
             or row.get("peak_table_count", 0) <= int(max_peak_table_count)
+        ),
+        "min_stage_table_tracks": (
+            min_stage_table_tracks is None
+            or row.get(
+                "stage_table_track_count",
+                row.get("active_table_track_count", 0),
+            ) >= int(min_stage_table_tracks)
+        ),
+        "max_stage_table_tracks": (
+            max_stage_table_tracks is None
+            or row.get(
+                "stage_table_track_count",
+                row.get("active_table_track_count", 0),
+            ) <= int(max_stage_table_tracks)
         ),
         "min_active_tracks": (
             min_active_tracks is None
@@ -6307,11 +6377,17 @@ def _score_operator_packet_candidate(
         "required_active_track_ids": required_active_track_ids.issubset(
             active_track_ids
         ),
+        "required_stage_table_track_ids": required_stage_table_track_ids.issubset(
+            stage_table_track_ids
+        ),
         "required_effective_track_ids": required_effective_track_ids.issubset(
             effective_track_ids
         ),
         "required_active_canonical_table_ids": (
             required_active_canonical_ids.issubset(active_canonical_ids)
+        ),
+        "required_stage_table_canonical_ids": (
+            required_stage_table_canonical_ids.issubset(stage_table_canonical_ids)
         ),
         "required_effective_canonical_table_ids": (
             required_effective_canonical_ids.issubset(effective_canonical_ids)
@@ -6319,6 +6395,10 @@ def _score_operator_packet_candidate(
         "expected_active_canonical_table_ids": (
             expected_active_canonical_ids is None
             or active_canonical_ids == expected_active_canonical_ids
+        ),
+        "expected_stage_table_canonical_ids": (
+            expected_stage_table_canonical_ids is None
+            or stage_table_canonical_ids == expected_stage_table_canonical_ids
         ),
         "expected_effective_canonical_table_ids": (
             expected_effective_canonical_ids is None
@@ -6350,6 +6430,10 @@ def _score_operator_packet_candidate(
         "evidence_level": row.get("evidence_level"),
         "handoff_type": row.get("handoff_type"),
         "peak_table_count": row.get("peak_table_count", 0),
+        "stage_table_track_count": row.get(
+            "stage_table_track_count",
+            row.get("active_table_track_count", 0),
+        ),
         "active_table_track_count": row.get("active_table_track_count", 0),
         "canonical_table_identity_count": row.get(
             "canonical_table_identity_count",
@@ -6357,9 +6441,22 @@ def _score_operator_packet_candidate(
         ),
         "effective_table_source": row.get("effective_table_source"),
         "effective_table_count": row.get("effective_table_count"),
+        "stage_table_track_ids": row.get(
+            "stage_table_track_ids",
+            row.get("active_table_track_ids", []),
+        ),
         "active_table_track_ids": row.get("active_table_track_ids", []),
         "effective_table_track_ids": row.get("effective_table_track_ids", []),
+        "stage_table_canonical_ids": row.get(
+            "stage_table_canonical_ids",
+            row.get("active_table_canonical_ids", []),
+        ),
         "active_table_canonical_ids": row.get("active_table_canonical_ids", []),
+        "expected_stage_table_canonical_ids": (
+            sorted(expected_stage_table_canonical_ids)
+            if expected_stage_table_canonical_ids is not None
+            else None
+        ),
         "expected_active_canonical_table_ids": (
             sorted(expected_active_canonical_ids)
             if expected_active_canonical_ids is not None

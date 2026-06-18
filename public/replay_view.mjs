@@ -22,6 +22,10 @@ const TAVR_STAGE_PROGRESS_LOOKUP = new Map(
   TAVR_STAGE_PROGRESS.map((stage, index) => [stage.key, { ...stage, index }]),
 );
 
+const CORE_STAGE_CONTACT_MIN_SECONDS = 0.4;
+const CORE_STAGE_CONTACT_MIN_FRAMES = 12;
+const MAX_STAGE_ROSTER_BRIEF_PEOPLE = 3;
+
 export function normalizeEvaluationPayload(payload, demoMeta = {}) {
   const tavr = payload.tavr || {};
   const events = [
@@ -67,7 +71,13 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
   const effectiveTable = effectiveTableSnapshot(status);
   const effectiveSource = effectiveTable.source;
   const effectiveCount = effectiveTable.count;
-  const tableBriefRows = stageTableBriefRows(status, latestPacket, demo.milestones);
+  const selectedStageRoster = stageRosterForStatus(demo.stageRosters, status, latestPacket);
+  const tableBriefRows = stageTableBriefRows(
+    status,
+    latestPacket,
+    demo.milestones,
+    selectedStageRoster,
+  );
 
   return {
     caseName: demo.caseName,
@@ -129,7 +139,12 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
   };
 }
 
-export function stageTableBriefRows(status = {}, packet = null, milestones = []) {
+export function stageTableBriefRows(
+  status = {},
+  packet = null,
+  milestones = [],
+  stageRoster = null,
+) {
   const stageLabel = status.current_stage_label || packet?.stage_label || "Stage n/a";
   const evidence = status.current_stage_evidence_status || status.evidence_level ||
     packet?.stage_evidence_status || packet?.evidence_level || "evidence n/a";
@@ -139,6 +154,7 @@ export function stageTableBriefRows(status = {}, packet = null, milestones = [])
     evidenceLabel: String(evidence).replaceAll("_", " "),
     timeLabel: Number.isFinite(time) ? `clip ${formatSeconds(time)}` : "",
     progress: procedureProgressBrief(status, packet, milestones),
+    stageRoster,
     currentTable: currentTableSnapshot(status),
     effectiveTable: effectiveTableSnapshot(status),
     handoff: packet ? {
@@ -156,6 +172,7 @@ export function stageTableBriefRowsFromSnapshots({
   evidenceLabel = "",
   timeLabel = "",
   progress = null,
+  stageRoster = null,
   currentTable = {},
   effectiveTable = null,
   handoff = null,
@@ -172,6 +189,7 @@ export function stageTableBriefRowsFromSnapshots({
     },
     ...stageTableBriefProgressRows(progress),
     ...stageTableBriefHandoffRows(handoff),
+    ...stageRosterBriefRows(stageRoster),
     {
       kind: "current",
       label: "Now visible",
@@ -233,6 +251,70 @@ export function stageTableBriefProgressRows(progress = null) {
     ].filter(Boolean).join("; "),
     context: "current",
   }];
+}
+
+export function stageRosterForStatus(stageRosters = [], status = {}, packet = null) {
+  const rows = asArray(stageRosters);
+  if (!rows.length) return null;
+  const packetSegment = packet?.stage_segment_index;
+  if (packetSegment !== null && packetSegment !== undefined) {
+    const match = rows.find((row) => Number(row.stage_segment_index) === Number(packetSegment));
+    if (match) return match;
+  }
+
+  const stage = status.current_stage || packet?.stage;
+  const time = statusTimeSeconds(status);
+  const inTime = (row) => {
+    const start = row.clip_start_s ?? row.start_s;
+    const end = row.clip_end_s ?? row.end_s;
+    if (start === null || start === undefined || end === null || end === undefined) {
+      return false;
+    }
+    return time >= Number(start) - 0.12 && time <= Number(end) + 0.12;
+  };
+  if (stage) {
+    return (
+      rows.find((row) => row.stage === stage && inTime(row)) ||
+      rows.find((row) => row.stage === stage) ||
+      rows[rows.length - 1]
+    );
+  }
+  return rows.find(inTime) || rows[rows.length - 1];
+}
+
+export function stageRosterBriefRows(stageRoster = null) {
+  if (!stageRoster) return [];
+  const roster = asArray(stageRoster.active_table_roster);
+  const activeCount = Number(
+    stageRoster.canonical_table_identity_count ??
+    stageRoster.active_table_track_count ??
+    roster.length,
+  ) || 0;
+  const coreRoster = roster.filter((row) => stageRosterContactIsCore(row));
+  const coreCount = coreRoster.length;
+  const briefCount = Math.max(0, roster.length - coreCount);
+  const peakCount = Number(stageRoster.peak_table_count ?? 0) || 0;
+  const trackingRate = stageRoster.tracking_available_rate;
+  const lead = coreRoster[0] || roster[0] || null;
+  const stageRows = [{
+    kind: "stage_roster",
+    label: "Stage roster",
+    value: `${activeCount} tracked; ${coreCount} core`,
+    detail: [
+      `peak ${peakCount}`,
+      Number.isFinite(Number(trackingRate))
+        ? `tracking ${formatPercent(Number(trackingRate))}`
+        : "",
+      lead ? `lead ${formatRosterPersonLabel(lead)}` : "",
+      briefCount ? `${briefCount} brief contacts` : "",
+    ].filter(Boolean).join("; "),
+    context: activeCount ? "handoff" : "empty",
+  }];
+
+  const contactRows = (coreRoster.length ? coreRoster : roster)
+    .slice(0, MAX_STAGE_ROSTER_BRIEF_PEOPLE)
+    .map(stageRosterPersonBriefRow);
+  return stageRows.concat(contactRows);
 }
 
 export function stageTableBriefHandoffRows(handoff = null) {
@@ -462,6 +544,53 @@ function tableSnapshotAgeSuffix(snapshot = {}) {
   return age === null || age === undefined ? "" : `; age ${formatSeconds(age)}`;
 }
 
+function stageRosterPersonBriefRow(row = {}) {
+  const core = stageRosterContactIsCore(row);
+  const frames = Number(row.observed_table_frames ?? 0) || 0;
+  const roomCoverage = Number(row.room_coverage_ratio ?? row.coverage_ratio);
+  const mergedIds = asArray(row.merged_track_ids);
+  return {
+    kind: "stage_roster_person",
+    label: `Stage ${formatRosterPersonLabel(row)}`,
+    value: [
+      core ? "core" : "brief",
+      tableBriefRoleLabel(row),
+      `${frames}f`,
+    ].filter(Boolean).join("; "),
+    detail: [
+      stageRosterClipRange(row),
+      Number.isFinite(roomCoverage) ? `room ${formatPercent(roomCoverage)}` : "",
+      mergedIds.length > 1 ? `raw ${mergedIds.join(", ")}` : "",
+    ].filter(Boolean).join("; "),
+    context: core ? "handoff" : "empty",
+  };
+}
+
+function stageRosterContactIsCore(row = {}) {
+  const frames = Number(row.observed_table_frames ?? 0) || 0;
+  const start = Number(row.first_seen_clip_s);
+  const end = Number(row.last_seen_clip_s);
+  const dwellSeconds = Number.isFinite(start) && Number.isFinite(end)
+    ? Math.max(0, end - start)
+    : 0;
+  return (
+    frames >= CORE_STAGE_CONTACT_MIN_FRAMES ||
+    dwellSeconds >= CORE_STAGE_CONTACT_MIN_SECONDS
+  );
+}
+
+function stageRosterClipRange(row = {}) {
+  const start = Number(row.first_seen_clip_s ?? row.first_seen_s);
+  const end = Number(row.last_seen_clip_s ?? row.last_seen_s);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return "";
+  if (Math.abs(end - start) < 0.05) return formatSeconds(start);
+  return `${formatSeconds(start)}-${formatSeconds(end)}`;
+}
+
+function formatRosterPersonLabel(row = {}) {
+  return rosterPersonLabel(row);
+}
+
 function stageTableBriefPersonRows(current, effective) {
   const people = new Map();
   addBriefPeople(people, current, "current");
@@ -553,4 +682,8 @@ function handoffLabel(handoffType) {
 
 function formatSeconds(value) {
   return value === null || value === undefined ? "n/a" : `${Number(value).toFixed(1)}s`;
+}
+
+function formatPercent(value) {
+  return `${Math.round(Number(value) * 100)}%`;
 }

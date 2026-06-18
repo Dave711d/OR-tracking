@@ -2226,6 +2226,16 @@
         "tracking_available_rate": 1.0,
         "handoff_type": "initial_table_roster",
         "peak_table_count": 2,
+        "stage_table_track_count": 2,
+        "stage_table_track_ids": [
+          1,
+          2
+        ],
+        "stage_table_canonical_ids": [
+          1,
+          2
+        ],
+        "stage_table_roster_summary": "Person 1: ID 1 table_operator 28 frames 1.6-2.5s; Person 2: ID 2 device_prep 1 frames 2.5-2.5s",
         "active_table_track_count": 2,
         "canonical_table_identity_count": 2,
         "lead_track_id": 1,
@@ -2262,7 +2272,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Observed stage: Post-deploy assessment 2699.997s-2702.533s; evidence weak visual support, confidence 0.28, observable 100%; handoff initial table roster; peak table 2; active people Person 1, Person 2 (raw IDs 1, 2); new people Person 1, Person 2 (raw IDs 1, 2); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 28 frames 1.6-2.5s; Person 2: ID 2 device_prep 1 frames 2.5-2.5s; quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+        "operator_packet": "Observed stage: Post-deploy assessment 2699.997s-2702.533s; evidence weak visual support, confidence 0.28, observable 100%; handoff initial table roster; peak table 2; stage roster people Person 1, Person 2 (raw IDs 1, 2); new people Person 1, Person 2 (raw IDs 1, 2); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 28 frames 1.6-2.5s; Person 2: ID 2 device_prep 1 frames 2.5-2.5s; quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
       },
       {
         "packet_index": 1,
@@ -2286,6 +2296,30 @@
         "tracking_available_rate": 0.464,
         "handoff_type": "roster_added",
         "peak_table_count": 4,
+        "stage_table_track_count": 9,
+        "stage_table_track_ids": [
+          3,
+          1,
+          11,
+          13,
+          6,
+          5,
+          2,
+          4,
+          12
+        ],
+        "stage_table_canonical_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "stage_table_roster_summary": "Person 3: ID 3 table_operator 63 frames 2.6-4.9s; Person 1: ID 1 table_operator 43 frames 2.6-4.0s; Person 7: ID 11 device_prep 24 frames 8.4-9.4s; Person 9: ID 13 table_operator 23 frames 12.0-12.9s; Person 6: ID 6 table_operator 10 frames 3.8-4.1s; Person 5: ID 5 table_operator 7 frames 3.6-4.0s",
         "active_table_track_count": 9,
         "canonical_table_identity_count": 9,
         "lead_track_id": 3,
@@ -2356,7 +2390,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; active people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 1, 11, 13, 6, 5, 2, 4, 12); new people Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 4, 5, 6, 11, 12, 13); dropped people none (raw IDs none); roster Person 3: ID 3 table_operator 63 frames 2.6-4.9s; Person 1: ID 1 table_operator 43 frames 2.6-4.0s; Person 7: ID 11 device_prep 24 frames 8.4-9.4s; Person 9: ID 13 table_operator 23 frames 12.0-12.9s; Person 6: ID 6 table_operator 10 frames 3.8-4.1s; Person 5: ID 5 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 people Person 9 (raw IDs 13); quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 1, 11, 13, 6, 5, 2, 4, 12); new people Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 4, 5, 6, 11, 12, 13); dropped people none (raw IDs none); roster Person 3: ID 3 table_operator 63 frames 2.6-4.9s; Person 1: ID 1 table_operator 43 frames 2.6-4.0s; Person 7: ID 11 device_prep 24 frames 8.4-9.4s; Person 9: ID 13 table_operator 23 frames 12.0-12.9s; Person 6: ID 6 table_operator 10 frames 3.8-4.1s; Person 5: ID 5 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 people Person 9 (raw IDs 13); quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [

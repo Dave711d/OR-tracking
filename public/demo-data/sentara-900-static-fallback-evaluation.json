@@ -1439,6 +1439,18 @@
         "tracking_available_rate": 0.14,
         "handoff_type": "initial_table_roster",
         "peak_table_count": 3,
+        "stage_table_track_count": 3,
+        "stage_table_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "stage_table_canonical_ids": [
+          1,
+          2,
+          3
+        ],
+        "stage_table_roster_summary": "Person 1: ID 1 table_operator 105 frames 0.0-4.2s; Person 2: ID 2 table_operator 98 frames 0.0-4.2s; Person 3: ID 4 table_operator 5 frames 3.8-4.2s",
         "active_table_track_count": 3,
         "canonical_table_identity_count": 3,
         "lead_track_id": 1,
@@ -1485,7 +1497,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Access / sheathing 899.999s-929.962s; evidence weak visual support, confidence 0.20, observable 2%; handoff initial table roster; peak table 3; active people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); new people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 105 frames 0.0-4.2s; Person 2: ID 2 table_operator 98 frames 0.0-4.2s; Person 3: ID 4 table_operator 5 frames 3.8-4.2s; latest table status last observed room view 3 people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); next Angio alignment / crossing; quality flags low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Access / sheathing 899.999s-929.962s; evidence weak visual support, confidence 0.20, observable 2%; handoff initial table roster; peak table 3; stage roster people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); new people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 105 frames 0.0-4.2s; Person 2: ID 2 table_operator 98 frames 0.0-4.2s; Person 3: ID 4 table_operator 5 frames 3.8-4.2s; latest table status last observed room view 3 people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); next Angio alignment / crossing; quality flags low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [

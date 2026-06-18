@@ -468,13 +468,27 @@
       "expected_effective_canonical_table_ids": [
         9
       ],
+      "expected_stage_table_canonical_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
       "required_packet_text": [
         "Current stage: Closure / finish",
         "evidence weak visual support",
         "handoff roster added",
-        "active people",
+        "stage roster people",
         "latest table status last observed room view 1 people",
         "quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+      ],
+      "forbidden_packet_text": [
+        "active people"
       ]
     }
   ],

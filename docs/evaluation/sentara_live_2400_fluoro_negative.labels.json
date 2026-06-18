@@ -152,9 +152,12 @@
         "Current held stage: Valve deployment",
         "stage support held from non-room context",
         "handoff initial no table evidence",
-        "active people none",
+        "stage roster people none",
         "latest table status no room table evidence 0 people none",
         "quality flags low_stage_confidence, non_room_view"
+      ],
+      "forbidden_packet_text": [
+        "active people"
       ]
     }
   ],

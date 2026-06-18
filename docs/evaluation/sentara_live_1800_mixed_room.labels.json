@@ -409,6 +409,18 @@
         9,
         10
       ],
+      "expected_stage_table_canonical_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
       "expected_effective_canonical_table_ids": [
         8,
         10
@@ -423,9 +435,12 @@
         "Current stage: Valve deployment",
         "evidence strong visual support",
         "handoff table roster started",
-        "active people",
+        "stage roster people",
         "latest table status recent room view hold 2 people Person 8, Person 10",
         "next Post-deploy assessment"
+      ],
+      "forbidden_packet_text": [
+        "active people"
       ]
     }
   ],

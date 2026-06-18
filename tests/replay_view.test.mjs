@@ -29,26 +29,33 @@ test("replay projection keeps current table empty when only held evidence exists
 
   assert.equal(view.stageMetric, "Valve deployment (strong_visual_support)");
   assert.equal(view.tableSideMetric, "0");
-  assert.deepEqual(view.stageTableBriefRows.slice(0, 7).map((row) => row.label), [
+  assert.deepEqual(view.stageTableBriefRows.slice(0, 10).map((row) => row.label), [
     "Stage",
     "Procedure progress",
     "Stage handoff",
+    "Stage roster",
+    "Stage Person 8 (ID 18)",
+    "Stage Person 1 (ID 1)",
+    "Stage Person 2 (ID 2)",
     "Now visible",
     "Effective for stage",
     "Person 8 (ID 21)",
-    "Person 10 (ID 20)",
   ]);
   assert.equal(view.stageTableBriefRows[1].value, "6/8 stages");
   assert.match(view.stageTableBriefRows[1].detail, /next Post-deploy assessment/);
   assert.match(view.stageTableBriefRows[1].detail, /observed 2\/8/);
   assert.equal(view.stageTableBriefRows[2].value, "table roster started");
+  assert.equal(view.stageTableBriefRows[3].value, "10 tracked; 6 core");
+  assert.match(view.stageTableBriefRows[3].detail, /4 brief contacts/);
+  assert.match(view.stageTableBriefRows[4].value, /core; Table op; 36f/);
+  assert.match(view.stageTableBriefRows[4].detail, /24\.3s-26\.3s/);
   assert.match(view.stageTableBriefRows[0].detail, /clip 30\.0s/);
   assert.match(view.stageTableBriefRows[2].detail, /new Person 1/);
   assert.match(view.stageTableBriefRows[2].detail, /new .*Person 10/);
   assert.match(view.stageTableBriefRows[2].detail, /dropped none/);
-  assert.equal(view.stageTableBriefRows[3].value, "0 at table");
-  assert.equal(view.stageTableBriefRows[4].value, "2 effective");
-  assert.match(view.stageTableBriefRows[5].value, /held; Table op/);
+  assert.equal(view.stageTableBriefRows[7].value, "0 at table");
+  assert.equal(view.stageTableBriefRows[8].value, "2 effective");
+  assert.match(view.stageTableBriefRows[9].value, /held; Table op/);
   assert.deepEqual(view.tableRosterItems, ["None"]);
   assert.deepEqual(view.tablePresenceRows.map((row) => row.label), [
     "Current room view",
@@ -74,6 +81,8 @@ test("replay projection separates current visible person from current-stage effe
   assert.equal(view.stageMetric, "Closure / finish (strong_visual_support)");
   assert.equal(view.tableSideMetric, "1");
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Procedure progress: 8\/8 stages; next complete; observed 8\/8/);
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Stage roster: 2 tracked; 2 core; peak 2; tracking 100%; lead Person 9/);
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Stage Person 9 \(ID 22\): core; Access; 41f; 11\.6s-13\.3s; room 100%/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 9.*now \+ effective/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 10.*held/);
   assert.match(view.tablePresenceRows[0].value, /1 at table; current room view; people Person 9/);
@@ -105,7 +114,11 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.deepEqual(snapshot.canonicalIds, [1, 2, 3]);
   assert.deepEqual(view.currentTable.canonicalIds, []);
   assert.equal(stageTableBriefRows(demo.status)[1].value, "2/8 stages");
+  assert.equal(stageTableBriefRows(demo.status)[2].value, "0 at table");
   assert.equal(stageTableBriefRows(demo.status)[3].value, "3 effective");
+  assert.equal(view.stageTableBriefRows[3].value, "3 tracked; 2 core");
+  assert.match(view.stageTableBriefRows[4].value, /core; Table op; 105f/);
+  assert.match(view.stageTableBriefRows[4].detail, /0\.0s-4\.2s; room 83%/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 1.*held/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 2.*held/);
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 3.*held/);

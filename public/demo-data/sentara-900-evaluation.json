@@ -429,6 +429,10 @@
         "tracking_available_rate": 0.14,
         "handoff_type": "initial_no_table_evidence",
         "peak_table_count": 0,
+        "stage_table_track_count": 0,
+        "stage_table_track_ids": [],
+        "stage_table_canonical_ids": [],
+        "stage_table_roster_summary": "none",
         "active_table_track_count": 0,
         "canonical_table_identity_count": 0,
         "lead_track_id": null,
@@ -452,7 +456,7 @@
           "non_room_view",
           "low_motion_room_view"
         ],
-        "operator_packet": "Current stage: Access / sheathing 899.999s-929.962s; evidence weak visual support, confidence 0.21, observable 14%; handoff initial no table evidence; peak table 0; active people none (raw IDs none); new people none (raw IDs none); dropped people none (raw IDs none); roster none; latest table status no room table evidence 0 people none (raw IDs none); next Angio alignment / crossing; quality flags low_stage_confidence, non_room_view, low_motion_room_view"
+        "operator_packet": "Current stage: Access / sheathing 899.999s-929.962s; evidence weak visual support, confidence 0.21, observable 14%; handoff initial no table evidence; peak table 0; stage roster people none (raw IDs none); new people none (raw IDs none); dropped people none (raw IDs none); roster none; latest table status no room table evidence 0 people none (raw IDs none); next Angio alignment / crossing; quality flags low_stage_confidence, non_room_view, low_motion_room_view"
       }
     ],
     "table_team_summary": [],

@@ -407,12 +407,16 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
         "closure_finish",
     ]
     assert packets[1]["stage_status"] == "observed_prior"
+    assert packets[1]["stage_table_track_count"] == 2
+    assert packets[1]["stage_table_track_ids"] == [7, 8]
+    assert packets[1]["stage_table_canonical_ids"] == [1, 2]
     assert packets[1]["active_table_track_ids"] == [7, 8]
     assert packets[1]["handoff_type"] == "roster_added"
     assert "Valve deployment" in packets[1]["operator_packet"]
-    assert "active people Person 1, Person 2 (raw IDs 7, 8)" in (
+    assert "stage roster people Person 1, Person 2 (raw IDs 7, 8)" in (
         packets[1]["operator_packet"]
     )
+    assert "active people" not in packets[1]["operator_packet"]
 
     current = packets[-1]
     assert current["is_current_stage"] is True
@@ -420,10 +424,14 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
     assert current["stage_evidence_status"] == "held_non_room_context"
     assert current["stage_evidence_label"] == "held from non-room context"
     assert current["handoff_type"] == "table_cleared"
+    assert current["stage_table_track_count"] == 0
+    assert current["stage_table_track_ids"] == []
     assert current["effective_table_source"] == "last_observed_room_view"
     assert current["effective_table_track_ids"] == [7, 8]
+    assert current["effective_table_canonical_ids"] == [1, 2]
     assert "Current held stage: Closure / finish" in current["operator_packet"]
     assert "stage support held from non-room context" in current["operator_packet"]
+    assert "stage roster people none" in current["operator_packet"]
     assert "latest table status last observed room view 2 people Person 1, Person 2" in (
         current["operator_packet"]
     )
@@ -707,8 +715,11 @@ def test_operator_status_uses_canonical_table_people_for_fragmented_tracks() -> 
     assert "Person 1: ID 21" in status["operator_summary"]
     assert packet["active_table_track_ids"] == [18]
     assert packet["active_table_canonical_ids"] == [1]
+    assert packet["stage_table_track_ids"] == [18]
+    assert packet["stage_table_canonical_ids"] == [1]
     assert packet["canonical_table_identity_count"] == 1
-    assert "active people Person 1 (raw IDs 18)" in packet["operator_packet"]
+    assert "stage roster people Person 1 (raw IDs 18)" in packet["operator_packet"]
+    assert "active people" not in packet["operator_packet"]
     assert "latest table status current room view 1 people Person 1" in (
         packet["operator_packet"]
     )
@@ -892,6 +903,8 @@ def test_exact_operator_packet_canonical_people_rejects_extra_people() -> None:
             "operator_packet_expectations": [
                 {
                     "stage": "valve_deployment",
+                    "required_stage_table_canonical_ids": [actual_ids[0]],
+                    "expected_stage_table_canonical_ids": [actual_ids[0]],
                     "required_active_canonical_table_ids": [actual_ids[0]],
                     "expected_active_canonical_table_ids": [actual_ids[0]],
                 }
@@ -904,6 +917,10 @@ def test_exact_operator_packet_canonical_people_rejects_extra_people() -> None:
     assert score["operator_packet_score"]["pass_rate"] == 0.0
     assert candidate["checks"]["required_active_canonical_table_ids"] is True
     assert candidate["checks"]["expected_active_canonical_table_ids"] is False
+    assert candidate["checks"]["required_stage_table_canonical_ids"] is True
+    assert candidate["checks"]["expected_stage_table_canonical_ids"] is False
+    assert candidate["stage_table_canonical_ids"] == actual_ids
+    assert candidate["expected_stage_table_canonical_ids"] == [actual_ids[0]]
     assert candidate["active_table_canonical_ids"] == actual_ids
     assert candidate["expected_active_canonical_table_ids"] == [actual_ids[0]]
 
@@ -1251,8 +1268,9 @@ def test_stage_and_event_surfaces_use_table_facing_role() -> None:
                     "min_peak_table_count": 1,
                     "required_packet_text": [
                         "Current stage: Valve deployment",
-                        "active people Person 1 (raw IDs 13)",
+                        "stage roster people Person 1 (raw IDs 13)",
                     ],
+                    "forbidden_packet_text": ["active people"],
                 }
             ],
             "event_timeline_expectations": [
@@ -1989,7 +2007,11 @@ def test_write_tavr_summary_csvs_exports_derived_tables(tmp_path: Path) -> None:
     assert "Valve deployment: peak table 2" in roster_csv
     assert "operator_packet" in packet_csv
     assert "Current stage: Valve deployment" in packet_csv
-    assert "active people Person 1, Person 2 (raw IDs 7, 8)" in packet_csv
+    assert "stage_table_track_ids" in packet_csv
+    assert "stage_table_canonical_ids" in packet_csv
+    assert "stage_table_roster_summary" in packet_csv
+    assert "stage roster people Person 1, Person 2 (raw IDs 7, 8)" in packet_csv
+    assert "active people" not in packet_csv
     assert "effective_table_canonical_ids" in packet_csv
     assert "snapshot_reason" in status_snapshots_csv
     assert "clip_end" in status_snapshots_csv
@@ -2197,8 +2219,9 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "required_quality_flags": ["non_room_view"],
                     "required_packet_text": [
                         "Observed stage: Valve deployment",
-                        "active people Person 2, Person 3 (raw IDs 9, 10)",
+                        "stage roster people Person 2, Person 3 (raw IDs 9, 10)",
                     ],
+                    "forbidden_packet_text": ["active people"],
             }
         ],
         "table_team_expectations": [

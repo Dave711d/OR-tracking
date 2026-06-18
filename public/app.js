@@ -12,6 +12,7 @@ import {
   replaySnapshotAt,
   replaySnapshotLabel,
   rosterPersonLabel,
+  stageRosterForStatus,
   stageTableBriefRows,
   stageTableBriefRowsFromSnapshots,
   tableSourceLabel,
@@ -350,6 +351,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   const status = replaySnapshotAt(demo, snapshotIndex) || demo.status || {};
   const selectedIndex = selectedSnapshotIndex(demo, snapshotIndex);
   const packet = packetForStatus(demo.packets, status);
+  const stageRoster = stageRosterForStatus(demo.stageRosters, status, packet);
   const stageLabel = status.current_stage_label || packet?.stage_label || demo.caseName;
   const tableSnapshot = currentTableSnapshot(status);
   const tableCount = tableSnapshot.count;
@@ -367,7 +369,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   elapsedMetric.textContent = formatSeconds(eventTimeSeconds(status));
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
-  renderStageTableBrief(stageTableBriefRows(status, packet, demo.milestones));
+  renderStageTableBrief(stageTableBriefRows(status, packet, demo.milestones, stageRoster));
   renderBackendTableRoster(status);
   renderProcedureStatus(status, demo);
   renderBackendStatusSnapshots(demo.statusSnapshots, selectedIndex);
@@ -1909,7 +1911,7 @@ function renderBackendStageRoster(rows = []) {
       `${row.stage_label}: ${handoffLabel(row.handoff_type || "unknown")}`,
       [
         `peak ${row.peak_table_count ?? 0}`,
-        formatPersonIds(row.active_table_canonical_ids, "active people"),
+        formatPersonIds(row.active_table_canonical_ids, "stage roster people"),
         formatPersonIds(row.continued_canonical_table_ids, "continued people"),
         formatPersonIds(row.new_canonical_table_ids, "new people"),
         formatPersonIds(row.dropped_canonical_table_ids, "dropped people"),

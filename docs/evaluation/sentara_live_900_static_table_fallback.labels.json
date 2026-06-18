@@ -491,6 +491,11 @@
         2,
         3
       ],
+      "expected_stage_table_canonical_ids": [
+        1,
+        2,
+        3
+      ],
       "expected_effective_canonical_table_ids": [
         1,
         2,
@@ -508,9 +513,12 @@
         "Current stage: Access / sheathing",
         "evidence weak visual support",
         "handoff initial table roster",
-        "active people Person 1, Person 2, Person 3",
+        "stage roster people Person 1, Person 2, Person 3",
         "latest table status last observed room view 3 people Person 1, Person 2, Person 3",
         "next Angio alignment / crossing"
+      ],
+      "forbidden_packet_text": [
+        "active people"
       ]
     }
   ],

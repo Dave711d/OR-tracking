@@ -364,6 +364,8 @@
       "effective_table_source": "current_stage_recent_room_window",
       "required_active_canonical_table_ids": [9, 10],
       "expected_active_canonical_table_ids": [9, 10],
+      "required_stage_table_canonical_ids": [9, 10],
+      "expected_stage_table_canonical_ids": [9, 10],
       "required_effective_canonical_table_ids": [9, 10],
       "expected_effective_canonical_table_ids": [9, 10],
       "required_quality_flags": ["rapid_stage_progression"],
@@ -371,9 +373,10 @@
         "Current stage: Closure / finish",
         "evidence strong visual support",
         "handoff roster changed",
-        "active people Person 9, Person 10",
+        "stage roster people Person 9, Person 10",
         "latest table status current stage recent room window 2 people Person 9, Person 10"
-      ]
+      ],
+      "forbidden_packet_text": ["active people"]
     }
   ],
   "table_team_expectations": [

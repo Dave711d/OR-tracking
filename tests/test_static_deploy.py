@@ -395,6 +395,16 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert any(len(row["merged_track_ids"]) > 1 for row in strong_identities)
     strong_rosters = strong_payload["tavr"]["stage_roster_summary"]
     assert any(8 in row["active_table_canonical_ids"] for row in strong_rosters)
+    strong_current_roster = strong_rosters[-1]
+    assert strong_current_roster["active_table_roster"]
+    assert {
+        "canonical_table_id",
+        "merged_track_ids",
+        "observed_table_frames",
+        "first_seen_clip_s",
+        "last_seen_clip_s",
+        "room_coverage_ratio",
+    } <= set(strong_current_roster["active_table_roster"][0])
     fallback_payload = load_public_demo_payload(
         "sentara-900-static-fallback-evaluation.json"
     )
@@ -544,6 +554,11 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "Procedure progress" in replay_js
     assert "export function procedureProgressBrief" in replay_js
     assert "export function stageTableBriefProgressRows" in replay_js
+    assert "export function stageRosterForStatus" in replay_js
+    assert "export function stageRosterBriefRows" in replay_js
+    assert "stageRosterForStatus(demo.stageRosters, status, packet)" in app_js
+    assert "Stage roster" in replay_js
+    assert "stage roster people" in app_js
     assert "Stage handoff" in replay_js
     assert "export function stageTableBriefHandoffRows" in replay_js
     assert "function browserStageHandoffBrief" in app_js
@@ -581,7 +596,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function eventTableDetail" in app_js
     assert "function snapshotReasonLabel" in app_js
     assert "${rosterPersonLabel(row)}" in app_js
-    assert "active people" in app_js
+    assert "stage roster people" in app_js
+    assert "active people" not in app_js
     assert "new people" in app_js
     assert "continued people" in app_js
     assert "timebase_summary" in replay_js
