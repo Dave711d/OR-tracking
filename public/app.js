@@ -1,4 +1,16 @@
 import { BrowserTableIdentityTracker } from "./browser_identity.mjs";
+import {
+  ROLE_LABELS,
+  asArray,
+  currentTableSnapshot,
+  eventTimeSeconds,
+  formatPersonId,
+  formatPersonIds,
+  latestOperatorPacket,
+  normalizeEvaluationPayload,
+  rosterPersonLabel,
+  tableSourceLabel,
+} from "./replay_view.mjs";
 
 const input = document.querySelector("#videoInput");
 const video = document.querySelector("#sourceVideo");
@@ -127,15 +139,6 @@ const ZONES = [
   { key: "imaging", label: "imaging", x0: 0.42, y0: 0, x1: 0.76, y1: 0.24 },
   { key: "device_table", label: "device", x0: 0, y0: 0, x1: 0.28, y1: 0.35 },
 ];
-
-const ROLE_LABELS = {
-  table_operator: "Table op",
-  access_operator: "Access",
-  device_prep: "Device",
-  imaging: "Imaging",
-  anesthesia: "Anes",
-  entry_supply: "Supply",
-};
 
 const ROLE_COLORS = {
   table_operator: "#37d6a3",
@@ -311,40 +314,6 @@ async function loadEvaluationDemo() {
   }
 }
 
-function normalizeEvaluationPayload(payload, demoMeta = {}) {
-  const tavr = payload.tavr || {};
-  const events = [
-    ...asArray(tavr.procedure_event_timeline).map((event) => ({
-      ...event,
-      source_table: event.source || "procedure_event_timeline",
-    })),
-    ...asArray(tavr.table_transition_events).map((event) => ({
-      ...event,
-      source_table: "table_transition_events",
-    })),
-  ].sort((a, b) => (
-    eventTimeSeconds(a) - eventTimeSeconds(b) ||
-    String(a.event_type || "").localeCompare(String(b.event_type || ""))
-  ));
-
-  return {
-    caseName: payload.case || "evaluated_tavr_case",
-    demoLabel: demoMeta.label || String(payload.case || "evaluated TAVR case").replaceAll("_", " "),
-    scoreSummary: payload.score_summary || {},
-    timebase: payload.timebase || asArray(tavr.timebase_summary)[0] || null,
-    status: asArray(tavr.procedure_status_summary)[0] || null,
-    statusSnapshots: asArray(tavr.operator_status_snapshots),
-    packets: asArray(tavr.operator_stage_packet),
-    team: asArray(tavr.table_team_summary),
-    identities: asArray(tavr.table_identity_groups),
-    stageCoverage: asArray(tavr.stage_table_coverage),
-    stageRosters: asArray(tavr.stage_roster_summary),
-    milestones: asArray(tavr.procedure_milestones),
-    qualityFlags: asArray(tavr.quality_flags),
-    events,
-  };
-}
-
 function renderEvaluationReplay(demo) {
   const status = demo.status || {};
   const latestPacket = latestOperatorPacket(demo.packets);
@@ -400,17 +369,6 @@ function selectedEvaluationDemo() {
     EVALUATION_DEMOS.find((demo) => demo.id === evaluationDemoSelect.value) ||
     EVALUATION_DEMOS.find((demo) => demo.default) ||
     EVALUATION_DEMOS[0]
-  );
-}
-
-function eventTimeSeconds(event) {
-  return Number(
-    event.timestamp_s ??
-    event.clip_timestamp_s ??
-    event.clip_start_s ??
-    event.source_timestamp_s ??
-    event.source_start_s ??
-    0,
   );
 }
 
@@ -1934,19 +1892,6 @@ function snapshotReasonLabel(reason) {
   return reasons.map((item) => handoffLabel(String(item))).join(" + ");
 }
 
-function tableSourceLabel(source) {
-  if (!source) return "source n/a";
-  const labels = {
-    current_room_view: "current room view",
-    current_room_view_empty: "current room view empty",
-    current_stage_recent_room_window: "current-stage recent room window",
-    recent_room_view_hold: "recent room-view hold",
-    last_observed_room_view: "last observed room view",
-    no_room_table_evidence: "no room table evidence",
-  };
-  return labels[source] || String(source).replaceAll("_", " ");
-}
-
 function stageEvidenceLabel(status) {
   if (!status) return "stage support n/a";
   const labels = {
@@ -2015,26 +1960,6 @@ function appendOverflowListItem(container, totalCount, visibleCount, itemLabel) 
   container.append(item);
 }
 
-function latestOperatorPacket(packets) {
-  return packets.find((packet) => packet.is_current_stage) || packets[packets.length - 1] || null;
-}
-
-function currentTableSnapshot(status = {}) {
-  const rows = asArray(status.current_table_roster);
-  const source = rows.length ? "current_room_view" : "current_room_view_empty";
-  return {
-    count: status.current_table_count ?? rows.length,
-    rows,
-    source,
-    sourceLabel: tableSourceLabel(source),
-    ageFromClipEndS: 0,
-  };
-}
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
 function formatSeconds(value) {
   return value === null || value === undefined ? "n/a" : `${Number(value).toFixed(1)}s`;
 }
@@ -2088,21 +2013,6 @@ function formatPercent(value) {
 
 function formatIdList(ids, maxVisible = 6) {
   return compactIdList(asArray(ids), maxVisible);
-}
-
-function formatPersonId(canonicalId) {
-  return canonicalId === null || canonicalId === undefined ? "none" : `Person ${canonicalId}`;
-}
-
-function formatPersonIds(canonicalIds, prefix = "people") {
-  const values = asArray(canonicalIds);
-  if (!values.length) return `${prefix} none`;
-  return `${prefix} ${values.map((id) => formatPersonId(id)).join(", ")}`;
-}
-
-function rosterPersonLabel(row = {}) {
-  const person = formatPersonId(row.canonical_table_id);
-  return person === "none" ? `ID ${row.track_id}` : `${person} (ID ${row.track_id})`;
 }
 
 function formatRosterPeople(roster = [], prefix = "people") {

@@ -128,6 +128,7 @@ def test_vercel_static_demo_files_are_present() -> None:
     assert (public / "index.html").exists()
     assert (public / "app.js").exists()
     assert (public / "browser_identity.mjs").exists()
+    assert (public / "replay_view.mjs").exists()
     assert (public / "styles.css").exists()
     for demo in PUBLIC_EVALUATION_DEMOS:
         assert (public / "demo-data" / demo["file"]).exists()
@@ -406,6 +407,7 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
 def test_static_demo_loads_backend_evaluation_replay() -> None:
     index_html = Path("public/index.html").read_text(encoding="utf-8")
     app_js = Path("public/app.js").read_text(encoding="utf-8")
+    replay_js = Path("public/replay_view.mjs").read_text(encoding="utf-8")
     styles = Path("public/styles.css").read_text(encoding="utf-8")
     catalog_block_match = re.search(
         r"const EVALUATION_DEMOS = \[(?P<body>.*?)\];",
@@ -441,10 +443,13 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
         assert f'/demo-data/{demo["file"]}' in urls
     assert "EVALUATION_DEMOS" in app_js
     assert "EVALUATION_DEMO_URL" not in app_js
+    assert 'from "./replay_view.mjs"' in app_js
     assert "function populateEvaluationDemoOptions" in app_js
     assert "function selectedEvaluationDemo" in app_js
     assert "function loadEvaluationDemo" in app_js
-    assert "function normalizeEvaluationPayload" in app_js
+    assert "normalizeEvaluationPayload" in app_js
+    assert "export function normalizeEvaluationPayload" in replay_js
+    assert "export function replayOperatorProjection" in replay_js
     assert "function renderEvaluationReplay" in app_js
     assert "function renderProcedureStatus" in app_js
     assert "function renderBackendStatusSnapshots" in app_js
@@ -458,28 +463,31 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderBackendQualityFlags" in app_js
     assert "function formatClockRange" in app_js
     assert "function formatClockPoint" in app_js
-    assert "function tableSourceLabel" in app_js
+    assert "tableSourceLabel" in app_js
+    assert "export function tableSourceLabel" in replay_js
     assert "function stageEvidenceLabel" in app_js
     assert "function evidenceLevelLabel" in app_js
     assert "function evidenceSupportLabel" in app_js
     assert "held from non-room context" in app_js
-    assert "recent room-view hold" in app_js
+    assert "recent room-view hold" in replay_js
     assert "evaluationReplayRequestId" in app_js
     assert "keepEvaluationReplayRequest" in app_js
     assert "requestId !== evaluationReplayRequestId" in app_js
-    assert "function eventTimeSeconds" in app_js
-    assert "event.clip_timestamp_s" in app_js
-    assert "event.clip_start_s" in app_js
+    assert "eventTimeSeconds" in app_js
+    assert "export function eventTimeSeconds" in replay_js
+    assert "event.clip_timestamp_s" in replay_js
+    assert "event.clip_start_s" in replay_js
     assert "Sentara TAVR backend artifact" not in app_js
     assert "function appendOverflowRow" in app_js
     assert "function syncEmptyStateToVideoSource" in app_js
     assert "function summarizeStageCounts" in app_js
-    assert "function currentTableSnapshot" in app_js
+    assert "currentTableSnapshot" in app_js
+    assert "export function currentTableSnapshot" in replay_js
     assert "const tableSnapshot = currentTableSnapshot(status);" in app_js
     assert "const tableSnapshot = effectiveTableSnapshot(status);" not in app_js
     assert "emptyState.hidden = Boolean(video.src)" in app_js
     assert "effective_table_source" in app_js
-    assert "current_table_count ?? rows.length" in app_js
+    assert "current_table_count ?? rows.length" in replay_js
     assert "status.current_table_count ?? status.effective_table_count" not in app_js
     assert "last_observed_age_from_clip_end_s" in app_js
     assert "tracking_available_rate" in app_js
@@ -487,8 +495,14 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "effective_table_canonical_ids" in app_js
     assert "active_table_canonical_ids" in app_js
     assert "lead_canonical_table_id" in app_js
-    assert "function formatPersonIds" in app_js
-    assert "function rosterPersonLabel" in app_js
+    assert "formatPersonId" in app_js
+    assert "formatPersonIds" in app_js
+    assert "rosterPersonLabel" in app_js
+    assert "export function formatPersonId" in replay_js
+    assert "export function formatPersonIds" in replay_js
+    assert "export function rosterPersonLabel" in replay_js
+    assert "function formatPersonIds" not in app_js
+    assert "function rosterPersonLabel" not in app_js
     assert "function formatRosterPeople" in app_js
     assert "function eventTableDetail" in app_js
     assert "function snapshotReasonLabel" in app_js
@@ -496,13 +510,13 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "active people" in app_js
     assert "new people" in app_js
     assert "continued people" in app_js
-    assert "timebase_summary" in app_js
-    assert "clip_timestamp_s" in app_js
-    assert "table_identity_groups" in app_js
+    assert "timebase_summary" in replay_js
+    assert "clip_timestamp_s" in replay_js
+    assert "table_identity_groups" in replay_js
     assert "merged_track_ids" in app_js
     assert "quality_flag_codes" in app_js
-    assert "operator_status_snapshots" in app_js
-    assert "procedure_event_timeline" in app_js
+    assert "operator_status_snapshots" in replay_js
+    assert "procedure_event_timeline" in replay_js
     assert ".procedure-status-list" in styles
     assert ".replay-control" in styles
     assert ".identity-list" in styles
