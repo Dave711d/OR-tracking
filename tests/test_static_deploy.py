@@ -286,11 +286,21 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert len(tavr["table_team_summary"]) >= demo["min_team_rows"]
         assert len(tavr["table_identity_groups"]) >= demo["min_identity_groups"]
         assert len(tavr["stage_table_coverage"]) >= demo["min_coverage_rows"]
+        assert all(
+            "active_table_canonical_ids" in row
+            for row in tavr["stage_roster_summary"]
+        )
+        assert all(
+            "canonical_table_id" in row
+            for row in tavr["stage_table_coverage"]
+        )
         assert event_count >= demo["min_events"]
 
     strong_payload = load_public_demo_payload("sentara-1800-evaluation.json")
     strong_identities = strong_payload["tavr"]["table_identity_groups"]
     assert any(len(row["merged_track_ids"]) > 1 for row in strong_identities)
+    strong_rosters = strong_payload["tavr"]["stage_roster_summary"]
+    assert any(8 in row["active_table_canonical_ids"] for row in strong_rosters)
 
 
 def test_static_demo_loads_backend_evaluation_replay() -> None:
@@ -368,7 +378,12 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "lead_canonical_table_id" in app_js
     assert "function formatPersonIds" in app_js
     assert "function rosterPersonLabel" in app_js
+    assert "function formatRosterPeople" in app_js
+    assert "function eventTableDetail" in app_js
     assert "${rosterPersonLabel(row)}" in app_js
+    assert "active people" in app_js
+    assert "new people" in app_js
+    assert "continued people" in app_js
     assert "timebase_summary" in app_js
     assert "clip_timestamp_s" in app_js
     assert "table_identity_groups" in app_js

@@ -1478,8 +1478,8 @@ function renderBackendStageCoverage(rows = []) {
   visibleRows.forEach((row) => {
     appendInfoRow(
       stageCoverageList,
-      `${row.stage_label}: ID ${row.track_id} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
-      `${row.observed_table_frames ?? 0}f; stage ${formatPercent(row.coverage_ratio)}; room ${formatPercent(row.room_coverage_ratio)}`,
+      `${row.stage_label}: ${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role}`,
+      `${row.observed_table_frames ?? 0}f; stage ${formatPercent(row.coverage_ratio)}; room ${formatPercent(row.room_coverage_ratio)}; raw ${formatIdList(row.merged_track_ids || [row.track_id])}`,
     );
   });
   appendOverflowRow(stageCoverageList, rows.length, visibleRows.length, "coverage rows");
@@ -1496,7 +1496,14 @@ function renderBackendStageRoster(rows = []) {
     appendInfoRow(
       stageRosterList,
       `${row.stage_label}: ${handoffLabel(row.handoff_type || "unknown")}`,
-      `peak ${row.peak_table_count ?? 0}; active ${formatIdList(row.active_table_track_ids)}; canonical ${row.canonical_table_identity_count ?? 0}; tracking ${formatPercent(row.tracking_available_rate)}`,
+      [
+        `peak ${row.peak_table_count ?? 0}`,
+        formatPersonIds(row.active_table_canonical_ids, "active people"),
+        formatPersonIds(row.continued_canonical_table_ids, "continued people"),
+        formatPersonIds(row.new_canonical_table_ids, "new people"),
+        formatPersonIds(row.dropped_canonical_table_ids, "dropped people"),
+        `tracking ${formatPercent(row.tracking_available_rate)}`,
+      ].join("; "),
       { handoff: row.handoff_type },
     );
   });
@@ -1530,13 +1537,10 @@ function renderBackendProcedureEvents(rows = []) {
 
   const visibleRows = rows.slice(0, 12);
   visibleRows.forEach((row) => {
-    const tableDetail = row.table_count !== undefined
-      ? `table ${row.table_count}`
-      : `ID ${row.track_id ?? "n/a"} ${ROLE_LABELS[row.table_team_role] || row.table_team_role || ""}`;
     appendInfoRow(
       eventTimelineList,
       `${formatClockPoint(row)} ${handoffLabel(row.event_type || "event")}`,
-      `${row.stage_label || row.view || "context"}; ${tableDetail}`,
+      `${row.stage_label || row.view || "context"}; ${eventTableDetail(row)}`,
       { source: row.source_table },
     );
   });
@@ -1839,15 +1843,38 @@ function formatPersonId(canonicalId) {
   return canonicalId === null || canonicalId === undefined ? "none" : `Person ${canonicalId}`;
 }
 
-function formatPersonIds(canonicalIds) {
+function formatPersonIds(canonicalIds, prefix = "people") {
   const values = asArray(canonicalIds);
-  if (!values.length) return "people none";
-  return `people ${values.map((id) => formatPersonId(id)).join(", ")}`;
+  if (!values.length) return `${prefix} none`;
+  return `${prefix} ${values.map((id) => formatPersonId(id)).join(", ")}`;
 }
 
 function rosterPersonLabel(row = {}) {
   const person = formatPersonId(row.canonical_table_id);
   return person === "none" ? `ID ${row.track_id}` : `${person} (ID ${row.track_id})`;
+}
+
+function formatRosterPeople(roster = [], prefix = "people") {
+  const rows = asArray(roster);
+  const canonicalIds = rows
+    .map((row) => row?.canonical_table_id)
+    .filter((value) => value !== null && value !== undefined);
+  if (canonicalIds.length) return formatPersonIds(canonicalIds, prefix);
+  if (!rows.length) return `${prefix} none`;
+  return `${prefix} ${rows.map((row) => rosterPersonLabel(row)).join(", ")}`;
+}
+
+function eventTableDetail(row = {}) {
+  const roster = asArray(row.roster);
+  if (roster.length) {
+    const count = row.table_count ?? roster.length;
+    return `table ${count}; ${formatRosterPeople(roster)}`;
+  }
+  if (row.canonical_table_id !== null && row.canonical_table_id !== undefined) {
+    return `${rosterPersonLabel(row)} ${ROLE_LABELS[row.table_team_role] || row.table_team_role || ""}`;
+  }
+  if (row.table_count !== undefined) return `table ${row.table_count}; people none`;
+  return `ID ${row.track_id ?? "n/a"} ${ROLE_LABELS[row.table_team_role] || row.table_team_role || ""}`;
 }
 
 function yesNo(value) {
