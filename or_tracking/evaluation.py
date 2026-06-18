@@ -497,6 +497,8 @@ TAVR_SUMMARY_CSV_TABLES: Dict[str, List[str]] = {
     ],
     "table_presence_intervals": [
         "track_id",
+        "canonical_table_id",
+        "merged_track_ids",
         "dominant_role",
         "table_team_role",
         "table_team_role_confidence",
@@ -1340,15 +1342,29 @@ def table_presence_roster(
     metrics: Sequence[FrameMetrics],
     min_table_frames: int = 3,
 ) -> List[Dict[str, Any]]:
-    """Return tracks that spent meaningful time at the table during the clip."""
+    """Return people who spent meaningful time at the table during the clip."""
 
+    identity_map, _ = _table_identity_map(metrics)
     roster = []
     for summary in tavr_track_role_report(metrics):
         if summary["table_frames"] < min_table_frames:
             continue
+        identity = identity_map.get(int(summary["track_id"]))
+        canonical_id = (
+            int(identity["canonical_table_id"])
+            if identity
+            else int(summary["track_id"])
+        )
+        merged_track_ids = (
+            [int(value) for value in identity["merged_track_ids"]]
+            if identity
+            else [int(summary["track_id"])]
+        )
         roster.append(
             {
                 "track_id": summary["track_id"],
+                "canonical_table_id": canonical_id,
+                "merged_track_ids": merged_track_ids,
                 "dominant_role": summary["dominant_role"],
                 "frames_seen": summary["frames_seen"],
                 "table_frames": summary["table_frames"],
@@ -1356,7 +1372,8 @@ def table_presence_roster(
                 "first_frame": summary["first_frame"],
                 "last_frame": summary["last_frame"],
                 "label": (
-                    f"ID {summary['track_id']} {summary['dominant_role']} "
+                    f"Person {canonical_id} (raw IDs "
+                    f"{_track_ids_text(merged_track_ids)}) {summary['dominant_role']} "
                     f"table={summary['table_presence_ratio']:.0%}"
                 ),
             }
@@ -1671,7 +1688,25 @@ def table_presence_intervals(
     max_gap_s: float = 1.0,
     min_observed_table_frames: int = 1,
 ) -> List[Dict[str, Any]]:
-    """Return contiguous table-side intervals for each tracked ID."""
+    """Return contiguous table-side intervals with canonical table identities."""
+
+    intervals = _raw_table_presence_intervals(
+        metrics,
+        max_gap_frames=max_gap_frames,
+        max_gap_s=max_gap_s,
+        min_observed_table_frames=min_observed_table_frames,
+    )
+    identity_map, _ = _table_identity_map(metrics)
+    return _enrich_table_presence_interval_identities(intervals, identity_map)
+
+
+def _raw_table_presence_intervals(
+    metrics: Sequence[FrameMetrics],
+    max_gap_frames: int = 12,
+    max_gap_s: float = 1.0,
+    min_observed_table_frames: int = 1,
+) -> List[Dict[str, Any]]:
+    """Return contiguous raw table-side intervals for identity grouping."""
 
     if not metrics:
         return []
@@ -3894,10 +3929,36 @@ def _table_presence_score(
     for expectation in expectations:
         role = expectation.get("role")
         dominant_role = expectation.get("dominant_role")
+        expected_canonical_ids = _expected_int_set(
+            expectation,
+            "expected_canonical_table_ids",
+            "expected_table_canonical_ids",
+        )
+        required_canonical_ids = _expected_int_set(
+            expectation,
+            "required_canonical_table_ids",
+            "required_table_canonical_ids",
+        ) or set()
+        expected_track_ids = _expected_int_set(
+            expectation,
+            "expected_track_ids",
+            "expected_raw_track_ids",
+        )
+        required_track_ids = _expected_int_set(
+            expectation,
+            "required_track_ids",
+            "required_raw_track_ids",
+        ) or set()
         min_intervals = int(
             expectation.get(
                 "min_intervals",
-                0 if "max_intervals" in expectation else 1,
+                0
+                if (
+                    "max_intervals" in expectation
+                    or expected_canonical_ids == set()
+                    or expected_track_ids == set()
+                )
+                else 1,
             )
         )
         max_intervals = expectation.get("max_intervals")
@@ -3909,10 +3970,31 @@ def _table_presence_score(
             and _role_expectation_matches(interval, role, dominant_role)
             and interval["observed_table_frames"] >= min_observed_table_frames
         ]
+        matched_canonical_ids = {
+            int(interval["canonical_table_id"])
+            for interval in overlapping
+            if interval.get("canonical_table_id") is not None
+        }
+        matched_track_ids = {
+            int(interval["track_id"])
+            for interval in overlapping
+            if interval.get("track_id") is not None
+        }
         checks = {
             "min_intervals": len(overlapping) >= min_intervals,
             "max_intervals": (
                 max_intervals is None or len(overlapping) <= int(max_intervals)
+            ),
+            "required_canonical_table_ids": required_canonical_ids.issubset(
+                matched_canonical_ids
+            ),
+            "expected_canonical_table_ids": (
+                expected_canonical_ids is None
+                or matched_canonical_ids == expected_canonical_ids
+            ),
+            "required_track_ids": required_track_ids.issubset(matched_track_ids),
+            "expected_track_ids": (
+                expected_track_ids is None or matched_track_ids == expected_track_ids
             ),
         }
         expectation_pass = all(checks.values())
@@ -3929,6 +4011,18 @@ def _table_presence_score(
                 "min_observed_table_frames": min_observed_table_frames,
                 "matched_intervals": overlapping,
                 "matched_count": len(overlapping),
+                "canonical_table_ids": sorted(matched_canonical_ids),
+                "expected_canonical_table_ids": (
+                    sorted(expected_canonical_ids)
+                    if expected_canonical_ids is not None
+                    else None
+                ),
+                "track_ids": sorted(matched_track_ids),
+                "expected_track_ids": (
+                    sorted(expected_track_ids)
+                    if expected_track_ids is not None
+                    else None
+                ),
                 "checks": checks,
                 "passed": expectation_pass,
             }
@@ -7269,7 +7363,7 @@ def _table_identity_map(
     max_centroid_distance_px: float = 140.0,
     max_area_ratio: float = 3.0,
 ) -> tuple[Dict[int, Dict[str, Any]], List[Dict[str, Any]]]:
-    intervals = table_presence_intervals(metrics, min_observed_table_frames=1)
+    intervals = _raw_table_presence_intervals(metrics, min_observed_table_frames=1)
     groups: List[Dict[str, Any]] = []
     raw_to_group: Dict[int, Dict[str, Any]] = {}
 
@@ -7346,6 +7440,36 @@ def _table_identity_map(
         for raw_track_id in merged_track_ids:
             identity_map[raw_track_id] = public_group
     return identity_map, public_groups
+
+
+def _enrich_table_presence_interval_identities(
+    intervals: Sequence[Dict[str, Any]],
+    identity_map: Dict[int, Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    enriched = []
+    for interval in intervals:
+        track_id = int(interval["track_id"])
+        identity = identity_map.get(track_id)
+        canonical_id = (
+            int(identity["canonical_table_id"])
+            if identity
+            else track_id
+        )
+        merged_track_ids = (
+            [int(value) for value in identity["merged_track_ids"]]
+            if identity
+            else [track_id]
+        )
+        item = dict(interval)
+        item["canonical_table_id"] = canonical_id
+        item["merged_track_ids"] = merged_track_ids
+        item["label"] = (
+            f"Person {canonical_id}: "
+            f"{_role_label(track_id, item['table_team_role'], item['dominant_role'])} "
+            f"{item['clip_start_s']:.1f}-{item['clip_end_s']:.1f}s"
+        )
+        enriched.append(item)
+    return enriched
 
 
 def _best_identity_group(
@@ -7589,6 +7713,8 @@ def _interval_roster(metrics: Sequence[FrameMetrics]) -> List[Dict[str, Any]]:
         roster.append(
             {
                 "track_id": interval["track_id"],
+                "canonical_table_id": interval["canonical_table_id"],
+                "merged_track_ids": interval["merged_track_ids"],
                 "dominant_role": interval["dominant_role"],
                 "table_team_role": interval["table_team_role"],
                 "table_team_role_confidence": interval["table_team_role_confidence"],

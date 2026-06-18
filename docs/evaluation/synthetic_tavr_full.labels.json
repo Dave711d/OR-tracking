@@ -23,6 +23,35 @@
     {"start_s": 10.35, "end_s": 11.55, "min_peak_count": 1},
     {"start_s": 11.6, "end_s": 13.25, "min_peak_count": 2}
   ],
+  "table_presence_expectations": [
+    {
+      "start_s": 1.75,
+      "end_s": 3.45,
+      "role": "access_operator",
+      "min_intervals": 2,
+      "min_observed_table_frames": 18,
+      "required_canonical_table_ids": [1, 2],
+      "expected_canonical_table_ids": [1, 2]
+    },
+    {
+      "start_s": 8.7,
+      "end_s": 10.3,
+      "role": "table_operator",
+      "min_intervals": 4,
+      "min_observed_table_frames": 7,
+      "required_canonical_table_ids": [3, 5, 6, 7],
+      "expected_canonical_table_ids": [3, 5, 6, 7]
+    },
+    {
+      "start_s": 11.6,
+      "end_s": 13.25,
+      "role": "access_operator",
+      "min_intervals": 2,
+      "min_observed_table_frames": 30,
+      "required_canonical_table_ids": [9, 10],
+      "expected_canonical_table_ids": [9, 10]
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "bav_optional",

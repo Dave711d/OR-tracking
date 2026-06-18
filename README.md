@@ -125,7 +125,8 @@ The suite currently covers a mixed fluoroscopy-to-room clip, a fluoroscopy-only
 negative clip, and a post-deployment/closure room clip from the public Sentara
 TAVR video. It fails if scored label sections fall below their configured
 thresholds, including `operator_packet_pass_rate`,
-`operator_snapshot_pass_rate` for timestamped "who plus stage" checks, and
+`operator_snapshot_pass_rate` for timestamped "who plus stage" checks,
+`table_presence_pass_rate` for exact canonical table-person intervals, and
 `table_identity_group_pass_rate` when packet, snapshot, or canonical
 table-person expectations are labelled.
 Operator snapshot expectations are scored only against exported
@@ -194,9 +195,10 @@ the table now, the best available table roster source, who is active now,
 recently seen, or historical table-side context, who was last observed
 table-side, when the room camera is actually visible, which canonical TAVR
 milestones have been observed, which
-milestone is the current observed stage, which track IDs were table-side in each
-TAVR phase, how long they were present, their operator-facing table role and raw
-dominant role, which raw IDs were stitched into a canonical table person,
+milestone is the current observed stage, which canonical table-person IDs were
+table-side in each TAVR phase, how long they were present, their
+operator-facing table role and raw dominant role, which raw IDs were stitched
+into a canonical table person,
 how many canonical table people were present in each stage or milestone,
 which stable table-person IDs are current/effective/last-observed/peak at the
 operator status point, whether they entered or exited during a stage, which

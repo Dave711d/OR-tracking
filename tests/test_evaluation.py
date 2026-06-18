@@ -71,7 +71,11 @@ def test_summarize_tavr_metrics_reports_timeline_and_roster(tmp_path: Path) -> N
     assert summary["peak_table_roster"]["roster"]
     assert summary["table_roster_snapshots"]
     assert summary["table_presence_roster"]
+    assert "canonical_table_id" in summary["table_presence_roster"][0]
+    assert "merged_track_ids" in summary["table_presence_roster"][0]
     assert summary["table_presence_intervals"]
+    assert "canonical_table_id" in summary["table_presence_intervals"][0]
+    assert "merged_track_ids" in summary["table_presence_intervals"][0]
     assert summary["view_segments"]
     assert summary["table_transition_events"]
     assert summary["stage_table_coverage"]
@@ -215,9 +219,12 @@ def test_table_presence_intervals_group_by_track_and_gap() -> None:
     )
 
     assert [item["track_id"] for item in intervals] == [7, 7, 9]
+    assert [item["canonical_table_id"] for item in intervals] == [1, 1, 2]
+    assert [item["merged_track_ids"] for item in intervals] == [[7], [7], [9]]
     assert intervals[0]["dominant_stage"] == "access_sheathing"
     assert intervals[0]["observed_table_frames"] == 2
     assert intervals[0]["interval_duration_s"] == 0.2
+    assert intervals[0]["label"].startswith("Person 1:")
     assert intervals[1]["dominant_stage"] == "valve_deployment"
     assert intervals[2]["dominant_role"] == "table_operator"
 
@@ -2223,6 +2230,8 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
                 "role": "table_operator",
                 "min_intervals": 1,
                 "min_observed_table_frames": 3,
+                "expected_canonical_table_ids": [2],
+                "expected_track_ids": [9],
             }
         ],
         "stage_staffing_expectations": [
@@ -2459,6 +2468,9 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["table_count_score"]["pass_rate"] == 1.0
     assert score["table_presence_score"]["pass_rate"] == 1.0
     assert score["table_presence_score"]["expectations"][0]["matched_count"] == 1
+    assert score["table_presence_score"]["expectations"][0][
+        "canonical_table_ids"
+    ] == [2]
     assert score["stage_staffing_score"]["pass_rate"] == 1.0
     assert score["stage_staffing_score"]["expectations"][0]["matched_track_count"] == 2
     assert score["stage_table_coverage_score"]["pass_rate"] == 1.0
@@ -2498,6 +2510,49 @@ def test_score_tavr_metrics_compares_stage_table_count_and_presence() -> None:
     assert score["roster_snapshot_score"]["pass_rate"] == 1.0
     assert score["roster_snapshot_score"]["expectations"][0]["matched_count"] == 2
     assert score["quality_flag_score"]["pass_rate"] == 1.0
+
+
+def test_exact_table_presence_canonical_person_rejects_wrong_interval() -> None:
+    metrics = [
+        _table_metric(0, 0.0, "access_sheathing", [7]),
+        _table_metric(1, 0.1, "access_sheathing", [7]),
+        _table_metric(20, 2.0, "valve_deployment", [9]),
+        _table_metric(21, 2.1, "valve_deployment", [9]),
+        _table_metric(22, 2.2, "valve_deployment", [9]),
+    ]
+
+    intervals = table_presence_intervals(metrics, min_observed_table_frames=1)
+    valve_interval = next(
+        interval
+        for interval in intervals
+        if interval["dominant_stage"] == "valve_deployment"
+    )
+    assert valve_interval["track_id"] == 9
+    assert valve_interval["canonical_table_id"] == 2
+
+    score = score_tavr_metrics(
+        metrics,
+        {
+            "table_presence_expectations": [
+                {
+                    "start_s": 2.0,
+                    "end_s": 2.2,
+                    "role": "table_operator",
+                    "min_intervals": 1,
+                    "min_observed_table_frames": 3,
+                    "required_canonical_table_ids": [2],
+                    "expected_canonical_table_ids": [1],
+                }
+            ]
+        },
+    )
+
+    expectation = score["table_presence_score"]["expectations"][0]
+    assert score["table_presence_score"]["pass_rate"] == 0.0
+    assert expectation["canonical_table_ids"] == [2]
+    assert expectation["expected_canonical_table_ids"] == [1]
+    assert expectation["checks"]["required_canonical_table_ids"] is True
+    assert expectation["checks"]["expected_canonical_table_ids"] is False
 
 
 def test_parse_roi_accepts_normalized_crop() -> None:

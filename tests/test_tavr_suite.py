@@ -382,6 +382,7 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
     }
     full_procedure_cases = {"synthetic_full_tavr_workflow"}
     full_procedure_required = {
+        "table_presence_pass_rate",
         "stage_staffing_pass_rate",
         "stage_handoff_pass_rate",
         "operator_snapshot_pass_rate",

@@ -52,6 +52,7 @@ export function normalizeEvaluationPayload(payload, demoMeta = {}) {
     packets: asArray(tavr.operator_stage_packet),
     team: asArray(tavr.table_team_summary),
     identities: asArray(tavr.table_identity_groups),
+    presenceIntervals: asArray(tavr.table_presence_intervals),
     stageCoverage: asArray(tavr.stage_table_coverage),
     stageRosters: asArray(tavr.stage_roster_summary),
     milestones: asArray(tavr.procedure_milestones),

@@ -18,42 +18,42 @@ class PublicDemoCase:
 PUBLIC_DEMO_CASES = (
     PublicDemoCase(
         Path(
-            "outputs/tavr_suite_within_stage_canonical_verify/"
+            "outputs/tavr_suite_table_presence_identity_verify/"
             "sentara_900_room_to_fluoro_low_motion/result.json"
         ),
         Path("public/demo-data/sentara-900-evaluation.json"),
     ),
     PublicDemoCase(
         Path(
-            "outputs/tavr_suite_within_stage_canonical_verify/"
+            "outputs/tavr_suite_table_presence_identity_verify/"
             "sentara_1800_mixed_room/result.json"
         ),
         Path("public/demo-data/sentara-1800-evaluation.json"),
     ),
     PublicDemoCase(
         Path(
-            "outputs/tavr_suite_within_stage_canonical_verify/"
+            "outputs/tavr_suite_table_presence_identity_verify/"
             "sentara_2400_fluoro_negative/result.json"
         ),
         Path("public/demo-data/sentara-2400-evaluation.json"),
     ),
     PublicDemoCase(
         Path(
-            "outputs/tavr_suite_within_stage_canonical_verify/"
+            "outputs/tavr_suite_table_presence_identity_verify/"
             "sentara_2700_room_post/result.json"
         ),
         Path("public/demo-data/sentara-2700-evaluation.json"),
     ),
     PublicDemoCase(
         Path(
-            "outputs/tavr_static_within_stage_canonical_final/"
+            "outputs/tavr_static_table_presence_identity_verify/"
             "sentara_900_static_table_fallback/result.json"
         ),
         Path("public/demo-data/sentara-900-static-fallback-evaluation.json"),
     ),
     PublicDemoCase(
         Path(
-            "outputs/tavr_synthetic_within_stage_canonical_verify/"
+            "outputs/tavr_synthetic_table_presence_identity_verify/"
             "synthetic_full_tavr_workflow/result.json"
         ),
         Path("public/demo-data/synthetic-full-tavr-evaluation.json"),

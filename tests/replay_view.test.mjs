@@ -78,8 +78,22 @@ test("replay projection keeps current table empty when only held evidence exists
 
 test("replay projection separates current visible person from current-stage effective roster", async () => {
   const payload = await demoPayload("synthetic-full-tavr-evaluation.json");
+  const demo = normalizeEvaluationPayload(payload, { label: "Full synthetic workflow" });
   const view = replayOperatorProjection(payload, { label: "Full synthetic workflow" });
 
+  assert.ok(demo.presenceIntervals.length >= 3);
+  assert.deepEqual(
+    demo.presenceIntervals
+      .filter((row) => row.dominant_stage === "closure_finish")
+      .map((row) => row.canonical_table_id),
+    [9, 10],
+  );
+  assert.deepEqual(
+    demo.presenceIntervals
+      .filter((row) => row.dominant_stage === "closure_finish")
+      .map((row) => row.merged_track_ids),
+    [[22], [23]],
+  );
   assert.equal(view.stageMetric, "Closure / finish (strong_visual_support)");
   assert.equal(view.tableSideMetric, "1");
   assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}; ${row.detail}`).join(" "), /Procedure progress: 8\/8 stages; next complete; observed 8\/8/);

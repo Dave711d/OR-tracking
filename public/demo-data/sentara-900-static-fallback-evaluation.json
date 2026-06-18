@@ -1,6 +1,6 @@
 {
   "case": "sentara_900_static_table_fallback",
-  "generated_from": "outputs/tavr_static_within_stage_canonical_final/sentara_900_static_table_fallback/result.json",
+  "generated_from": "outputs/tavr_static_table_presence_identity_verify/sentara_900_static_table_fallback/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,
@@ -1753,6 +1753,10 @@
         "table_presence_roster": [
           {
             "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -1762,10 +1766,14 @@
             "end_s": 904.17,
             "clip_start_s": 0.0,
             "clip_end_s": 4.171,
-            "label": "ID 1 table_operator 900.0-904.2s"
+            "label": "Person 1: ID 1 table_operator 0.0-4.2s"
           },
           {
             "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -1775,10 +1783,14 @@
             "end_s": 904.17,
             "clip_start_s": 0.0,
             "clip_end_s": 4.171,
-            "label": "ID 2 table_operator 900.0-904.2s"
+            "label": "Person 2: ID 2 table_operator 0.0-4.2s"
           },
           {
             "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -1788,7 +1800,7 @@
             "end_s": 904.17,
             "clip_start_s": 3.837,
             "clip_end_s": 4.171,
-            "label": "ID 4 table_operator 903.8-904.2s"
+            "label": "Person 3: ID 4 table_operator 3.8-4.2s"
           }
         ],
         "table_roster": [],
@@ -2080,33 +2092,45 @@
     "table_presence_roster": [
       {
         "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 105,
         "table_frames": 105,
         "table_presence_ratio": 1.0,
         "first_frame": 26973,
         "last_frame": 27098,
-        "label": "ID 1 table_operator table=100%"
+        "label": "Person 1 (raw IDs 1) table_operator table=100%"
       },
       {
         "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 98,
         "table_frames": 98,
         "table_presence_ratio": 1.0,
         "first_frame": 26973,
         "last_frame": 27098,
-        "label": "ID 2 table_operator table=100%"
+        "label": "Person 2 (raw IDs 2) table_operator table=100%"
       },
       {
         "track_id": 4,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 5,
         "table_frames": 5,
         "table_presence_ratio": 1.0,
         "first_frame": 27088,
         "last_frame": 27098,
-        "label": "ID 4 table_operator table=100%"
+        "label": "Person 3 (raw IDs 4) table_operator table=100%"
       }
     ],
     "table_presence_intervals": [
@@ -2136,7 +2160,11 @@
         "stage_counts": {
           "access_sheathing": 105
         },
-        "label": "ID 1 table_operator 900.0-904.2s"
+        "label": "Person 1: ID 1 table_operator 0.0-4.2s",
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ]
       },
       {
         "track_id": 2,
@@ -2164,7 +2192,11 @@
         "stage_counts": {
           "access_sheathing": 98
         },
-        "label": "ID 2 table_operator 900.0-904.2s"
+        "label": "Person 2: ID 2 table_operator 0.0-4.2s",
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ]
       },
       {
         "track_id": 4,
@@ -2192,7 +2224,11 @@
         "stage_counts": {
           "access_sheathing": 5
         },
-        "label": "ID 4 table_operator 903.8-904.2s"
+        "label": "Person 3: ID 4 table_operator 3.8-4.2s",
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          4
+        ]
       }
     ],
     "view_segments": [

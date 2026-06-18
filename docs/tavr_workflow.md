@@ -186,11 +186,12 @@ The JSON output includes:
   can therefore keep the moving person identity instead of blindly following
   the next raw track ID. These rows keep the representative raw track ID plus
   `merged_track_ids` so identity stitching remains auditable.
-- `table_presence_roster`: tracks that spent meaningful time table-side anywhere
-  in the clip, useful when the final frames are still or empty.
+- `table_presence_roster`: canonical table people that spent meaningful time
+  table-side anywhere in the clip, useful when the final frames are still or
+  empty.
 - `table_presence_intervals`: entry/exit-style table-side intervals with start
-  and end timestamps, observed table frames, raw dominant role, operator-facing
-  table role, and dominant stage.
+  and end timestamps, observed table frames, canonical table ID, merged raw
+  track IDs, raw dominant role, operator-facing table role, and dominant stage.
 - `table_transition_events`: table entry, table exit, stage-start presence, and
   stage-end presence events derived from the stage coverage rows.
 - `stage_table_coverage`: one row per table-side track per contiguous stage
@@ -276,7 +277,10 @@ The label file can include:
 - `table_count_segments`: expected minimum/maximum table-side count windows, or
   `min_peak_count` when the requirement is that the table count reaches a peak
   during the window.
-- `table_presence_expectations`: expected role-specific table-side intervals.
+- `table_presence_expectations`: expected role-specific table-side intervals,
+  including exact or required canonical table-person IDs via
+  `expected_canonical_table_ids` / `required_canonical_table_ids`, plus exact or
+  required raw track IDs when a fixture should guard the raw tracker surface.
 - `stage_staffing_expectations`: expected table-side staffing within a stage,
   such as minimum table-operator tracks, minimum observed table frames, minimum
   stage peak count, mean table count, table-occupancy rate, room-view mean table
@@ -426,8 +430,9 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.j
 ```
 
 Run the deterministic full-workflow suite when you need a compact regression
-that covers every canonical stage, table handoff, canonical table identity,
-operator packet, roster snapshot, and rapid-progression quality flag:
+that covers every canonical stage, table handoff, canonical table-presence
+interval, canonical table identity, operator packet, roster snapshot, and
+rapid-progression quality flag:
 
 ```bash
 # Optional when changing the fixture generator; the MP4 is committed.

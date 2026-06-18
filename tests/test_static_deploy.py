@@ -24,6 +24,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_team_rows": 0,
         "min_identity_groups": 0,
         "min_coverage_rows": 0,
+        "min_presence_intervals": 0,
         "min_events": 4,
     },
     {
@@ -43,6 +44,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_team_rows": 8,
         "min_identity_groups": 10,
         "min_coverage_rows": 8,
+        "min_presence_intervals": 13,
         "min_events": 12,
     },
     {
@@ -60,6 +62,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_team_rows": 0,
         "min_identity_groups": 0,
         "min_coverage_rows": 0,
+        "min_presence_intervals": 0,
         "min_events": 3,
     },
     {
@@ -80,6 +83,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_team_rows": 8,
         "min_identity_groups": 9,
         "min_coverage_rows": 8,
+        "min_presence_intervals": 8,
         "min_events": 12,
     },
     {
@@ -98,6 +102,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_team_rows": 3,
         "min_identity_groups": 3,
         "min_coverage_rows": 3,
+        "min_presence_intervals": 3,
         "min_events": 11,
     },
     {
@@ -113,6 +118,7 @@ PUBLIC_EVALUATION_DEMOS = [
         "min_team_rows": 10,
         "min_identity_groups": 10,
         "min_coverage_rows": 18,
+        "min_presence_intervals": 16,
         "min_events": 60,
     },
 ]
@@ -384,6 +390,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert len(tavr["table_team_summary"]) >= demo["min_team_rows"]
         assert len(tavr["table_identity_groups"]) >= demo["min_identity_groups"]
         assert len(tavr["stage_table_coverage"]) >= demo["min_coverage_rows"]
+        assert (
+            len(tavr["table_presence_intervals"])
+            >= demo["min_presence_intervals"]
+        )
         assert all(
             "active_table_canonical_ids" in row
             for row in tavr["stage_roster_summary"]
@@ -399,6 +409,10 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert all(
             "canonical_table_id" in row
             for row in tavr["stage_table_coverage"]
+        )
+        assert all(
+            "canonical_table_id" in row and "merged_track_ids" in row
+            for row in tavr["table_presence_intervals"]
         )
         assert all(
             "table_canonical_ids" in row
@@ -454,6 +468,18 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert [row["stage"] for row in synthetic_milestones] == TAVR_STAGE_ORDER
     assert all(row["observed_in_clip"] for row in synthetic_milestones)
     assert len(synthetic_payload["tavr"]["operator_stage_packet"]) == 8
+    synthetic_presence = synthetic_payload["tavr"]["table_presence_intervals"]
+    assert any(
+        row["dominant_stage"] == "valve_deployment"
+        and row["canonical_table_id"] == 7
+        and row["merged_track_ids"] == [18]
+        for row in synthetic_presence
+    )
+    assert [
+        row["canonical_table_id"]
+        for row in synthetic_presence
+        if row["dominant_stage"] == "closure_finish"
+    ] == [9, 10]
     assert any(
         len(row["merged_track_ids"]) > 1
         for row in synthetic_payload["tavr"]["table_identity_groups"]
@@ -537,6 +563,9 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "Replay stage" in app_js
     assert "function renderBackendTableTeam" in app_js
     assert "function renderBackendTableIdentities" in app_js
+    assert "function appendPresenceIntervalRows" in app_js
+    assert "function presenceIntervalsForStatus" in app_js
+    assert "Presence interval" in app_js
     assert "function renderBackendStageCoverage" in app_js
     assert "function renderBackendStageRoster" in app_js
     assert "function renderBackendProcedureMilestones" in app_js
@@ -571,6 +600,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function summarizeStageCounts" in app_js
     assert "currentTableSnapshot" in app_js
     assert "export function currentTableSnapshot" in replay_js
+    assert "presenceIntervals" in replay_js
     assert "stageTableBriefRows" in app_js
     assert "export function stageTableBriefRows" in replay_js
     assert "stageTableBriefRowsFromSnapshots" in app_js

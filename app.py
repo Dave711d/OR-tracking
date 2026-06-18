@@ -424,7 +424,10 @@ def _run_analysis(
         st.subheader("Table presence intervals")
         interval_columns = [
             "track_id",
+            "canonical_table_id",
+            "merged_track_ids",
             "dominant_role",
+            "table_team_role",
             "dominant_stage",
             "start_s",
             "end_s",

@@ -1,6 +1,6 @@
 {
   "case": "sentara_2700_room_post",
-  "generated_from": "outputs/tavr_suite_within_stage_canonical_verify/sentara_2700_room_post/result.json",
+  "generated_from": "outputs/tavr_suite_table_presence_identity_verify/sentara_2700_room_post/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,
@@ -3010,6 +3010,10 @@
         "table_presence_roster": [
           {
             "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -3019,10 +3023,14 @@
             "end_s": 2702.533,
             "clip_start_s": 1.635,
             "clip_end_s": 2.536,
-            "label": "ID 1 table_operator 2701.6-2702.5s"
+            "label": "Person 1: ID 1 table_operator 1.6-2.5s"
           },
           {
             "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
             "dominant_role": "device_prep",
             "table_team_role": "device_prep",
             "table_team_role_confidence": 1.0,
@@ -3032,7 +3040,7 @@
             "end_s": 2702.466,
             "clip_start_s": 2.469,
             "clip_end_s": 2.469,
-            "label": "ID 2 device_prep 2702.5-2702.5s"
+            "label": "Person 2: ID 2 device_prep 2.5-2.5s"
           }
         ],
         "table_roster": [
@@ -3100,6 +3108,10 @@
         "table_presence_roster": [
           {
             "track_id": 3,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              3
+            ],
             "dominant_role": "access_operator",
             "table_team_role": "access_operator",
             "table_team_role_confidence": 0.587,
@@ -3109,10 +3121,14 @@
             "end_s": 2704.869,
             "clip_start_s": 2.569,
             "clip_end_s": 4.872,
-            "label": "ID 3 access_operator 2702.6-2704.9s"
+            "label": "Person 2: ID 3 access_operator 2.6-4.9s"
           },
           {
             "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -3122,10 +3138,14 @@
             "end_s": 2703.968,
             "clip_start_s": 2.569,
             "clip_end_s": 3.971,
-            "label": "ID 1 table_operator 2702.6-2704.0s"
+            "label": "Person 1: ID 1 table_operator 2.6-4.0s"
           },
           {
             "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
             "dominant_role": "device_prep",
             "table_team_role": "device_prep",
             "table_team_role_confidence": 1.0,
@@ -3135,10 +3155,14 @@
             "end_s": 2709.373,
             "clip_start_s": 8.375,
             "clip_end_s": 9.376,
-            "label": "ID 11 device_prep 2708.4-2709.4s"
+            "label": "Person 7: ID 11 device_prep 8.4-9.4s"
           },
           {
             "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
             "dominant_role": "imaging",
             "table_team_role": "imaging",
             "table_team_role_confidence": 0.913,
@@ -3148,10 +3172,14 @@
             "end_s": 2712.91,
             "clip_start_s": 12.045,
             "clip_end_s": 12.913,
-            "label": "ID 13 imaging 2712.0-2712.9s"
+            "label": "Person 9: ID 13 imaging 12.0-12.9s"
           },
           {
             "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -3161,10 +3189,14 @@
             "end_s": 2704.101,
             "clip_start_s": 3.804,
             "clip_end_s": 4.104,
-            "label": "ID 6 table_operator 2703.8-2704.1s"
+            "label": "Person 6: ID 6 table_operator 3.8-4.1s"
           },
           {
             "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
             "dominant_role": "imaging",
             "table_team_role": "imaging",
             "table_team_role_confidence": 1.0,
@@ -3174,10 +3206,14 @@
             "end_s": 2703.968,
             "clip_start_s": 3.637,
             "clip_end_s": 3.971,
-            "label": "ID 5 imaging 2703.6-2704.0s"
+            "label": "Person 5: ID 5 imaging 3.6-4.0s"
           },
           {
             "track_id": 2,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              2
+            ],
             "dominant_role": "device_prep",
             "table_team_role": "device_prep",
             "table_team_role_confidence": 1.0,
@@ -3187,10 +3223,14 @@
             "end_s": 2702.767,
             "clip_start_s": 2.636,
             "clip_end_s": 2.769,
-            "label": "ID 2 device_prep 2702.6-2702.8s"
+            "label": "Person 3: ID 2 device_prep 2.6-2.8s"
           },
           {
             "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
             "dominant_role": "imaging",
             "table_team_role": "imaging",
             "table_team_role_confidence": 1.0,
@@ -3200,10 +3240,14 @@
             "end_s": 2703.701,
             "clip_start_s": 3.637,
             "clip_end_s": 3.704,
-            "label": "ID 4 imaging 2703.6-2703.7s"
+            "label": "Person 4: ID 4 imaging 3.6-3.7s"
           },
           {
             "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
             "dominant_role": "table_operator",
             "table_team_role": "table_operator",
             "table_team_role_confidence": 1.0,
@@ -3213,7 +3257,7 @@
             "end_s": 2709.507,
             "clip_start_s": 9.51,
             "clip_end_s": 9.51,
-            "label": "ID 12 table_operator 2709.5-2709.5s"
+            "label": "Person 8: ID 12 table_operator 9.5-9.5s"
           }
         ],
         "table_roster": [],
@@ -3572,83 +3616,115 @@
     "table_presence_roster": [
       {
         "track_id": 6,
+        "canonical_table_id": 6,
+        "merged_track_ids": [
+          6
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 10,
         "table_frames": 10,
         "table_presence_ratio": 1.0,
         "first_frame": 81033,
         "last_frame": 81042,
-        "label": "ID 6 table_operator table=100%"
+        "label": "Person 6 (raw IDs 6) table_operator table=100%"
       },
       {
         "track_id": 1,
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 74,
         "table_frames": 71,
         "table_presence_ratio": 0.959,
         "first_frame": 80929,
         "last_frame": 81038,
-        "label": "ID 1 table_operator table=96%"
+        "label": "Person 1 (raw IDs 1) table_operator table=96%"
       },
       {
         "track_id": 13,
+        "canonical_table_id": 9,
+        "merged_track_ids": [
+          13
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 25,
         "table_frames": 23,
         "table_presence_ratio": 0.92,
         "first_frame": 81280,
         "last_frame": 81306,
-        "label": "ID 13 table_operator table=92%"
+        "label": "Person 9 (raw IDs 13) table_operator table=92%"
       },
       {
         "track_id": 3,
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3
+        ],
         "dominant_role": "table_operator",
         "frames_seen": 69,
         "table_frames": 63,
         "table_presence_ratio": 0.913,
         "first_frame": 80990,
         "last_frame": 81065,
-        "label": "ID 3 table_operator table=91%"
+        "label": "Person 3 (raw IDs 3) table_operator table=91%"
       },
       {
         "track_id": 11,
+        "canonical_table_id": 7,
+        "merged_track_ids": [
+          11
+        ],
         "dominant_role": "device_prep",
         "frames_seen": 48,
         "table_frames": 24,
         "table_presence_ratio": 0.5,
         "first_frame": 81170,
         "last_frame": 81226,
-        "label": "ID 11 device_prep table=50%"
+        "label": "Person 7 (raw IDs 11) device_prep table=50%"
       },
       {
         "track_id": 5,
+        "canonical_table_id": 5,
+        "merged_track_ids": [
+          5
+        ],
         "dominant_role": "imaging",
         "frames_seen": 26,
         "table_frames": 7,
         "table_presence_ratio": 0.269,
         "first_frame": 81017,
         "last_frame": 81042,
-        "label": "ID 5 imaging table=27%"
+        "label": "Person 5 (raw IDs 5) imaging table=27%"
       },
       {
         "track_id": 2,
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ],
         "dominant_role": "device_prep",
         "frames_seen": 25,
         "table_frames": 6,
         "table_presence_ratio": 0.24,
         "first_frame": 80968,
         "last_frame": 81002,
-        "label": "ID 2 device_prep table=24%"
+        "label": "Person 2 (raw IDs 2) device_prep table=24%"
       },
       {
         "track_id": 4,
+        "canonical_table_id": 4,
+        "merged_track_ids": [
+          4
+        ],
         "dominant_role": "imaging",
         "frames_seen": 16,
         "table_frames": 3,
         "table_presence_ratio": 0.188,
         "first_frame": 81004,
         "last_frame": 81030,
-        "label": "ID 4 imaging table=19%"
+        "label": "Person 4 (raw IDs 4) imaging table=19%"
       }
     ],
     "table_presence_intervals": [
@@ -3679,7 +3755,11 @@
           "closure_finish": 43,
           "post_deploy_assessment": 28
         },
-        "label": "ID 1 table_operator 2701.6-2704.0s"
+        "label": "Person 1: ID 1 table_operator 1.6-4.0s",
+        "canonical_table_id": 1,
+        "merged_track_ids": [
+          1
+        ]
       },
       {
         "track_id": 2,
@@ -3708,7 +3788,11 @@
           "closure_finish": 5,
           "post_deploy_assessment": 1
         },
-        "label": "ID 2 device_prep 2702.5-2702.8s"
+        "label": "Person 2: ID 2 device_prep 2.5-2.8s",
+        "canonical_table_id": 2,
+        "merged_track_ids": [
+          2
+        ]
       },
       {
         "track_id": 3,
@@ -3738,7 +3822,11 @@
         "stage_counts": {
           "closure_finish": 63
         },
-        "label": "ID 3 access_operator 2702.6-2704.9s"
+        "label": "Person 3: ID 3 access_operator 2.6-4.9s",
+        "canonical_table_id": 3,
+        "merged_track_ids": [
+          3
+        ]
       },
       {
         "track_id": 4,
@@ -3766,7 +3854,11 @@
         "stage_counts": {
           "closure_finish": 3
         },
-        "label": "ID 4 imaging 2703.6-2703.7s"
+        "label": "Person 4: ID 4 imaging 3.6-3.7s",
+        "canonical_table_id": 4,
+        "merged_track_ids": [
+          4
+        ]
       },
       {
         "track_id": 5,
@@ -3794,7 +3886,11 @@
         "stage_counts": {
           "closure_finish": 7
         },
-        "label": "ID 5 imaging 2703.6-2704.0s"
+        "label": "Person 5: ID 5 imaging 3.6-4.0s",
+        "canonical_table_id": 5,
+        "merged_track_ids": [
+          5
+        ]
       },
       {
         "track_id": 6,
@@ -3822,7 +3918,11 @@
         "stage_counts": {
           "closure_finish": 10
         },
-        "label": "ID 6 table_operator 2703.8-2704.1s"
+        "label": "Person 6: ID 6 table_operator 3.8-4.1s",
+        "canonical_table_id": 6,
+        "merged_track_ids": [
+          6
+        ]
       },
       {
         "track_id": 11,
@@ -3850,7 +3950,11 @@
         "stage_counts": {
           "closure_finish": 24
         },
-        "label": "ID 11 device_prep 2708.4-2709.4s"
+        "label": "Person 7: ID 11 device_prep 8.4-9.4s",
+        "canonical_table_id": 7,
+        "merged_track_ids": [
+          11
+        ]
       },
       {
         "track_id": 13,
@@ -3879,7 +3983,11 @@
         "stage_counts": {
           "closure_finish": 23
         },
-        "label": "ID 13 imaging 2712.0-2712.9s"
+        "label": "Person 9: ID 13 imaging 12.0-12.9s",
+        "canonical_table_id": 9,
+        "merged_track_ids": [
+          13
+        ]
       }
     ],
     "view_segments": [

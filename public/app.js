@@ -369,7 +369,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
   renderStageTableBrief(stageTableBriefRows(status, packet, demo.milestones, stageRoster));
-  renderBackendTableRoster(status);
+  renderBackendTableRoster(status, demo.presenceIntervals);
   renderProcedureStatus(status, demo);
   renderBackendStatusSnapshots(demo.statusSnapshots, selectedIndex);
   renderBackendOperatorPacket(demo.packets, status);
@@ -1739,7 +1739,7 @@ function renderBackendOperatorPacket(packets = [], status = null) {
   );
 }
 
-function renderBackendTableRoster(status = {}) {
+function renderBackendTableRoster(status = {}, presenceIntervals = []) {
   tableRoster.replaceChildren();
   const currentTable = currentTableSnapshot(status);
   const effectiveTable = effectiveTableSnapshot(status);
@@ -1767,9 +1767,71 @@ function renderBackendTableRoster(status = {}) {
     });
   }
 
-  if (!currentRows.length && !effectiveRows.length) {
+  appendPresenceIntervalRows(presenceIntervals, status);
+
+  if (!currentRows.length && !effectiveRows.length && !presenceIntervals.length) {
     return;
   }
+}
+
+function appendPresenceIntervalRows(presenceIntervals = [], status = {}) {
+  const rows = presenceIntervalsForStatus(presenceIntervals, status);
+  const visibleRows = rows.slice(0, 5);
+  visibleRows.forEach((row) => {
+    const role = ROLE_LABELS[row.table_team_role] || row.table_team_role || "role n/a";
+    const rawIds = formatIdList(row.merged_track_ids || [row.track_id]);
+    const frames = row.observed_table_frames ?? 0;
+    appendRosterListItem(
+      "Presence interval",
+      `${rosterPersonLabel(row)} ${role}; ${presenceIntervalRange(row)}; ${frames}f; raw ${rawIds}`,
+      "effective",
+    );
+  });
+  appendOverflowListItem(tableRoster, rows.length, visibleRows.length, "presence intervals");
+}
+
+function presenceIntervalsForStatus(presenceIntervals = [], status = {}) {
+  const rows = asArray(presenceIntervals);
+  if (!rows.length) return [];
+  const stage = status.current_stage;
+  const selectedTime = Number(
+    status.clip_timestamp_s ??
+    status.clip_end_s ??
+    status.timestamp_s ??
+    status.end_s,
+  );
+  const matches = rows.filter((row) => (
+    (stage && row.dominant_stage === stage) ||
+    (Number.isFinite(selectedTime) && intervalContainsClipTime(row, selectedTime))
+  ));
+  const selectedRows = matches.length ? matches : rows;
+  return selectedRows
+    .slice()
+    .sort((a, b) => (
+      Math.abs(intervalMidpoint(a) - (Number.isFinite(selectedTime) ? selectedTime : intervalMidpoint(a))) -
+      Math.abs(intervalMidpoint(b) - (Number.isFinite(selectedTime) ? selectedTime : intervalMidpoint(b))) ||
+      Number(b.observed_table_frames || 0) - Number(a.observed_table_frames || 0) ||
+      Number(a.canonical_table_id ?? a.track_id ?? 0) - Number(b.canonical_table_id ?? b.track_id ?? 0)
+    ));
+}
+
+function intervalContainsClipTime(row = {}, clipTime) {
+  const start = Number(row.clip_start_s ?? row.start_s);
+  const end = Number(row.clip_end_s ?? row.end_s);
+  return Number.isFinite(start) && Number.isFinite(end) && start <= clipTime && end >= clipTime;
+}
+
+function intervalMidpoint(row = {}) {
+  const start = Number(row.clip_start_s ?? row.start_s ?? 0);
+  const end = Number(row.clip_end_s ?? row.end_s ?? start);
+  return (start + end) / 2;
+}
+
+function presenceIntervalRange(row = {}) {
+  const start = Number(row.clip_start_s ?? row.start_s);
+  const end = Number(row.clip_end_s ?? row.end_s);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return "time n/a";
+  return `${formatSeconds(start)}-${formatSeconds(end)}`;
 }
 
 function appendBackendRosterRows({ rows, sourceLabel, ageFromClipEndS, context }) {
