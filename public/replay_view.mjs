@@ -52,6 +52,7 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
   const effectiveTable = effectiveTableSnapshot(status);
   const effectiveSource = effectiveTable.source;
   const effectiveCount = effectiveTable.count;
+  const tableBriefRows = stageTableBriefRows(status, latestPacket);
 
   return {
     caseName: demo.caseName,
@@ -62,6 +63,19 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
     elapsedMetric: status.clip_end_s === undefined
       ? "n/a"
       : `${Number(status.clip_end_s).toFixed(1)}s`,
+    stageTableBriefRows: tableBriefRows,
+    tablePresenceRows: [
+      {
+        label: "Current room view",
+        value: tableSnapshotSummary(currentTable, "at table"),
+        context: currentTable.count ? "current" : "empty",
+      },
+      {
+        label: "Stage table context",
+        value: tableSnapshotSummary(effectiveTable, "effective"),
+        context: effectiveTable.count ? "effective" : "empty",
+      },
+    ],
     tableRosterItems: currentTable.rows.length
       ? currentTable.rows.slice(0, 5).map((row) => (
         `${currentTable.sourceLabel}: ${rosterPersonLabel(row)} ` +
@@ -98,6 +112,55 @@ export function replayOperatorProjection(payload, demoMeta = {}, snapshotIndex =
       ),
     } : null,
   };
+}
+
+export function stageTableBriefRows(status = {}, packet = null) {
+  const stageLabel = status.current_stage_label || packet?.stage_label || "Stage n/a";
+  const evidence = status.current_stage_evidence_status || status.evidence_level ||
+    packet?.stage_evidence_status || packet?.evidence_level || "evidence n/a";
+  const time = eventTimeSeconds(status);
+  return stageTableBriefRowsFromSnapshots({
+    stageLabel,
+    evidenceLabel: String(evidence).replaceAll("_", " "),
+    timeLabel: Number.isFinite(time) ? `clip ${formatSeconds(time)}` : "",
+    currentTable: currentTableSnapshot(status),
+    effectiveTable: effectiveTableSnapshot(status),
+  });
+}
+
+export function stageTableBriefRowsFromSnapshots({
+  stageLabel = "Stage n/a",
+  evidenceLabel = "",
+  timeLabel = "",
+  currentTable = {},
+  effectiveTable = null,
+} = {}) {
+  const current = normalizedTableSnapshot(currentTable);
+  const effective = normalizedTableSnapshot(effectiveTable || current);
+  const rows = [
+    {
+      kind: "stage",
+      label: "Stage",
+      value: stageLabel,
+      detail: [evidenceLabel, timeLabel].filter(Boolean).join("; "),
+      context: "current",
+    },
+    {
+      kind: "current",
+      label: "Now visible",
+      value: `${current.count} at table`,
+      detail: tableSnapshotDetail(current),
+      context: current.count ? "current" : "empty",
+    },
+    {
+      kind: "effective",
+      label: "Effective for stage",
+      value: `${effective.count} effective`,
+      detail: tableSnapshotDetail(effective),
+      context: effective.count ? "effective" : "empty",
+    },
+  ];
+  return rows.concat(stageTableBriefPersonRows(current, effective));
 }
 
 export function eventTimeSeconds(event) {
@@ -179,6 +242,7 @@ export function currentTableSnapshot(status = {}) {
     rows,
     source,
     sourceLabel: tableSourceLabel(source),
+    canonicalIds: asArray(status.current_table_canonical_ids),
     ageFromClipEndS: 0,
   };
 }
@@ -211,6 +275,21 @@ export function tableSourceLabel(source) {
   return labels[source] || String(source).replaceAll("_", " ");
 }
 
+export function tableSnapshotSummary(snapshot = {}, countLabel = "staff") {
+  const normalized = normalizedTableSnapshot(snapshot);
+  return `${normalized.count} ${countLabel}; ${tableSnapshotDetail(normalized)}`;
+}
+
+export function tableSnapshotPeople(snapshot = {}) {
+  const canonicalIds = asArray(snapshot.canonicalIds);
+  if (canonicalIds.length) return formatPersonIds(canonicalIds);
+  const rows = asArray(snapshot.rows);
+  if (!rows.length) return "people none";
+  const visible = rows.slice(0, 4).map(snapshotRowPersonLabel);
+  const overflow = rows.length > visible.length ? ` +${rows.length - visible.length}` : "";
+  return `people ${visible.join(", ")}${overflow}`;
+}
+
 export function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -234,6 +313,104 @@ export function rosterPersonLabel(row = {}) {
   return row.track_id === null || row.track_id === undefined
     ? person
     : `${person} (ID ${row.track_id})`;
+}
+
+function snapshotRowPersonLabel(row = {}) {
+  if (
+    row.canonical_table_label ||
+    (row.canonical_table_id !== null && row.canonical_table_id !== undefined) ||
+    (row.track_id !== null && row.track_id !== undefined)
+  ) {
+    return rosterPersonLabel(row);
+  }
+  return row.id || row.rawId || "person";
+}
+
+function normalizedTableSnapshot(snapshot = {}) {
+  const rows = asArray(snapshot.rows);
+  return {
+    ...snapshot,
+    rows,
+    count: snapshot.count ?? rows.length,
+    sourceLabel: snapshot.sourceLabel || tableSourceLabel(snapshot.source),
+    canonicalIds: asArray(snapshot.canonicalIds),
+  };
+}
+
+function tableSnapshotDetail(snapshot = {}) {
+  const normalized = normalizedTableSnapshot(snapshot);
+  return `${normalized.sourceLabel}; ${tableSnapshotPeople(normalized)}${tableSnapshotAgeSuffix(normalized)}`;
+}
+
+function tableSnapshotSourceDetail(snapshot = {}) {
+  const normalized = normalizedTableSnapshot(snapshot);
+  return `${normalized.sourceLabel}${tableSnapshotAgeSuffix(normalized)}`;
+}
+
+function tableSnapshotAgeSuffix(snapshot = {}) {
+  const age = snapshot.ageFromClipEndS ?? snapshot.ageSeconds;
+  return age === null || age === undefined ? "" : `; age ${formatSeconds(age)}`;
+}
+
+function stageTableBriefPersonRows(current, effective) {
+  const people = new Map();
+  addBriefPeople(people, current, "current");
+  addBriefPeople(people, effective, "effective");
+  const rows = [...people.values()];
+  const visibleRows = rows.slice(0, 5).map((person) => {
+    const state = person.inCurrent && person.inEffective
+      ? "now + effective"
+      : (person.inCurrent ? "now" : "held");
+    const source = person.inCurrent ? current : effective;
+    return {
+      kind: "person",
+      label: person.label,
+      value: `${state}; ${person.roleLabel}`,
+      detail: tableSnapshotSourceDetail(source),
+      context: person.inCurrent ? "current" : "effective",
+    };
+  });
+  if (rows.length > visibleRows.length) {
+    visibleRows.push({
+      kind: "overflow",
+      label: "More people",
+      value: `+${rows.length - visibleRows.length}`,
+      detail: "additional effective table people",
+      context: "effective",
+    });
+  }
+  return visibleRows;
+}
+
+function addBriefPeople(people, snapshot, source) {
+  const normalized = normalizedTableSnapshot(snapshot);
+  normalized.rows.forEach((row) => {
+    const key = snapshotRowKey(row);
+    const existing = people.get(key) || {
+      label: snapshotRowPersonLabel(row),
+      roleLabel: tableBriefRoleLabel(row),
+      inCurrent: false,
+      inEffective: false,
+    };
+    if (source === "current") existing.inCurrent = true;
+    if (source === "effective") existing.inEffective = true;
+    people.set(key, existing);
+  });
+}
+
+function snapshotRowKey(row = {}) {
+  if (row.canonical_table_id !== null && row.canonical_table_id !== undefined) {
+    return `canonical:${row.canonical_table_id}`;
+  }
+  if (row.id !== null && row.id !== undefined) return `id:${row.id}`;
+  if (row.track_id !== null && row.track_id !== undefined) return `track:${row.track_id}`;
+  if (row.rawId !== null && row.rawId !== undefined) return `raw:${row.rawId}`;
+  return JSON.stringify(row);
+}
+
+function tableBriefRoleLabel(row = {}) {
+  const role = row.table_team_role || row.role;
+  return ROLE_LABELS[role] || role || "role n/a";
 }
 
 function formatSeconds(value) {

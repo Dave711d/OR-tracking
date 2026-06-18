@@ -11,6 +11,7 @@ import {
   replaySnapshotAt,
   replaySnapshotIndexForTime,
   replaySnapshotLabel,
+  stageTableBriefRows,
   tableSourceLabel,
 } from "../public/replay_view.mjs";
 
@@ -26,7 +27,23 @@ test("replay projection keeps current table empty when only held evidence exists
 
   assert.equal(view.stageMetric, "Valve deployment (strong_visual_support)");
   assert.equal(view.tableSideMetric, "0");
+  assert.deepEqual(view.stageTableBriefRows.slice(0, 5).map((row) => row.label), [
+    "Stage",
+    "Now visible",
+    "Effective for stage",
+    "Person 8 (ID 21)",
+    "Person 10 (ID 20)",
+  ]);
+  assert.equal(view.stageTableBriefRows[1].value, "0 at table");
+  assert.equal(view.stageTableBriefRows[2].value, "2 effective");
+  assert.match(view.stageTableBriefRows[3].value, /held; Table op/);
   assert.deepEqual(view.tableRosterItems, ["None"]);
+  assert.deepEqual(view.tablePresenceRows.map((row) => row.label), [
+    "Current room view",
+    "Stage table context",
+  ]);
+  assert.match(view.tablePresenceRows[0].value, /0 at table; current room view empty; people none/);
+  assert.match(view.tablePresenceRows[1].value, /2 effective; recent room-view hold; people Person 8, Person 10/);
   assert.equal(view.effectiveTableRosterItems.length, 2);
   assert.match(view.effectiveTableRosterItems[0], /recent room-view hold: Person 8/);
   assert.match(view.effectiveTableRosterItems[1], /recent room-view hold: Person 10/);
@@ -44,6 +61,10 @@ test("replay projection separates current visible person from current-stage effe
 
   assert.equal(view.stageMetric, "Closure / finish (strong_visual_support)");
   assert.equal(view.tableSideMetric, "1");
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 9.*now \+ effective/);
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 10.*held/);
+  assert.match(view.tablePresenceRows[0].value, /1 at table; current room view; people Person 9/);
+  assert.match(view.tablePresenceRows[1].value, /2 effective; current-stage recent room window; people Person 9, Person 10/);
   assert.deepEqual(view.currentTable.canonicalIds, [9]);
   assert.equal(view.currentTable.sourceLabel, "current room view");
   assert.equal(view.tableRosterItems.length, 1);
@@ -70,6 +91,12 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.equal(snapshot.count, 3);
   assert.deepEqual(snapshot.canonicalIds, [1, 2, 3]);
   assert.deepEqual(view.currentTable.canonicalIds, []);
+  assert.equal(stageTableBriefRows(demo.status)[2].value, "3 effective");
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 1.*held/);
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 2.*held/);
+  assert.match(view.stageTableBriefRows.map((row) => `${row.label}: ${row.value}`).join(" "), /Person 3.*held/);
+  assert.match(view.tablePresenceRows[0].value, /0 at table; current room view empty; people none/);
+  assert.match(view.tablePresenceRows[1].value, /3 effective; last observed room view; people Person 1, Person 2, Person 3/);
   assert.equal(view.effectiveTableRosterItems.length, 3);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 1/);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 2/);

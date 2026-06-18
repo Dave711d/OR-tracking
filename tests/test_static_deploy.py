@@ -440,7 +440,13 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "Evaluated demo" in index_html
     assert "Replay" in index_html
     assert "At table now" in index_html
-    assert "Table status" in index_html
+    assert 'id="stageTableBrief"' in index_html
+    assert "Stage table brief" in index_html
+    assert "Table presence" in index_html
+    assert 'id="tablePresenceSummary"' in index_html
+    assert "Current room view" in index_html
+    assert "Stage table context" in index_html
+    assert "Table status" not in index_html
     assert "Table-side count" not in index_html
     assert "Status snapshots" in index_html
     assert catalog_block_match is not None
@@ -518,6 +524,17 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function summarizeStageCounts" in app_js
     assert "currentTableSnapshot" in app_js
     assert "export function currentTableSnapshot" in replay_js
+    assert "stageTableBriefRows" in app_js
+    assert "export function stageTableBriefRows" in replay_js
+    assert "stageTableBriefRowsFromSnapshots" in app_js
+    assert "export function stageTableBriefRowsFromSnapshots" in replay_js
+    assert "function renderStageTableBrief" in app_js
+    assert ".stage-table-brief" in styles
+    assert "position: sticky" in styles
+    assert "tableSnapshotSummary" in app_js
+    assert "export function tableSnapshotSummary" in replay_js
+    assert "function renderTablePresenceSummary" in app_js
+    assert "function appendTablePresenceRow" in app_js
     assert "const tableSnapshot = currentTableSnapshot(status);" in app_js
     assert "const tableSnapshot = effectiveTableSnapshot(status);" not in app_js
     assert "emptyState.hidden = Boolean(video.src)" in app_js

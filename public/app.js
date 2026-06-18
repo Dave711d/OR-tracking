@@ -12,7 +12,10 @@ import {
   replaySnapshotAt,
   replaySnapshotLabel,
   rosterPersonLabel,
+  stageTableBriefRows,
+  stageTableBriefRowsFromSnapshots,
   tableSourceLabel,
+  tableSnapshotSummary,
 } from "./replay_view.mjs";
 
 const input = document.querySelector("#videoInput");
@@ -33,6 +36,8 @@ const cellSizeInput = document.querySelector("#cellSize");
 const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
+const stageTableBrief = document.querySelector("#stageTableBrief");
+const tablePresenceSummary = document.querySelector("#tablePresenceSummary");
 const tableRoster = document.querySelector("#tableRoster");
 const operatorPacket = document.querySelector("#operatorPacket");
 const procedureStatus = document.querySelector("#procedureStatus");
@@ -362,6 +367,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   elapsedMetric.textContent = formatSeconds(eventTimeSeconds(status));
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
+  renderStageTableBrief(stageTableBriefRows(status, packet));
   renderBackendTableRoster(status);
   renderProcedureStatus(status, demo);
   renderBackendStatusSnapshots(demo.statusSnapshots, selectedIndex);
@@ -1003,6 +1009,15 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   tableSideMetric.textContent = String(currentTable.count);
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
+  renderStageTableBrief(stageTableBriefRowsFromSnapshots({
+    stageLabel: stage.label,
+    evidenceLabel: stage.stageHoldReason
+      ? stage.stageHoldReason.replaceAll("_", " ")
+      : `confidence ${formatNumber(stage.confidence)}`,
+    timeLabel: `${formatSeconds(elapsedSeconds)}`,
+    currentTable,
+    effectiveTable: tableSnapshot,
+  }));
   renderTableRoster(currentTable, tableSnapshot);
   updateTableTeam(summary.tableRoster, elapsedSeconds, stage);
   renderBrowserTableIdentities();
@@ -1679,6 +1694,7 @@ function renderBackendTableRoster(status = {}) {
   const effectiveTable = effectiveTableSnapshot(status);
   const currentRows = currentTable.rows;
   const effectiveRows = effectiveTable.rows;
+  renderTablePresenceSummary(currentTable, effectiveTable);
 
   if (!currentRows.length) {
     appendRosterListItem("At table now", "None", "empty");
@@ -1718,6 +1734,58 @@ function appendBackendRosterRows({ rows, sourceLabel, ageFromClipEndS, context }
     );
   });
   appendOverflowListItem(tableRoster, rows.length, visibleRows.length, "people");
+}
+
+function renderTablePresenceSummary(currentTable = {}, effectiveTable = null) {
+  const effective = effectiveTable || currentTable || { rows: [], count: 0 };
+  tablePresenceSummary.replaceChildren();
+  appendTablePresenceRow(
+    "Current room view",
+    currentTable,
+    "at table",
+    (currentTable.count ?? currentTable.rows?.length ?? 0) ? "current" : "empty",
+  );
+  appendTablePresenceRow(
+    "Stage table context",
+    effective,
+    "effective",
+    (effective.count ?? effective.rows?.length ?? 0) ? "effective" : "empty",
+  );
+}
+
+function appendTablePresenceRow(labelText, snapshot, countLabel, context) {
+  const row = document.createElement("div");
+  const label = document.createElement("span");
+  const value = document.createElement("b");
+  row.dataset.context = context;
+  label.textContent = labelText;
+  value.textContent = tableSnapshotSummary(snapshot, countLabel);
+  row.append(label, value);
+  tablePresenceSummary.append(row);
+}
+
+function renderStageTableBrief(rows = []) {
+  stageTableBrief.replaceChildren();
+  const briefRows = rows.length ? rows : [{
+    kind: "stage",
+    label: "Stage",
+    value: "Idle",
+    detail: "No procedure stage yet",
+    context: "empty",
+  }];
+  briefRows.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    const detail = document.createElement("em");
+    row.dataset.kind = item.kind;
+    row.dataset.context = item.context || "empty";
+    label.textContent = item.label;
+    value.textContent = item.value;
+    detail.textContent = item.detail || "";
+    row.append(label, value, detail);
+    stageTableBrief.append(row);
+  });
 }
 
 function appendRosterListItem(label, value, context) {
@@ -1995,6 +2063,11 @@ function getMilestoneStatus(stageKey, stageIndex, currentIndex, observed) {
 function renderTableRoster(tableSnapshot, effectiveTableSnapshot = null) {
   tableRoster.replaceChildren();
   const roster = Array.isArray(tableSnapshot) ? tableSnapshot : (tableSnapshot?.rows || []);
+  const currentTable = Array.isArray(tableSnapshot)
+    ? { rows: tableSnapshot, count: tableSnapshot.length, source: tableSnapshot.length ? "current_room_view" : "current_room_view_empty" }
+    : (tableSnapshot || { rows: [], count: 0, source: "current_room_view_empty" });
+  renderTablePresenceSummary(currentTable, effectiveTableSnapshot || currentTable);
+
   if (!roster.length) {
     appendRosterListItem("At table now", "None", "empty");
   } else {
@@ -2277,6 +2350,7 @@ function resetMetrics(options = {}) {
   tableSideMetric.textContent = "0";
   setEmptyState("No video loaded", "Choose a local MP4, MOV, or M4V file.");
   renderTableRoster([]);
+  renderStageTableBrief();
   renderTableTeam();
   renderStageCoverage();
   renderStageRosterSummary();

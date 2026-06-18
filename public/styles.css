@@ -256,6 +256,61 @@ select {
   overflow-wrap: anywhere;
 }
 
+.stage-table-brief {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  position: sticky;
+  top: 14px;
+  z-index: 2;
+}
+
+.stage-table-brief div {
+  display: grid;
+  gap: 3px 8px;
+  grid-template-columns: minmax(0, 88px) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.stage-table-brief span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stage-table-brief b {
+  color: var(--accent);
+  font-size: 13px;
+  line-height: 1.18;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.stage-table-brief em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  grid-column: 2;
+  line-height: 1.2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.stage-table-brief div[data-context="effective"] b {
+  color: var(--warn);
+}
+
+.stage-table-brief div[data-context="empty"] b {
+  color: var(--muted);
+}
+
 .metric-stage strong {
   max-width: 190px;
   color: var(--accent);
@@ -277,6 +332,45 @@ select {
   max-width: none;
   padding: 0;
   text-align: left;
+}
+
+.table-presence-summary {
+  border-bottom: 1px solid rgba(159, 176, 189, 0.22);
+  display: grid;
+  gap: 7px;
+  margin-bottom: 8px;
+  padding-bottom: 9px;
+}
+
+.table-presence-summary div {
+  display: grid;
+  grid-template-columns: minmax(0, 108px) minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+.table-presence-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.table-presence-summary b {
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.table-presence-summary div[data-context="effective"] b {
+  color: var(--warn);
+}
+
+.table-presence-summary div[data-context="empty"] b {
+  color: var(--muted);
 }
 
 .roster-card li {
