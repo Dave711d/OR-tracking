@@ -256,8 +256,8 @@ table-side IDs for each milestone. A `Table team status` panel keeps current
 synthetic/browser-tracked IDs as active, recently observed, or historical so the
 public Vercel surface mirrors the richer Python output. The browser inspector
 also includes an `Operator packet` panel with the current stage, evidence,
-handoff status, stage roster IDs, latest/effective table IDs, next stage, and
-quality flags.
+handoff status, stage roster IDs, canonical within-stage entrants/exits,
+latest/effective table IDs, next stage, and quality flags.
 The `Evaluated demo` replay selector loads compact backend artifacts from the
 Sentara 900s, 1800s, 2400s, and 2700s windows plus the full synthetic TAVR
 workflow, including weak visual support, held non-room context, recent
@@ -271,8 +271,9 @@ timeline evidence panes are focused on the selected snapshot's stage rather
 than showing a stale whole-case prefix. The packet text uses
 `stage roster people` for everyone seen table-side during that stage and keeps
 `latest table status` as the current/effective answer to who is at the table
-now. Refresh those public replay JSON files after rerunning the local suites
-with:
+now. Stage roster and operator packet cards show canonical people for
+within-stage entry/exit while retaining raw IDs as audit detail. Refresh those
+public replay JSON files after rerunning the local suites with:
 
 ```bash
 python3 export_public_demo_data.py

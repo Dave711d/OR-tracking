@@ -12,6 +12,7 @@ import {
   replaySnapshotAt,
   replaySnapshotIndexForTime,
   replaySnapshotLabel,
+  stageTableBriefHandoffRows,
   stageTableBriefRows,
   stageTableBriefRowsFromSnapshots,
   statusTimeSeconds,
@@ -253,6 +254,8 @@ test("stage table brief formats browser handoff people without double person lab
       continuedIds: ["P1"],
       newIds: ["P2"],
       droppedIds: [],
+      withinStageEntryIds: ["P2"],
+      withinStageExitIds: ["P1"],
     },
   });
   const handoff = rows.find((row) => row.kind === "handoff");
@@ -261,7 +264,26 @@ test("stage table brief formats browser handoff people without double person lab
   assert.equal(progress.value, "6/8 stages");
   assert.equal(progress.detail, "next Post-deploy assessment; observed 6/8");
   assert.equal(handoff.value, "roster added");
-  assert.equal(handoff.detail, "continued P1; new P2; dropped none");
+  assert.equal(
+    handoff.detail,
+    "continued P1; new P2; dropped none; entered P2; exited P1",
+  );
   assert.match(rows.map((row) => row.detail).join(" "), /people P1, P2/);
   assert.doesNotMatch(rows.map((row) => row.detail).join(" "), /Person P/);
+});
+
+test("stage handoff brief exposes canonical within-stage entry and exit people", () => {
+  const rows = stageTableBriefHandoffRows({
+    handoff_type: "roster_changed",
+    active_table_canonical_ids: [1, 2],
+    continued_canonical_table_ids: [1],
+    new_canonical_table_ids: [2],
+    dropped_canonical_table_ids: [],
+    within_stage_entry_canonical_table_ids: [2],
+    within_stage_exit_canonical_table_ids: [1],
+  });
+
+  assert.equal(rows[0].value, "roster changed");
+  assert.match(rows[0].detail, /entered Person 2/);
+  assert.match(rows[0].detail, /exited Person 1/);
 });

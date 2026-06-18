@@ -1,6 +1,6 @@
 {
   "case": "sentara_900_static_table_fallback",
-  "generated_from": "outputs/tavr_static_stage_support/sentara_900_static_table_fallback/result.json",
+  "generated_from": "outputs/tavr_static_within_stage_canonical_final/sentara_900_static_table_fallback/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,
@@ -1480,6 +1480,22 @@
         ],
         "dropped_track_ids": [],
         "dropped_canonical_table_ids": [],
+        "within_stage_entry_track_ids": [
+          4
+        ],
+        "within_stage_entry_canonical_table_ids": [
+          3
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          4
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          1,
+          2,
+          3
+        ],
         "effective_table_source": "last_observed_room_view",
         "effective_table_count": 3,
         "effective_table_track_ids": [
@@ -1497,7 +1513,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Access / sheathing 899.999s-929.962s; evidence weak visual support, confidence 0.20, observable 2%; handoff initial table roster; peak table 3; stage roster people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); new people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 105 frames 0.0-4.2s; Person 2: ID 2 table_operator 98 frames 0.0-4.2s; Person 3: ID 4 table_operator 5 frames 3.8-4.2s; latest table status last observed room view 3 people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); next Angio alignment / crossing; quality flags low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Access / sheathing 899.999s-929.962s; evidence weak visual support, confidence 0.20, observable 2%; handoff initial table roster; peak table 3; stage roster people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); new people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); dropped people none (raw IDs none); within-stage entered Person 3 (raw IDs 4); within-stage exited Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); roster Person 1: ID 1 table_operator 105 frames 0.0-4.2s; Person 2: ID 2 table_operator 98 frames 0.0-4.2s; Person 3: ID 4 table_operator 5 frames 3.8-4.2s; latest table status last observed room view 3 people Person 1, Person 2, Person 3 (raw IDs 1, 2, 4); next Angio alignment / crossing; quality flags low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [
@@ -2526,10 +2542,18 @@
         "within_stage_entry_track_ids": [
           4
         ],
+        "within_stage_entry_canonical_table_ids": [
+          3
+        ],
         "within_stage_exit_track_ids": [
           1,
           2,
           4
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          1,
+          2,
+          3
         ],
         "handoff_type": "initial_table_roster",
         "active_table_roster": [
@@ -2646,6 +2670,82 @@
           }
         ],
         "dropped_table_roster": [],
+        "within_stage_entry_roster": [
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.04,
+            "first_seen_s": 903.836,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 3.837,
+            "last_seen_clip_s": 4.171,
+            "label": "Person 3: ID 4 table_operator 5 frames 3.8-4.2s"
+          }
+        ],
+        "within_stage_exit_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 105,
+            "coverage_ratio": 0.117,
+            "room_coverage_ratio": 0.833,
+            "first_seen_s": 899.999,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 4.171,
+            "label": "Person 1: ID 1 table_operator 105 frames 0.0-4.2s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 98,
+            "coverage_ratio": 0.109,
+            "room_coverage_ratio": 0.778,
+            "first_seen_s": 899.999,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 0.0,
+            "last_seen_clip_s": 4.171,
+            "label": "Person 2: ID 2 table_operator 98 frames 0.0-4.2s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.04,
+            "first_seen_s": 903.836,
+            "last_seen_s": 904.17,
+            "first_seen_clip_s": 3.837,
+            "last_seen_clip_s": 4.171,
+            "label": "Person 3: ID 4 table_operator 5 frames 3.8-4.2s"
+          }
+        ],
         "label": "Access / sheathing: initial_table_roster; lead ID 1 table_operator; active table tracks=3"
       }
     ],
@@ -2696,10 +2796,18 @@
         "within_stage_entry_track_ids": [
           4
         ],
+        "within_stage_entry_canonical_table_ids": [
+          3
+        ],
         "within_stage_exit_track_ids": [
           1,
           2,
           4
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          1,
+          2,
+          3
         ],
         "handoff_type": "initial_table_roster",
         "active_table_roster": [

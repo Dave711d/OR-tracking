@@ -326,8 +326,17 @@ export function stageTableBriefHandoffRows(handoff = null) {
   );
   const newIds = asArray(handoff.newIds ?? handoff.new_canonical_table_ids);
   const droppedIds = asArray(handoff.droppedIds ?? handoff.dropped_canonical_table_ids);
+  const withinStageEntryIds = asArray(
+    handoff.withinStageEntryIds ??
+    handoff.within_stage_entry_canonical_table_ids,
+  );
+  const withinStageExitIds = asArray(
+    handoff.withinStageExitIds ??
+    handoff.within_stage_exit_canonical_table_ids,
+  );
   const hasAnyPeople = activeIds.length || continuedIds.length ||
-    newIds.length || droppedIds.length;
+    newIds.length || droppedIds.length ||
+    withinStageEntryIds.length || withinStageExitIds.length;
   return [{
     kind: "handoff",
     label: "Stage handoff",
@@ -336,6 +345,8 @@ export function stageTableBriefHandoffRows(handoff = null) {
       formatBriefPersonIds(continuedIds, "continued"),
       formatBriefPersonIds(newIds, "new"),
       formatBriefPersonIds(droppedIds, "dropped"),
+      formatBriefPersonIds(withinStageEntryIds, "entered"),
+      formatBriefPersonIds(withinStageExitIds, "exited"),
     ].join("; "),
     context: hasAnyPeople ? "handoff" : "empty",
   }];

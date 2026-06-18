@@ -1,6 +1,6 @@
 {
   "case": "sentara_2700_room_post",
-  "generated_from": "outputs/tavr_suite_stage_support/sentara_2700_room_post/result.json",
+  "generated_from": "outputs/tavr_suite_within_stage_canonical_verify/sentara_2700_room_post/result.json",
   "timebase": {
     "timebase": "source",
     "fps": 29.97,
@@ -2261,6 +2261,20 @@
         ],
         "dropped_track_ids": [],
         "dropped_canonical_table_ids": [],
+        "within_stage_entry_track_ids": [
+          1,
+          2
+        ],
+        "within_stage_entry_canonical_table_ids": [
+          1,
+          2
+        ],
+        "within_stage_exit_track_ids": [
+          2
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          2
+        ],
         "effective_table_source": null,
         "effective_table_count": null,
         "effective_table_track_ids": [],
@@ -2272,7 +2286,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Observed stage: Post-deploy assessment 2699.997s-2702.533s; evidence weak visual support, confidence 0.28, observable 100%; handoff initial table roster; peak table 2; stage roster people Person 1, Person 2 (raw IDs 1, 2); new people Person 1, Person 2 (raw IDs 1, 2); dropped people none (raw IDs none); roster Person 1: ID 1 table_operator 28 frames 1.6-2.5s; Person 2: ID 2 device_prep 1 frames 2.5-2.5s; quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+        "operator_packet": "Observed stage: Post-deploy assessment 2699.997s-2702.533s; evidence weak visual support, confidence 0.28, observable 100%; handoff initial table roster; peak table 2; stage roster people Person 1, Person 2 (raw IDs 1, 2); new people Person 1, Person 2 (raw IDs 1, 2); dropped people none (raw IDs none); within-stage entered Person 1, Person 2 (raw IDs 1, 2); within-stage exited Person 2 (raw IDs 2); roster Person 1: ID 1 table_operator 28 frames 1.6-2.5s; Person 2: ID 2 device_prep 1 frames 2.5-2.5s; quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
       },
       {
         "packet_index": 1,
@@ -2375,6 +2389,46 @@
         ],
         "dropped_track_ids": [],
         "dropped_canonical_table_ids": [],
+        "within_stage_entry_track_ids": [
+          2,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "within_stage_entry_canonical_table_ids": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "within_stage_exit_track_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          11,
+          12,
+          13
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
         "effective_table_source": "last_observed_room_view",
         "effective_table_count": 1,
         "effective_table_track_ids": [
@@ -2390,7 +2444,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 1, 11, 13, 6, 5, 2, 4, 12); new people Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 4, 5, 6, 11, 12, 13); dropped people none (raw IDs none); roster Person 3: ID 3 table_operator 63 frames 2.6-4.9s; Person 1: ID 1 table_operator 43 frames 2.6-4.0s; Person 7: ID 11 device_prep 24 frames 8.4-9.4s; Person 9: ID 13 table_operator 23 frames 12.0-12.9s; Person 6: ID 6 table_operator 10 frames 3.8-4.1s; Person 5: ID 5 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 people Person 9 (raw IDs 13); quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
+        "operator_packet": "Current stage: Closure / finish 2702.567s-2729.961s; evidence weak visual support, confidence 0.29, observable 46%; handoff roster added; peak table 4; stage roster people Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 1, 11, 13, 6, 5, 2, 4, 12); new people Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 3, 4, 5, 6, 11, 12, 13); dropped people none (raw IDs none); within-stage entered Person 2, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 2, 4, 5, 6, 11, 12, 13); within-stage exited Person 1, Person 2, Person 3, Person 4, Person 5, Person 6, Person 7, Person 8, Person 9 (raw IDs 1, 2, 3, 4, 5, 6, 11, 12, 13); roster Person 3: ID 3 table_operator 63 frames 2.6-4.9s; Person 1: ID 1 table_operator 43 frames 2.6-4.0s; Person 7: ID 11 device_prep 24 frames 8.4-9.4s; Person 9: ID 13 table_operator 23 frames 12.0-12.9s; Person 6: ID 6 table_operator 10 frames 3.8-4.1s; Person 5: ID 5 table_operator 7 frames 3.6-4.0s; latest table status last observed room view 1 people Person 9 (raw IDs 13); quality flags rapid_stage_progression, early_terminal_stage, low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [
@@ -4762,7 +4816,14 @@
           1,
           2
         ],
+        "within_stage_entry_canonical_table_ids": [
+          1,
+          2
+        ],
         "within_stage_exit_track_ids": [
+          2
+        ],
+        "within_stage_exit_canonical_table_ids": [
           2
         ],
         "handoff_type": "initial_table_roster",
@@ -4844,6 +4905,64 @@
           }
         ],
         "dropped_table_roster": [],
+        "within_stage_entry_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 28,
+            "coverage_ratio": 0.364,
+            "room_coverage_ratio": 0.364,
+            "first_seen_s": 2701.632,
+            "last_seen_s": 2702.533,
+            "first_seen_clip_s": 1.635,
+            "last_seen_clip_s": 2.536,
+            "label": "Person 1: ID 1 table_operator 28 frames 1.6-2.5s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.013,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.466,
+            "last_seen_s": 2702.466,
+            "first_seen_clip_s": 2.469,
+            "last_seen_clip_s": 2.469,
+            "label": "Person 2: ID 2 device_prep 1 frames 2.5-2.5s"
+          }
+        ],
+        "within_stage_exit_roster": [
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.013,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.466,
+            "last_seen_s": 2702.466,
+            "first_seen_clip_s": 2.469,
+            "last_seen_clip_s": 2.469,
+            "label": "Person 2: ID 2 device_prep 1 frames 2.5-2.5s"
+          }
+        ],
         "label": "Post-deploy assessment: initial_table_roster; lead ID 1 table_operator; active table tracks=2"
       },
       {
@@ -4918,6 +5037,15 @@
           12,
           13
         ],
+        "within_stage_entry_canonical_table_ids": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
         "within_stage_exit_track_ids": [
           1,
           2,
@@ -4928,6 +5056,17 @@
           11,
           12,
           13
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
         ],
         "handoff_type": "roster_added",
         "active_table_roster": [
@@ -5261,6 +5400,298 @@
           }
         ],
         "dropped_table_roster": [],
+        "within_stage_entry_roster": [
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.633,
+            "last_seen_s": 2702.767,
+            "first_seen_clip_s": 2.636,
+            "last_seen_clip_s": 2.769,
+            "label": "Person 2: ID 2 device_prep 5 frames 2.6-2.8s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.008,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.701,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.704,
+            "label": "Person 4: ID 4 table_operator 3 frames 3.6-3.7s"
+          },
+          {
+            "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "coverage_ratio": 0.009,
+            "room_coverage_ratio": 0.018,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.971,
+            "label": "Person 5: ID 5 table_operator 7 frames 3.6-4.0s"
+          },
+          {
+            "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "coverage_ratio": 0.012,
+            "room_coverage_ratio": 0.026,
+            "first_seen_s": 2703.801,
+            "last_seen_s": 2704.101,
+            "first_seen_clip_s": 3.804,
+            "last_seen_clip_s": 4.104,
+            "label": "Person 6: ID 6 table_operator 10 frames 3.8-4.1s"
+          },
+          {
+            "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.029,
+            "room_coverage_ratio": 0.063,
+            "first_seen_s": 2708.372,
+            "last_seen_s": 2709.373,
+            "first_seen_clip_s": 8.375,
+            "last_seen_clip_s": 9.376,
+            "label": "Person 7: ID 11 device_prep 24 frames 8.4-9.4s"
+          },
+          {
+            "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.001,
+            "room_coverage_ratio": 0.003,
+            "first_seen_s": 2709.507,
+            "last_seen_s": 2709.507,
+            "first_seen_clip_s": 9.51,
+            "last_seen_clip_s": 9.51,
+            "label": "Person 8: ID 12 table_operator 1 frames 9.5-9.5s"
+          },
+          {
+            "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "coverage_ratio": 0.028,
+            "room_coverage_ratio": 0.06,
+            "first_seen_s": 2712.043,
+            "last_seen_s": 2712.91,
+            "first_seen_clip_s": 12.045,
+            "last_seen_clip_s": 12.913,
+            "label": "Person 9: ID 13 table_operator 23 frames 12.0-12.9s"
+          }
+        ],
+        "within_stage_exit_roster": [
+          {
+            "track_id": 1,
+            "canonical_table_id": 1,
+            "merged_track_ids": [
+              1
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 43,
+            "coverage_ratio": 0.052,
+            "room_coverage_ratio": 0.113,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 3.971,
+            "label": "Person 1: ID 1 table_operator 43 frames 2.6-4.0s"
+          },
+          {
+            "track_id": 2,
+            "canonical_table_id": 2,
+            "merged_track_ids": [
+              2
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 0.8,
+            "observed_table_frames": 5,
+            "coverage_ratio": 0.006,
+            "room_coverage_ratio": 0.013,
+            "first_seen_s": 2702.633,
+            "last_seen_s": 2702.767,
+            "first_seen_clip_s": 2.636,
+            "last_seen_clip_s": 2.769,
+            "label": "Person 2: ID 2 device_prep 5 frames 2.6-2.8s"
+          },
+          {
+            "track_id": 3,
+            "canonical_table_id": 3,
+            "merged_track_ids": [
+              3
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.667,
+            "observed_table_frames": 63,
+            "coverage_ratio": 0.077,
+            "room_coverage_ratio": 0.165,
+            "first_seen_s": 2702.567,
+            "last_seen_s": 2704.869,
+            "first_seen_clip_s": 2.569,
+            "last_seen_clip_s": 4.872,
+            "label": "Person 3: ID 3 table_operator 63 frames 2.6-4.9s"
+          },
+          {
+            "track_id": 4,
+            "canonical_table_id": 4,
+            "merged_track_ids": [
+              4
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 3,
+            "coverage_ratio": 0.004,
+            "room_coverage_ratio": 0.008,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.701,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.704,
+            "label": "Person 4: ID 4 table_operator 3 frames 3.6-3.7s"
+          },
+          {
+            "track_id": 5,
+            "canonical_table_id": 5,
+            "merged_track_ids": [
+              5
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.571,
+            "observed_table_frames": 7,
+            "coverage_ratio": 0.009,
+            "room_coverage_ratio": 0.018,
+            "first_seen_s": 2703.634,
+            "last_seen_s": 2703.968,
+            "first_seen_clip_s": 3.637,
+            "last_seen_clip_s": 3.971,
+            "label": "Person 5: ID 5 table_operator 7 frames 3.6-4.0s"
+          },
+          {
+            "track_id": 6,
+            "canonical_table_id": 6,
+            "merged_track_ids": [
+              6
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 10,
+            "coverage_ratio": 0.012,
+            "room_coverage_ratio": 0.026,
+            "first_seen_s": 2703.801,
+            "last_seen_s": 2704.101,
+            "first_seen_clip_s": 3.804,
+            "last_seen_clip_s": 4.104,
+            "label": "Person 6: ID 6 table_operator 10 frames 3.8-4.1s"
+          },
+          {
+            "track_id": 11,
+            "canonical_table_id": 7,
+            "merged_track_ids": [
+              11
+            ],
+            "dominant_role": "device_prep",
+            "table_team_role": "device_prep",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 24,
+            "coverage_ratio": 0.029,
+            "room_coverage_ratio": 0.063,
+            "first_seen_s": 2708.372,
+            "last_seen_s": 2709.373,
+            "first_seen_clip_s": 8.375,
+            "last_seen_clip_s": 9.376,
+            "label": "Person 7: ID 11 device_prep 24 frames 8.4-9.4s"
+          },
+          {
+            "track_id": 12,
+            "canonical_table_id": 8,
+            "merged_track_ids": [
+              12
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 1.0,
+            "observed_table_frames": 1,
+            "coverage_ratio": 0.001,
+            "room_coverage_ratio": 0.003,
+            "first_seen_s": 2709.507,
+            "last_seen_s": 2709.507,
+            "first_seen_clip_s": 9.51,
+            "last_seen_clip_s": 9.51,
+            "label": "Person 8: ID 12 table_operator 1 frames 9.5-9.5s"
+          },
+          {
+            "track_id": 13,
+            "canonical_table_id": 9,
+            "merged_track_ids": [
+              13
+            ],
+            "dominant_role": "table_operator",
+            "table_team_role": "table_operator",
+            "table_team_role_confidence": 0.565,
+            "observed_table_frames": 23,
+            "coverage_ratio": 0.028,
+            "room_coverage_ratio": 0.06,
+            "first_seen_s": 2712.043,
+            "last_seen_s": 2712.91,
+            "first_seen_clip_s": 12.045,
+            "last_seen_clip_s": 12.913,
+            "label": "Person 9: ID 13 table_operator 23 frames 12.0-12.9s"
+          }
+        ],
         "label": "Closure / finish: roster_added; lead ID 3 table_operator; active table tracks=9"
       }
     ],
@@ -5308,7 +5739,14 @@
           1,
           2
         ],
+        "within_stage_entry_canonical_table_ids": [
+          1,
+          2
+        ],
         "within_stage_exit_track_ids": [
+          2
+        ],
+        "within_stage_exit_canonical_table_ids": [
           2
         ],
         "handoff_type": "initial_table_roster",
@@ -5431,6 +5869,15 @@
           12,
           13
         ],
+        "within_stage_entry_canonical_table_ids": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
         "within_stage_exit_track_ids": [
           1,
           2,
@@ -5441,6 +5888,17 @@
           11,
           12,
           13
+        ],
+        "within_stage_exit_canonical_table_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
         ],
         "handoff_type": "roster_added",
         "active_table_roster": [

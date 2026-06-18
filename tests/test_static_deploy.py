@@ -376,6 +376,8 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert "effective_table_canonical_ids" in packet
         assert "lead_canonical_table_id" in packet
         assert "canonical_table_identity_count" in packet
+        assert "within_stage_entry_canonical_table_ids" in packet
+        assert "within_stage_exit_canonical_table_ids" in packet
         assert "quality_flag_codes" in packet
         assert tavr["stage_roster_summary"]
         assert tavr["procedure_milestones"]
@@ -384,6 +386,14 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert len(tavr["stage_table_coverage"]) >= demo["min_coverage_rows"]
         assert all(
             "active_table_canonical_ids" in row
+            for row in tavr["stage_roster_summary"]
+        )
+        assert all(
+            "within_stage_entry_canonical_table_ids" in row
+            for row in tavr["stage_roster_summary"]
+        )
+        assert all(
+            "within_stage_exit_canonical_table_ids" in row
             for row in tavr["stage_roster_summary"]
         )
         assert all(
@@ -431,6 +441,12 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
     assert view_snapshot["current_stage"] == "access_sheathing"
     assert view_snapshot["effective_table_source"] == "last_observed_room_view"
     assert view_snapshot["effective_table_canonical_ids"] == [1, 2, 3]
+    fallback_packet = fallback_payload["tavr"]["operator_stage_packet"][0]
+    assert fallback_packet["within_stage_entry_canonical_table_ids"] == [3]
+    assert fallback_packet["within_stage_exit_canonical_table_ids"] == [1, 2, 3]
+    fallback_roster = fallback_payload["tavr"]["stage_roster_summary"][0]
+    assert fallback_roster["within_stage_entry_canonical_table_ids"] == [3]
+    assert fallback_roster["within_stage_exit_canonical_table_ids"] == [1, 2, 3]
     synthetic_payload = load_public_demo_payload(
         "synthetic-full-tavr-evaluation.json"
     )
@@ -612,6 +628,11 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "active people" not in app_js
     assert "new people" in app_js
     assert "continued people" in app_js
+    assert "Within-stage movement" in app_js
+    assert "entered people" in app_js
+    assert "exited people" in app_js
+    assert "raw entry IDs" in app_js
+    assert "raw exit IDs" in app_js
     assert "timebase_summary" in replay_js
     assert "clip_timestamp_s" in replay_js
     assert "table_identity_groups" in replay_js

@@ -1714,6 +1714,22 @@ function renderBackendOperatorPacket(packets = [], status = null) {
     "Effective table",
     `${packet.effective_table_count ?? status?.effective_table_count ?? 0}; ${tableSourceLabel(packet.effective_table_source || status?.effective_table_source)}; ${formatPersonIds(packet.effective_table_canonical_ids || status?.effective_table_canonical_ids)}`,
   );
+  appendInfoRow(
+    operatorPacket,
+    "Within-stage movement",
+    [
+      formatPersonIds(
+        packet.within_stage_entry_canonical_table_ids,
+        "entered people",
+      ),
+      `raw entry IDs ${formatIdList(packet.within_stage_entry_track_ids)}`,
+      formatPersonIds(
+        packet.within_stage_exit_canonical_table_ids,
+        "exited people",
+      ),
+      `raw exit IDs ${formatIdList(packet.within_stage_exit_track_ids)}`,
+    ].join("; "),
+  );
   const flags = asArray(packet.quality_flag_codes);
   appendInfoRow(
     operatorPacket,
@@ -1960,8 +1976,16 @@ function stageRosterDetail(row = {}) {
     formatPersonIds(row.continued_canonical_table_ids, "continued people"),
     formatPersonIds(row.new_canonical_table_ids, "new people"),
     formatPersonIds(row.dropped_canonical_table_ids, "dropped people"),
-    `entered raw IDs ${formatIdList(row.within_stage_entry_track_ids)}`,
-    `exited raw IDs ${formatIdList(row.within_stage_exit_track_ids)}`,
+    formatPersonIds(
+      row.within_stage_entry_canonical_table_ids,
+      "entered people",
+    ),
+    `raw entry IDs ${formatIdList(row.within_stage_entry_track_ids)}`,
+    formatPersonIds(
+      row.within_stage_exit_canonical_table_ids,
+      "exited people",
+    ),
+    `raw exit IDs ${formatIdList(row.within_stage_exit_track_ids)}`,
     `tracking ${formatPercent(row.tracking_available_rate)}`,
   ].join("; ");
 }
