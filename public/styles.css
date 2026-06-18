@@ -31,6 +31,7 @@ body {
   gap: 16px;
   min-height: 100vh;
   padding: 16px;
+  max-width: 100vw;
 }
 
 .workspace,
@@ -38,6 +39,7 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
+  min-width: 0;
 }
 
 .workspace {
@@ -53,6 +55,11 @@ body {
   gap: 16px;
   padding: 18px;
   border-bottom: 1px solid var(--line);
+}
+
+.topbar > div,
+.controls > * {
+  min-width: 0;
 }
 
 h1 {
@@ -171,9 +178,11 @@ video {
   font-weight: 650;
   line-height: 1.25;
   text-transform: none;
+  overflow-wrap: anywhere;
 }
 
 input[type="range"] {
+  min-width: 0;
   width: 100%;
 }
 
@@ -207,6 +216,7 @@ select {
   flex-direction: column;
   gap: 12px;
   padding: 14px;
+  min-width: 0;
 }
 
 .metric,
@@ -227,6 +237,7 @@ select {
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 6px;
+  min-width: 0;
   padding: 14px;
 }
 
@@ -241,6 +252,8 @@ select {
 .metric strong {
   font-size: 30px;
   line-height: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .metric-stage strong {
@@ -283,6 +296,7 @@ select {
 .count-group {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .count-group h2 {
@@ -290,12 +304,14 @@ select {
   color: var(--text);
   font-size: 12px;
   font-weight: 760;
+  min-width: 0;
   text-transform: uppercase;
 }
 
 .count-list {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .coverage-list,
@@ -309,6 +325,8 @@ select {
 .milestone-list {
   display: grid;
   gap: 8px;
+  min-width: 0;
+  width: 100%;
 }
 
 .coverage-list div,
@@ -321,6 +339,7 @@ select {
 .quality-list div,
 .milestone-list div {
   align-items: flex-start;
+  min-width: 0;
   padding: 10px 12px;
 }
 
@@ -337,6 +356,8 @@ select {
   font-size: 12px;
   font-weight: 650;
   line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .count-list b,
@@ -365,6 +386,8 @@ select {
   color: var(--accent);
   font-size: 12px;
   line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-align: right;
   white-space: nowrap;
 }
@@ -418,6 +441,7 @@ select {
 }
 
 .team-list b,
+.coverage-list b,
 .identity-list b,
 .stage-roster-list b,
 .operator-packet b,
@@ -426,6 +450,7 @@ select {
 .quality-list b,
 .milestone-list b {
   max-width: 118px;
+  overflow-wrap: anywhere;
   white-space: normal;
 }
 
@@ -439,7 +464,7 @@ select {
 
 @media (max-width: 900px) {
   .app-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .controls {

@@ -534,6 +534,8 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert ".procedure-status-list" in styles
     assert ".replay-control" in styles
     assert ".replay-scrub-control" in styles
+    assert "overflow-wrap: anywhere" in styles
+    assert "grid-template-columns: minmax(0, 1fr)" in styles
     assert ".identity-list" in styles
     assert ".milestone-list" in styles
     assert ".event-list" in styles
