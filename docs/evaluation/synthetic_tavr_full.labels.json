@@ -52,6 +52,123 @@
       "expected_canonical_table_ids": [9, 10]
     }
   ],
+  "table_person_interval_expectations": [
+    {
+      "window_id": "initial_no_table_room_prep",
+      "annotation_source": "synthetic_fixture",
+      "notes": "Room prep contains no table-side people in the deterministic fixture.",
+      "start_s": 0.0,
+      "end_s": 1.7,
+      "stage": "room_prep_drape",
+      "persons": [],
+      "expected_person_count": 0,
+      "max_persons": 0,
+      "max_total_canonical_table_ids": 0
+    },
+    {
+      "window_id": "access_sheathing_people",
+      "annotation_source": "synthetic_fixture",
+      "start_s": 1.75,
+      "end_s": 3.45,
+      "stage": "access_sheathing",
+      "role": "access_operator",
+      "min_observed_table_frames": 18,
+      "persons": [
+        {
+          "person_id": "gt_synth_access_left",
+          "expected_canonical_table_ids": [1],
+          "min_intervals": 1,
+          "min_observed_table_frames": 18,
+          "min_overlap_s": 0.75,
+          "max_canonical_table_ids": 1
+        },
+        {
+          "person_id": "gt_synth_access_right",
+          "expected_canonical_table_ids": [2],
+          "min_intervals": 1,
+          "min_observed_table_frames": 18,
+          "min_overlap_s": 0.75,
+          "max_canonical_table_ids": 1
+        }
+      ],
+      "expected_person_count": 2,
+      "max_extra_canonical_table_ids": 0
+    },
+    {
+      "window_id": "valve_deployment_peak_people",
+      "annotation_source": "synthetic_fixture",
+      "start_s": 8.7,
+      "end_s": 10.3,
+      "stage": "valve_deployment",
+      "role": "table_operator",
+      "min_observed_table_frames": 7,
+      "persons": [
+        {
+          "person_id": "gt_synth_valve_anchor",
+          "expected_canonical_table_ids": [3],
+          "min_intervals": 1,
+          "min_observed_table_frames": 15,
+          "min_overlap_s": 0.35,
+          "max_canonical_table_ids": 1
+        },
+        {
+          "person_id": "gt_synth_valve_left",
+          "expected_canonical_table_ids": [5],
+          "min_intervals": 1,
+          "min_observed_table_frames": 7,
+          "min_overlap_s": 0.2,
+          "max_canonical_table_ids": 1
+        },
+        {
+          "person_id": "gt_synth_valve_right",
+          "expected_canonical_table_ids": [6],
+          "min_intervals": 1,
+          "min_observed_table_frames": 7,
+          "min_overlap_s": 0.2,
+          "max_canonical_table_ids": 1
+        },
+        {
+          "person_id": "gt_synth_valve_late",
+          "expected_canonical_table_ids": [7],
+          "min_intervals": 1,
+          "min_observed_table_frames": 20,
+          "min_overlap_s": 1.0,
+          "max_canonical_table_ids": 1
+        }
+      ],
+      "expected_person_count": 4,
+      "max_extra_canonical_table_ids": 0
+    },
+    {
+      "window_id": "closure_finish_people",
+      "annotation_source": "synthetic_fixture",
+      "start_s": 11.6,
+      "end_s": 13.25,
+      "stage": "closure_finish",
+      "role": "access_operator",
+      "min_observed_table_frames": 30,
+      "persons": [
+        {
+          "person_id": "gt_synth_closure_current",
+          "expected_canonical_table_ids": [9],
+          "min_intervals": 1,
+          "min_observed_table_frames": 40,
+          "min_overlap_s": 1.5,
+          "max_canonical_table_ids": 1
+        },
+        {
+          "person_id": "gt_synth_closure_held",
+          "expected_canonical_table_ids": [10],
+          "min_intervals": 1,
+          "min_observed_table_frames": 30,
+          "min_overlap_s": 1.2,
+          "max_canonical_table_ids": 1
+        }
+      ],
+      "expected_person_count": 2,
+      "max_extra_canonical_table_ids": 0
+    }
+  ],
   "stage_staffing_expectations": [
     {
       "stage": "bav_optional",
@@ -374,6 +491,65 @@
       "required_current_canonical_table_ids": [9],
       "expected_current_canonical_table_ids": [9],
       "expected_effective_canonical_table_ids": [9, 10]
+    }
+  ],
+  "table_person_status_expectations": [
+    {
+      "status_id": "initial_no_table_room_prep",
+      "annotation_source": "synthetic_fixture",
+      "source": "operator_snapshot",
+      "timestamp_s": 0.0,
+      "tolerance_s": 0.01,
+      "stage": "room_prep_drape",
+      "required_snapshot_reasons": ["clip_start", "stage_start"],
+      "persons": [],
+      "expected_current_person_ids": [],
+      "expected_effective_person_ids": [],
+      "expected_last_observed_person_ids": [],
+      "expected_peak_person_ids": []
+    },
+    {
+      "status_id": "valve_deployment_peak_people",
+      "annotation_source": "synthetic_fixture",
+      "source": "operator_snapshot",
+      "timestamp_s": 8.875,
+      "tolerance_s": 0.12,
+      "stage": "valve_deployment",
+      "current_view": "room",
+      "tracking_available": true,
+      "effective_table_source": "current_room_view",
+      "required_snapshot_reasons": ["peak_table"],
+      "persons": [
+        {"person_id": "gt_synth_valve_anchor", "expected_canonical_table_ids": [3], "required_in": ["current", "effective", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_valve_left", "expected_canonical_table_ids": [5], "required_in": ["current", "effective", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_valve_right", "expected_canonical_table_ids": [6], "required_in": ["current", "effective", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_valve_late", "expected_canonical_table_ids": [7], "required_in": ["current", "effective", "peak"], "max_canonical_table_ids": 1}
+      ],
+      "expected_current_person_ids": ["gt_synth_valve_anchor", "gt_synth_valve_left", "gt_synth_valve_right", "gt_synth_valve_late"],
+      "expected_effective_person_ids": ["gt_synth_valve_anchor", "gt_synth_valve_left", "gt_synth_valve_right", "gt_synth_valve_late"],
+      "expected_peak_person_ids": ["gt_synth_valve_anchor", "gt_synth_valve_left", "gt_synth_valve_right", "gt_synth_valve_late"]
+    },
+    {
+      "status_id": "final_closure_people",
+      "annotation_source": "synthetic_fixture",
+      "source": "procedure_status",
+      "stage": "closure_finish",
+      "current_view": "room",
+      "tracking_available": true,
+      "effective_table_source": "current_stage_recent_room_window",
+      "persons": [
+        {"person_id": "gt_synth_valve_anchor", "expected_canonical_table_ids": [3], "required_in": ["last_observed", "peak"], "forbidden_in": ["current", "effective"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_valve_left", "expected_canonical_table_ids": [5], "required_in": ["last_observed", "peak"], "forbidden_in": ["current", "effective"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_valve_right", "expected_canonical_table_ids": [6], "required_in": ["last_observed", "peak"], "forbidden_in": ["current", "effective"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_valve_late", "expected_canonical_table_ids": [7], "required_in": ["last_observed", "peak"], "forbidden_in": ["current", "effective"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_post_assessment", "expected_canonical_table_ids": [8], "required_in": ["last_observed"], "forbidden_in": ["current", "effective", "peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_closure_current", "expected_canonical_table_ids": [9], "required_in": ["current", "effective", "last_observed"], "forbidden_in": ["peak"], "max_canonical_table_ids": 1},
+        {"person_id": "gt_synth_closure_held", "expected_canonical_table_ids": [10], "required_in": ["effective", "last_observed"], "forbidden_in": ["current", "peak"], "max_canonical_table_ids": 1}
+      ],
+      "expected_current_person_ids": ["gt_synth_closure_current"],
+      "expected_effective_person_ids": ["gt_synth_closure_current", "gt_synth_closure_held"],
+      "expected_last_observed_person_ids": ["gt_synth_valve_anchor", "gt_synth_valve_left", "gt_synth_valve_right", "gt_synth_valve_late", "gt_synth_post_assessment", "gt_synth_closure_current", "gt_synth_closure_held"],
+      "expected_peak_person_ids": ["gt_synth_valve_anchor", "gt_synth_valve_left", "gt_synth_valve_right", "gt_synth_valve_late"]
     }
   ],
   "operator_packet_expectations": [

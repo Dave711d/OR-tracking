@@ -325,6 +325,14 @@ def test_synthetic_full_tavr_suite_scores_all_canonical_stages(
         result["label_score"]["operator_packet_score"]["pass_rate"] == 1.0
     )
     assert (
+        result["label_score"]["table_person_interval_score"]["pass_rate"]
+        == 1.0
+    )
+    assert (
+        result["label_score"]["table_person_status_score"]["pass_rate"]
+        == 1.0
+    )
+    assert (
         result["label_score"]["table_identity_group_score"]["pass_rate"]
         == 1.0
     )
@@ -408,6 +416,7 @@ def test_public_tavr_manifests_declare_required_score_checks() -> None:
         "sentara_2400_fluoro_negative",
         "sentara_900_room_to_fluoro_low_motion",
         "sentara_900_static_table_fallback",
+        "synthetic_full_tavr_workflow",
     }
 
     for manifest_path in manifest_paths:

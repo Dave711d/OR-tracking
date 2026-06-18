@@ -447,8 +447,8 @@ python evaluate_tavr_suite.py docs/evaluation/tavr_static_table_fallback_suite.j
 
 Run the deterministic full-workflow suite when you need a compact regression
 that covers every canonical stage, table handoff, canonical table-presence
-interval, canonical table identity, operator packet, roster snapshot, and
-rapid-progression quality flag:
+interval, person-level table interval/status, canonical table identity,
+operator packet, roster snapshot, and rapid-progression quality flag:
 
 ```bash
 # Optional when changing the fixture generator; the MP4 is committed.
