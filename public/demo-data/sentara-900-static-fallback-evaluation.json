@@ -341,7 +341,7 @@
         "source_offset_s": 899.999,
         "current_stage": "access_sheathing",
         "current_stage_label": "Access / sheathing",
-        "current_stage_status": "current_observed",
+        "current_stage_status": "current_held_context",
         "current_stage_evidence_status": "held_non_room_context",
         "current_stage_evidence_label": "held from non-room context",
         "next_stage": "angio_alignment_crossing",

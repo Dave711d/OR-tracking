@@ -416,13 +416,13 @@ def test_operator_stage_packet_rolls_up_current_stage_and_table_context() -> Non
 
     current = packets[-1]
     assert current["is_current_stage"] is True
-    assert current["stage_status"] == "current_observed"
+    assert current["stage_status"] == "current_held_context"
     assert current["stage_evidence_status"] == "held_non_room_context"
     assert current["stage_evidence_label"] == "held from non-room context"
     assert current["handoff_type"] == "table_cleared"
     assert current["effective_table_source"] == "last_observed_room_view"
     assert current["effective_table_track_ids"] == [7, 8]
-    assert "Current stage: Closure / finish" in current["operator_packet"]
+    assert "Current held stage: Closure / finish" in current["operator_packet"]
     assert "stage support held from non-room context" in current["operator_packet"]
     assert "latest table status last observed room view 2 people Person 1, Person 2" in (
         current["operator_packet"]
@@ -533,11 +533,16 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     ]
 
     status = procedure_status_summary(metrics)[0]
+    packet = operator_stage_packet(metrics)[-1]
+    milestones = procedure_milestones(metrics)
+    closure = next(row for row in milestones if row["stage"] == "closure_finish")
 
     assert status["current_stage"] == "closure_finish"
-    assert status["current_stage_status"] == "current_observed"
+    assert status["current_stage_status"] == "current_held_context"
     assert status["current_stage_evidence_status"] == "held_non_room_context"
     assert status["current_stage_evidence_label"] == "held from non-room context"
+    assert closure["milestone_status"] == "current_held_context"
+    assert packet["stage_status"] == "current_held_context"
     assert status["next_stage"] is None
     assert status["current_view"] == "non_room"
     assert status["tracking_available"] is False
@@ -553,6 +558,7 @@ def test_procedure_status_summary_reports_current_stage_and_table_roster() -> No
     assert status["peak_table_count"] == 2
     assert status["peak_table_track_ids"] == [7, 8]
     assert "Current held stage: Closure / finish" in status["operator_summary"]
+    assert "Current held stage: Closure / finish" in packet["operator_packet"]
     assert "table status: last observed room view Person 1: ID 7" in (
         status["operator_summary"]
     )

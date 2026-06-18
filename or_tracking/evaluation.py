@@ -2807,7 +2807,11 @@ def _procedure_milestone_item(
     observable_rate = _weighted_average(evidence_rows, "observable_rate", "frames")
     mean_confidence = _weighted_average(evidence_rows, "mean_confidence", "frames")
     evidence_level = _dominant_evidence_level(evidence_rows)
-    status = "current_observed" if is_current_observed_stage else "observed_prior"
+    status = _milestone_status(
+        is_current_observed_stage=is_current_observed_stage,
+        evidence_level=evidence_level,
+        observable_rate=observable_rate,
+    )
     peak_table_count = int(staffing.get("peak_table_count", 0) or 0)
     unique_table_track_count = int(staffing.get("unique_table_track_count", 0) or 0)
     canonical_table_identity_count = int(
@@ -2858,6 +2862,19 @@ def _current_milestone(
         "observable_rate": None,
         "mean_confidence": None,
     }
+
+
+def _milestone_status(
+    *,
+    is_current_observed_stage: bool,
+    evidence_level: Optional[str],
+    observable_rate: Optional[float],
+) -> str:
+    if not is_current_observed_stage:
+        return "observed_prior"
+    if _stage_evidence_status(evidence_level, observable_rate) == "held_non_room_context":
+        return "current_held_context"
+    return "current_observed"
 
 
 def _next_milestone(
@@ -3052,9 +3069,12 @@ def _procedure_status_label(row: Dict[str, Any]) -> str:
 
 
 def _operator_stage_packet_label(row: Dict[str, Any]) -> str:
-    status_label = (
-        "Current stage" if row.get("is_current_stage") else "Observed stage"
-    )
+    if row.get("is_current_stage") and row.get("stage_status") == "current_held_context":
+        status_label = "Current held stage"
+    else:
+        status_label = (
+            "Current stage" if row.get("is_current_stage") else "Observed stage"
+        )
     stage_support = row.get("stage_evidence_label") or "stage support n/a"
     evidence = _evidence_support_clause(row.get("evidence_level"), stage_support)
     observable_rate = _maybe_percent_label(row.get("observable_rate"))

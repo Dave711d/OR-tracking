@@ -1516,7 +1516,7 @@ function renderProcedureStatus(status = null, demo = null) {
 
   appendInfoRow(
     procedureStatus,
-    "Current stage",
+    currentStageStatusLabel(status.current_stage_status, status.current_stage_evidence_status),
     `${status.current_stage_label || "unknown"}; ${stageEvidenceLabel(status.current_stage_evidence_status || status.evidence_level)}`,
     { tone: "current" },
   );
@@ -1621,7 +1621,7 @@ function renderBackendOperatorPacket(packets = [], status = null) {
 
   appendInfoRow(
     operatorPacket,
-    packet.is_current_stage ? "Current stage" : (isSelectedStatusStage ? "Replay stage" : "Observed stage"),
+    backendPacketStageLabel(packet, isSelectedStatusStage),
     `${packet.stage_label} ${formatClockRange(packet, status)}`,
     { tone: packet.is_current_stage || isSelectedStatusStage ? "current" : undefined },
   );
@@ -1995,6 +1995,21 @@ function stageEvidenceLabel(status) {
     unknown_stage_support: "unknown stage support",
   };
   return labels[status] || String(status).replaceAll("_", " ");
+}
+
+function currentStageStatusLabel(stageStatus, evidenceStatus) {
+  if (stageStatus === "current_held_context" || evidenceStatus === "held_non_room_context") {
+    return "Current held stage";
+  }
+  return "Current stage";
+}
+
+function backendPacketStageLabel(packet, isSelectedStatusStage) {
+  if ((packet.is_current_stage || isSelectedStatusStage) && packet.stage_status === "current_held_context") {
+    return "Current held stage";
+  }
+  if (packet.is_current_stage) return "Current stage";
+  return isSelectedStatusStage ? "Replay stage" : "Observed stage";
 }
 
 function evidenceLevelLabel(level) {

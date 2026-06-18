@@ -71,7 +71,7 @@
       "stage": "valve_deployment",
       "observed_in_clip": true,
       "is_current_observed_stage": true,
-      "milestone_status": "current_observed",
+      "milestone_status": "current_held_context",
       "evidence_level": "held_non_room",
       "max_observable_rate": 0.0,
       "max_mean_confidence": 0.2,
@@ -88,7 +88,7 @@
   "procedure_status_expectations": [
     {
       "current_stage": "valve_deployment",
-      "current_stage_status": "current_observed",
+      "current_stage_status": "current_held_context",
       "current_stage_evidence_status": "held_non_room_context",
       "next_stage": "post_deploy_assessment",
       "current_view": "non_room",
@@ -112,7 +112,7 @@
       "timestamp_s": 29.9,
       "tolerance_s": 0.12,
       "stage": "valve_deployment",
-      "current_stage_status": "current_observed",
+      "current_stage_status": "current_held_context",
       "stage_evidence_status": "held_non_room_context",
       "next_stage": "post_deploy_assessment",
       "current_view": "non_room",
@@ -129,7 +129,7 @@
       "stage": "valve_deployment",
       "stage_segment_index": 0,
       "current": true,
-      "stage_status": "current_observed",
+      "stage_status": "current_held_context",
       "stage_evidence_status": "held_non_room_context",
       "next_stage": "post_deploy_assessment",
       "handoff_type": "initial_no_table_evidence",
@@ -145,7 +145,7 @@
         "non_room_view"
       ],
       "required_packet_text": [
-        "Current stage: Valve deployment",
+        "Current held stage: Valve deployment",
         "stage support held from non-room context",
         "handoff initial no table evidence",
         "active people none",

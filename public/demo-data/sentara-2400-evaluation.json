@@ -75,7 +75,7 @@
         "source_offset_s": 2399.998,
         "current_stage": "valve_deployment",
         "current_stage_label": "Valve deployment",
-        "current_stage_status": "current_observed",
+        "current_stage_status": "current_held_context",
         "current_stage_evidence_status": "held_non_room_context",
         "current_stage_evidence_label": "held from non-room context",
         "next_stage": "post_deploy_assessment",
@@ -137,7 +137,7 @@
         "source_offset_s": 2399.998,
         "current_stage": "valve_deployment",
         "current_stage_label": "Valve deployment",
-        "current_stage_status": "current_observed",
+        "current_stage_status": "current_held_context",
         "current_stage_evidence_status": "held_non_room_context",
         "current_stage_evidence_label": "held from non-room context",
         "next_stage": "post_deploy_assessment",
@@ -206,7 +206,7 @@
         "source_offset_s": 2399.998,
         "current_stage": "valve_deployment",
         "current_stage_label": "Valve deployment",
-        "current_stage_status": "current_observed",
+        "current_stage_status": "current_held_context",
         "current_stage_evidence_status": "held_non_room_context",
         "current_stage_evidence_label": "held from non-room context",
         "next_stage": "post_deploy_assessment",
@@ -270,7 +270,7 @@
         "stage_segment_index": 0,
         "stage": "valve_deployment",
         "stage_label": "Valve deployment",
-        "stage_status": "current_observed",
+        "stage_status": "current_held_context",
         "stage_evidence_status": "held_non_room_context",
         "stage_evidence_label": "held from non-room context",
         "is_current_stage": true,
@@ -309,7 +309,7 @@
           "low_stage_confidence",
           "non_room_view"
         ],
-        "operator_packet": "Current stage: Valve deployment 2399.998s-2429.961s; evidence held non-room, stage support held from non-room context, confidence 0.20, observable 0%; handoff initial no table evidence; peak table 0; active people none (raw IDs none); new people none (raw IDs none); dropped people none (raw IDs none); roster none; latest table status no room table evidence 0 people none (raw IDs none); next Post-deploy assessment; quality flags low_stage_confidence, non_room_view"
+        "operator_packet": "Current held stage: Valve deployment 2399.998s-2429.961s; evidence held non-room, stage support held from non-room context, confidence 0.20, observable 0%; handoff initial no table evidence; peak table 0; active people none (raw IDs none); new people none (raw IDs none); dropped people none (raw IDs none); roster none; latest table status no room table evidence 0 people none (raw IDs none); next Post-deploy assessment; quality flags low_stage_confidence, non_room_view"
       }
     ],
     "table_team_summary": [],
@@ -606,7 +606,7 @@
         "stage": "valve_deployment",
         "stage_label": "Valve deployment",
         "observed_in_clip": true,
-        "milestone_status": "current_observed",
+        "milestone_status": "current_held_context",
         "is_current_observed_stage": true,
         "first_observed_s": 2399.998,
         "last_observed_s": 2429.961,
@@ -618,8 +618,8 @@
         "peak_table_count": 0,
         "unique_table_track_count": 0,
         "canonical_table_identity_count": 0,
-        "support_label": "current_observed; evidence=held_non_room; observable=0%; confidence=0.20; table_peak=0; table_people=0",
-        "label": "Valve deployment: current_observed; evidence=held_non_room; observable=0%; confidence=0.20; table_peak=0; table_people=0"
+        "support_label": "current_held_context; evidence=held_non_room; observable=0%; confidence=0.20; table_peak=0; table_people=0",
+        "label": "Valve deployment: current_held_context; evidence=held_non_room; observable=0%; confidence=0.20; table_peak=0; table_people=0"
       },
       {
         "milestone_index": 6,

@@ -50,6 +50,8 @@ PUBLIC_EVALUATION_DEMOS = [
         "case": "sentara_2400_fluoro_negative",
         "stage": "valve_deployment",
         "stage_label": "Valve deployment",
+        "current_stage_status": "current_held_context",
+        "packet_stage_status": "current_held_context",
         "evidence": "held_non_room_context",
         "table_source": "no_room_table_evidence",
         "table_count": 0,
@@ -327,6 +329,9 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert status["current_stage"] in TAVR_STAGE_ORDER
         assert status["current_stage"] == demo["stage"]
         assert status["current_stage_label"] == demo["stage_label"]
+        assert status["current_stage_status"] == demo.get(
+            "current_stage_status", "current_observed"
+        )
         assert status["current_stage_evidence_status"] == demo["evidence"]
         assert status["current_table_count"] == demo["current_table_count"]
         assert status["effective_table_source"] == demo["table_source"]
@@ -339,6 +344,9 @@ def test_static_demo_bundles_evaluated_tavr_replay_artifacts() -> None:
         assert "snapshot_reason" in status_snapshots[-1]
         assert "effective_table_canonical_ids" in status_snapshots[-1]
         assert set(status["quality_flag_codes"]) >= demo["required_flags"]
+        assert packet["stage_status"] == demo.get(
+            "packet_stage_status", "current_observed"
+        )
         assert packet["stage_evidence_status"] == demo["evidence"]
         assert packet["effective_table_source"] == demo["table_source"]
         assert packet["effective_table_count"] == demo["table_count"]
@@ -467,6 +475,10 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "function renderProcedureStatus" in app_js
     assert "function renderBackendStatusSnapshots" in app_js
     assert "function renderBackendOperatorPacket" in app_js
+    assert "function currentStageStatusLabel" in app_js
+    assert "function backendPacketStageLabel" in app_js
+    assert "current_held_context" in app_js
+    assert "Current held stage" in app_js
     assert "Replay stage" in app_js
     assert "function renderBackendTableTeam" in app_js
     assert "function renderBackendTableIdentities" in app_js
