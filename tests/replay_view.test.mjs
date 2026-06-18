@@ -36,6 +36,7 @@ test("replay projection keeps current table empty when only held evidence exists
   assert.equal(view.tableSideMetric, "0");
   assert.deepEqual(view.operatorAnswerRows.map((row) => row.label), [
     "Stage",
+    "Readout",
     "Visible now",
     "Effective table",
     "Stage roster",
@@ -43,11 +44,14 @@ test("replay projection keeps current table empty when only held evidence exists
   ]);
   assert.equal(view.operatorAnswerRows[0].value, "Valve deployment");
   assert.match(view.operatorAnswerRows[0].detail, /next Post-deploy assessment/);
-  assert.equal(view.operatorAnswerRows[1].value, "0 visible");
-  assert.match(view.operatorAnswerRows[1].detail, /current room view empty; people none/);
-  assert.equal(view.operatorAnswerRows[2].value, "2 effective");
-  assert.match(view.operatorAnswerRows[2].detail, /recent room-view hold; people Person 8, Person 10/);
-  assert.match(view.operatorAnswerRows[3].detail, /table roster started/);
+  assert.match(view.operatorAnswerRows[1].value, /Current observed stage: Valve deployment/);
+  assert.match(view.operatorAnswerRows[1].detail, /tracking available/);
+  assert.match(view.operatorAnswerRows[1].detail, /table status: recent room view hold Person 8/);
+  assert.equal(view.operatorAnswerRows[2].value, "0 visible");
+  assert.match(view.operatorAnswerRows[2].detail, /current room view empty; people none/);
+  assert.equal(view.operatorAnswerRows[3].value, "2 effective");
+  assert.match(view.operatorAnswerRows[3].detail, /recent room-view hold; people Person 8, Person 10/);
+  assert.match(view.operatorAnswerRows[4].detail, /table roster started/);
   assert.deepEqual(view.stageTableBriefRows.slice(0, 10).map((row) => row.label), [
     "Stage",
     "Procedure progress",
@@ -172,9 +176,11 @@ test("replay projection separates current visible person from current-stage effe
   assert.match(view.tablePresenceRows[1].value, /2 effective; current-stage recent room window; people Person 9, Person 10/);
   assert.equal(view.operatorAnswerRows[0].value, "Closure / finish");
   assert.match(view.operatorAnswerRows[0].detail, /next complete/);
-  assert.equal(view.operatorAnswerRows[1].value, "1 visible");
-  assert.equal(view.operatorAnswerRows[2].value, "2 effective");
-  assert.match(view.operatorAnswerRows[2].detail, /current-stage recent room window; people Person 9, Person 10/);
+  assert.match(view.operatorAnswerRows[1].value, /Current observed stage: Closure \/ finish/);
+  assert.match(view.operatorAnswerRows[1].detail, /at table now: Person 9/);
+  assert.equal(view.operatorAnswerRows[2].value, "1 visible");
+  assert.equal(view.operatorAnswerRows[3].value, "2 effective");
+  assert.match(view.operatorAnswerRows[3].detail, /current-stage recent room window; people Person 9, Person 10/);
   assert.deepEqual(view.currentTable.canonicalIds, [9]);
   assert.equal(view.currentTable.sourceLabel, "current room view");
   assert.equal(view.tableRosterItems.length, 1);
@@ -213,9 +219,11 @@ test("effective table snapshot exposes static fallback continuity roster", async
   assert.match(view.tablePresenceRows[0].value, /0 at table; current room view empty; people none/);
   assert.match(view.tablePresenceRows[1].value, /3 effective; last observed room view; people Person 1, Person 2, Person 3/);
   assert.equal(view.operatorAnswerRows[0].value, "Access / sheathing");
-  assert.equal(view.operatorAnswerRows[1].value, "0 visible");
-  assert.equal(view.operatorAnswerRows[2].value, "3 effective");
-  assert.match(view.operatorAnswerRows[2].detail, /last observed room view; people Person 1, Person 2, Person 3/);
+  assert.match(view.operatorAnswerRows[1].value, /Current weakly supported stage: Access \/ sheathing/);
+  assert.match(view.operatorAnswerRows[1].detail, /tracking not available/);
+  assert.equal(view.operatorAnswerRows[2].value, "0 visible");
+  assert.equal(view.operatorAnswerRows[3].value, "3 effective");
+  assert.match(view.operatorAnswerRows[3].detail, /last observed room view; people Person 1, Person 2, Person 3/);
   assert.equal(view.effectiveTableRosterItems.length, 3);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 1/);
   assert.match(view.effectiveTableRosterItems.join(" "), /Person 2/);

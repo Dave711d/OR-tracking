@@ -328,6 +328,17 @@ select {
   color: var(--warn);
 }
 
+.operator-answer div[data-kind="readout"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.operator-answer div[data-kind="readout"] span,
+.operator-answer div[data-kind="readout"] b,
+.operator-answer div[data-kind="readout"] em {
+  grid-column: 1;
+  text-align: left;
+}
+
 .operator-answer div[data-context="empty"] b,
 .stage-table-brief div[data-context="empty"] b {
   color: var(--muted);

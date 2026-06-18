@@ -196,6 +196,7 @@ export function operatorAnswerRows(
     currentView: status.current_view,
     trackingAvailable: status.tracking_available,
     qualityFlags: status.quality_flag_codes || packet?.quality_flag_codes,
+    operatorSummary: status.operator_summary || packet?.operator_packet,
   });
 }
 
@@ -210,6 +211,7 @@ export function operatorAnswerRowsFromSnapshots({
   currentView = "",
   trackingAvailable = null,
   qualityFlags = [],
+  operatorSummary = "",
 } = {}) {
   const current = normalizedTableSnapshot(currentTable);
   const effective = normalizedTableSnapshot(effectiveTable || current);
@@ -233,6 +235,7 @@ export function operatorAnswerRowsFromSnapshots({
       detail: [evidenceLabel, progressDetail].filter(Boolean).join("; "),
       context: "current",
     },
+    ...operatorSummaryAnswerRows(operatorSummary),
     {
       kind: "visible",
       label: "Visible now",
@@ -256,6 +259,20 @@ export function operatorAnswerRowsFromSnapshots({
       context: flags.length ? "warn" : "current",
     },
   ];
+}
+
+function operatorSummaryAnswerRows(operatorSummary = "") {
+  const summary = String(operatorSummary || "").trim();
+  if (!summary) return [];
+  const [lead, ...rest] = summary.split(/;\s*/);
+  const warning = /\b(weak|not available|quality flags?: (?!none)|low_|non_room|rapid_)/i.test(summary);
+  return [{
+    kind: "readout",
+    label: "Readout",
+    value: lead || "Operator readout",
+    detail: rest.join("; "),
+    context: warning ? "warn" : "current",
+  }];
 }
 
 export function scoreVerificationRows(scoreSummary = {}, status = {}) {

@@ -594,6 +594,9 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "operatorAnswerRowsFromSnapshots" in app_js
     assert "export function operatorAnswerRows" in replay_js
     assert "export function operatorAnswerRowsFromSnapshots" in replay_js
+    assert "operator_summary" in replay_js
+    assert "operatorSummary" in replay_js
+    assert "Readout" in replay_js
     assert "function renderOperatorAnswer" in app_js
     assert "scoreVerificationRows" in app_js
     assert "export function scoreVerificationRows" in replay_js
@@ -655,6 +658,7 @@ def test_static_demo_loads_backend_evaluation_replay() -> None:
     assert "stageTableBriefRowsFromSnapshots" in app_js
     assert "export function stageTableBriefRowsFromSnapshots" in replay_js
     assert ".operator-answer" in styles
+    assert 'data-kind="readout"' in styles
     assert "Procedure progress" in replay_js
     assert "export function procedureProgressBrief" in replay_js
     assert "export function stageTableBriefProgressRows" in replay_js
