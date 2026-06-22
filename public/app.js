@@ -48,6 +48,8 @@ const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
 const operatorAnswer = document.querySelector("#operatorAnswer");
+const videoWorkflow = document.querySelector("#videoWorkflow");
+const workflowEventList = document.querySelector("#workflowEventList");
 const stageTableBrief = document.querySelector("#stageTableBrief");
 const tablePresenceSummary = document.querySelector("#tablePresenceSummary");
 const tableRoster = document.querySelector("#tableRoster");
@@ -182,6 +184,26 @@ const ROLE_FILLS = {
   motion: "rgba(55, 214, 163, 0.12)",
 };
 
+const WORKFLOW_ROLE_LABELS = {
+  table_operator: "Proceduralist",
+  access_operator: "Proceduralist",
+  device_prep: "Device prep",
+  imaging: "Imaging operator",
+  anesthesia: "Anaesthetist",
+  entry_supply: "Circulator",
+  motion: "Motion",
+};
+
+const PATIENT_STATE_LABELS = {
+  waiting_outside: "Patient out of room",
+  entering_room: "Patient entering room",
+  in_room: "Patient in room",
+  on_table: "Patient on table",
+  in_room_unverified: "Patient in room - view unavailable",
+  leaving_room: "Patient leaving room",
+  out_of_room: "Patient out of room",
+};
+
 const TABLE_SIDE_ZONES = new Set(["access", "table", "table_left", "table_right"]);
 const TABLE_SIDE_ROLES = new Set(["access_operator", "table_operator"]);
 const ROLE_ZONE_PRIORITY = [
@@ -250,6 +272,8 @@ let currentStageRosterSegment = null;
 let milestoneProgress = new Map();
 let currentMilestoneKey = null;
 let lastObservedTableSnapshot = null;
+let workflowState = initialWorkflowState();
+let workflowEvents = [];
 let currentEvaluationReplay = null;
 let uploadedStageIndex = 0;
 let uploadedStageStartedAt = 0;
@@ -265,6 +289,7 @@ let frameReadBlocked = false;
 
 populateInitialStageOptions();
 populateEvaluationDemoOptions();
+scheduleDemoAutostart();
 
 input.addEventListener("change", () => {
   const file = input.files?.[0];
@@ -378,6 +403,12 @@ async function loadEvaluationDemo() {
 
 function renderEvaluationReplay(demo) {
   currentEvaluationReplay = demo;
+  const defaultStatus = demo.statusSnapshots.at(-1) || demo.status || {};
+  renderReplayVideoWorkflow(
+    defaultStatus,
+    demo,
+    safePacketForStatus(demo.packets, defaultStatus),
+  );
   const selectedIndex = setupEvaluationScrubber(demo);
 
   renderBackendTableTeam(demo.team);
@@ -391,7 +422,7 @@ function renderEvaluationReplay(demo) {
 function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   const status = replaySnapshotAt(demo, snapshotIndex) || demo.status || {};
   const selectedIndex = selectedSnapshotIndex(demo, snapshotIndex);
-  const packet = packetForStatus(demo.packets, status);
+  const packet = safePacketForStatus(demo.packets, status);
   const stageRoster = stageRosterForStatus(demo.stageRosters, status, packet);
   const stageLabel = status.current_stage_label || packet?.stage_label || demo.caseName;
   const tableSnapshot = currentTableSnapshot(status);
@@ -410,6 +441,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   elapsedMetric.textContent = replayClockLabel(status);
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
+  renderReplayVideoWorkflow(status, demo, packet);
   renderOperatorAnswer(operatorAnswerRows(status, packet, stageRoster, demo.milestones));
   renderStageTableBrief(stageTableBriefRows(status, packet, demo.milestones, stageRoster));
   renderBackendTableRoster(status, demo.presenceIntervals);
@@ -445,6 +477,29 @@ function selectedEvaluationDemo() {
     EVALUATION_DEMOS.find((demo) => demo.default) ||
     EVALUATION_DEMOS[0]
   );
+}
+
+function safePacketForStatus(packets, status) {
+  try {
+    return packetForStatus(packets, status);
+  } catch (error) {
+    console.error("Replay packet lookup failed", error);
+    return asArray(packets).at(-1) || null;
+  }
+}
+
+function scheduleDemoAutostart() {
+  const search = window.location?.search || "";
+  if (!search) return;
+  const params = new URLSearchParams(search);
+  const demoMode = params.get("demo");
+  if (!demoMode) return;
+  const schedule = window.setTimeout || globalThis.setTimeout;
+  schedule(() => {
+    if (demoMode === "synthetic") {
+      syntheticButton.click();
+    }
+  }, 0);
 }
 
 function setupEvaluationScrubber(demo) {
@@ -824,6 +879,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "T1",
       role: "table_operator",
+      label: "Proceduralist",
       x: 0.37 + 0.05 * oscillate(elapsed, 0.28),
       y: 0.5 + 0.03 * oscillate(elapsed + 0.4, 0.36),
       w: 0.08,
@@ -832,7 +888,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "T2",
       role: "table_operator",
-      label: "Table 2",
+      label: "Proceduralist 2",
       x: 0.60 - 0.04 * oscillate(elapsed + 0.8, 0.26),
       y: 0.43 + 0.04 * oscillate(elapsed + 1.3, 0.34),
       w: 0.08,
@@ -841,6 +897,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "A1",
       role: "access_operator",
+      label: "Proceduralist access",
       x: 0.31 + 0.04 * oscillate(elapsed + 2.4, 0.22),
       y: 0.70 + 0.02 * oscillate(elapsed + 0.2, 0.42),
       w: 0.09,
@@ -849,6 +906,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "AN1",
       role: "anesthesia",
+      label: "Anaesthetist",
       x: 0.80 + 0.03 * oscillate(elapsed + 0.9, 0.18),
       y: 0.18 + 0.04 * oscillate(elapsed + 1.8, 0.3),
       w: 0.08,
@@ -857,6 +915,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "S1",
       role: "entry_supply",
+      label: "Circulator",
       x: 0.05 + 0.08 * oscillate(elapsed + 1.6, 0.3),
       y: 0.42 + 0.12 * oscillate(elapsed + 0.5, 0.2),
       w: 0.08,
@@ -865,6 +924,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "D1",
       role: "device_prep",
+      label: "Device prep",
       x: 0.13 + 0.04 * oscillate(elapsed + 0.3, 0.24),
       y: 0.18 + 0.02 * oscillate(elapsed + 1.1, 0.36),
       w: 0.08,
@@ -873,6 +933,7 @@ function buildSyntheticTavrBoxes(elapsed, stage) {
     {
       id: "I1",
       role: "imaging",
+      label: "Imaging operator",
       x: 0.54 + 0.04 * oscillate(elapsed + 2.3, 0.28),
       y: 0.13 + 0.02 * oscillate(elapsed + 0.7, 0.3),
       w: 0.08,
@@ -1106,7 +1167,7 @@ function drawOverlay(boxes, activity, stage = null) {
     const w = box.w * rect.width;
     const h = box.h * rect.height;
     const roleKey = box.role || "motion";
-    const label = box.label || ROLE_LABELS[roleKey] || `M${index + 1}`;
+    const label = box.label || WORKFLOW_ROLE_LABELS[roleKey] || ROLE_LABELS[roleKey] || `M${index + 1}`;
     const labelY = Math.max(18, y - 6);
     const labelWidth = Math.ceil(ctx.measureText(label).width) + 12;
 
@@ -1120,6 +1181,7 @@ function drawOverlay(boxes, activity, stage = null) {
     ctx.fillText(label, x + 6, labelY);
   });
 
+  drawPatientOverlay(stage, rect.width, rect.height);
   drawSparkline(activity);
 }
 
@@ -1163,6 +1225,46 @@ function drawStageBanner(stage, width) {
   ctx.restore();
 }
 
+function drawPatientOverlay(stage, width, height) {
+  const state = workflowState.patientState || deriveSyntheticPatientState(stage);
+  if (!stage || state === "waiting_outside" || state === "out_of_room") return;
+
+  const position = patientOverlayPosition(stage, state);
+  const x = position.x * width;
+  const y = position.y * height;
+  const w = position.w * width;
+  const h = position.h * height;
+  const label = state === "in_room_unverified" ? "Patient held" : "Patient";
+
+  ctx.save();
+  ctx.setLineDash([7, 5]);
+  ctx.strokeStyle = "#ffcc66";
+  ctx.fillStyle = "rgba(255, 204, 102, 0.12)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+  ctx.fillRect(x, y, w, h);
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(8, 11, 14, 0.82)";
+  ctx.fillRect(x, Math.max(8, y - 22), 96, 19);
+  ctx.fillStyle = "#ffcc66";
+  ctx.font = "700 12px Inter, system-ui, sans-serif";
+  ctx.fillText(label, x + 8, Math.max(21, y - 8));
+  ctx.restore();
+}
+
+function patientOverlayPosition(stage, state) {
+  if (state === "entering_room") {
+    return { x: 0.08, y: 0.52, w: 0.12, h: 0.28 };
+  }
+  if (state === "leaving_room") {
+    return { x: 0.10, y: 0.64, w: 0.12, h: 0.24 };
+  }
+  if (stage?.key === "closure_finish") {
+    return { x: 0.36, y: 0.52, w: 0.28, h: 0.15 };
+  }
+  return { x: 0.39, y: 0.42, w: 0.25, h: 0.14 };
+}
+
 function drawSparkline(activity) {
   const width = sparkline.width;
   const height = sparkline.height;
@@ -1187,6 +1289,13 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   const summary = canonicalizeBrowserSummary(summarizeBoxes(boxes), elapsedSeconds);
   const tableSnapshot = updateBrowserTableSnapshot(summary, elapsedSeconds, stage);
   const currentTable = currentBrowserTableSnapshot(summary, elapsedSeconds);
+  const currentWorkflow = updateVideoWorkflowState({
+    stage,
+    summary,
+    currentTable,
+    tableSnapshot,
+    elapsedSeconds,
+  });
   stageMetric.textContent = stage.confidence === undefined
     ? stage.label
     : `${stage.label} (${stage.confidence.toFixed(2)})`;
@@ -1212,6 +1321,8 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
     trackingAvailable: !stage.stageHoldReason,
     qualityFlags: operatorQualityFlags(stage, summary, tableSnapshot),
   }));
+  renderVideoWorkflow(currentWorkflow);
+  renderWorkflowEvents();
   renderStageTableBrief(stageTableBriefRowsFromSnapshots({
     stageLabel: stage.label,
     evidenceLabel,
@@ -1379,6 +1490,219 @@ function updateBrowserTableSnapshot(summary, elapsedSeconds, stage) {
     observedAt: elapsedSeconds,
     ageSeconds: 0,
   };
+}
+
+function initialWorkflowState() {
+  return {
+    patientState: "waiting_outside",
+    patientSeenInRoom: false,
+    stageKey: null,
+    roomView: "idle",
+    seenRoleEvents: new Set(),
+    tableRosterKey: "",
+    sourceLabel: "idle",
+  };
+}
+
+function updateVideoWorkflowState({
+  stage,
+  summary,
+  currentTable,
+  tableSnapshot,
+  elapsedSeconds,
+}) {
+  const roomView = stage.stageHoldReason === "non_room_view" ? "non-room" : "room";
+  const trackingAvailable = !stage.stageHoldReason;
+  const sourceLabel = currentVideoSourceLabel();
+  const patientState = derivePatientState(stage, summary, currentTable, tableSnapshot);
+  const events = [];
+
+  if (workflowState.stageKey && stage.key !== workflowState.stageKey) {
+    events.push({
+      time: elapsedSeconds,
+      code: "procedure_stage_changed",
+      label: "Procedure stage changed",
+      detail: stage.label,
+      tone: "current",
+    });
+  }
+  if (workflowState.roomView !== "idle" && roomView !== workflowState.roomView) {
+    events.push({
+      time: elapsedSeconds,
+      code: "room_view_changed",
+      label: "Room view changed",
+      detail: roomView === "room" ? "Room camera visible" : "Room view unavailable / fluoroscopy",
+      tone: roomView === "room" ? "current" : "warn",
+    });
+  }
+  if (patientState !== workflowState.patientState) {
+    events.push(patientWorkflowEvent(patientState, elapsedSeconds));
+  } else if (!workflowEvents.length && patientState === "waiting_outside") {
+    events.push(patientWorkflowEvent(patientState, elapsedSeconds));
+  }
+
+  [
+    ["anaesthetist_detected", "anesthesia", "Anaesthetist visible"],
+    ["proceduralist_detected", "table_operator", "Proceduralist visible"],
+    ["access_proceduralist_detected", "access_operator", "Access proceduralist visible"],
+    ["imaging_operator_detected", "imaging", "Imaging operator visible"],
+    ["circulator_detected", "entry_supply", "Circulator / entry activity visible"],
+  ].forEach(([code, role, label]) => {
+    if ((summary.roles[role] || 0) <= 0 || workflowState.seenRoleEvents.has(code)) return;
+    workflowState.seenRoleEvents.add(code);
+    events.push({
+      time: elapsedSeconds,
+      code,
+      label,
+      detail: `${WORKFLOW_ROLE_LABELS[role] || role} detected`,
+      tone: "current",
+    });
+  });
+
+  const tableRosterKey = (currentTable.rows || [])
+    .map((row) => row.id)
+    .sort()
+    .join(",");
+  if (tableRosterKey !== workflowState.tableRosterKey) {
+    events.push({
+      time: elapsedSeconds,
+      code: "table_roster_changed",
+      label: "Table roster changed",
+      detail: tableRosterKey ? `active IDs ${tableRosterKey}` : "table-side roster cleared",
+      tone: tableRosterKey ? "current" : "quiet",
+    });
+  }
+
+  workflowState = {
+    ...workflowState,
+    patientState,
+    patientSeenInRoom: workflowState.patientSeenInRoom || [
+      "entering_room",
+      "in_room",
+      "on_table",
+      "in_room_unverified",
+      "leaving_room",
+    ].includes(patientState),
+    stageKey: stage.key,
+    roomView,
+    tableRosterKey,
+    sourceLabel,
+  };
+
+  if (events.length) {
+    workflowEvents.push(...events);
+    workflowEvents = workflowEvents.slice(-40);
+  }
+
+  return {
+    patientState,
+    patientLabel: PATIENT_STATE_LABELS[patientState] || patientState,
+    patientConfidence: patientWorkflowConfidence(patientState, {
+      trackingAvailable,
+      currentTableCount: currentTable.count,
+      effectiveTableCount: tableSnapshot.count,
+      peopleCount: summary.tableRoster.length,
+    }),
+    roomView,
+    trackingAvailable,
+    sourceLabel,
+    anaesthetistCount: summary.roles.anesthesia || 0,
+    proceduralistCount: (summary.roles.table_operator || 0) + (summary.roles.access_operator || 0),
+    tableCount: currentTable.count,
+    effectiveTableCount: tableSnapshot.count,
+    latestEvent: events.at(-1) || workflowEvents.at(-1) || null,
+  };
+}
+
+function derivePatientState(stage, summary, currentTable, tableSnapshot) {
+  if (stage.stageHoldReason === "non_room_view") {
+    return workflowState.patientSeenInRoom || tableSnapshot.count > 0
+      ? "in_room_unverified"
+      : workflowState.patientState;
+  }
+  if (
+    stage.key === "closure_finish" &&
+    workflowState.patientSeenInRoom &&
+    currentTable.count === 0 &&
+    (summary.roles.entry_supply || 0) > 0
+  ) {
+    return "leaving_room";
+  }
+  if (
+    stage.key === "closure_finish" &&
+    workflowState.patientSeenInRoom &&
+    currentTable.count === 0 &&
+    tableSnapshot.count === 0
+  ) {
+    return "out_of_room";
+  }
+  if (currentTable.count > 0) return "on_table";
+  const stageIndex = TAVR_STAGE_LOOKUP.get(stage.key)?.index ?? 0;
+  if (
+    workflowState.patientSeenInRoom ||
+    stageIndex > 0 ||
+    (summary.roles.anesthesia || 0) > 0 ||
+    (summary.roles.access_operator || 0) > 0 ||
+    (summary.roles.table_operator || 0) > 0
+  ) {
+    return "in_room";
+  }
+  if ((summary.roles.entry_supply || 0) > 0 || deriveSyntheticPatientState(stage) === "entering_room") {
+    return "entering_room";
+  }
+  return "waiting_outside";
+}
+
+function deriveSyntheticPatientState(stage) {
+  if (!stage || !syntheticMode) return "waiting_outside";
+  if (stage.key === "room_prep_drape" && (stage.progress || 0) < 0.18) return "waiting_outside";
+  if (stage.key === "room_prep_drape" && (stage.progress || 0) < 0.45) return "entering_room";
+  if (stage.key === "closure_finish" && (stage.progress || 0) > 0.78) return "leaving_room";
+  return "in_room";
+}
+
+function patientWorkflowConfidence(patientState, facts) {
+  if (patientState === "in_room_unverified") return facts.effectiveTableCount ? 0.42 : 0.25;
+  if (facts.currentTableCount > 0) return 0.86;
+  if (!facts.trackingAvailable) return 0.25;
+  if (facts.peopleCount > 0) return 0.68;
+  return ["waiting_outside", "out_of_room"].includes(patientState) ? 0.55 : 0.5;
+}
+
+function patientWorkflowEvent(patientState, elapsedSeconds) {
+  const detail = {
+    waiting_outside: "No patient-room evidence yet",
+    entering_room: "Entry-zone activity before table evidence",
+    in_room: "Room workflow evidence indicates patient present",
+    on_table: "Table-side procedural evidence indicates patient on table",
+    in_room_unverified: "Holding room-state while room view is unavailable",
+    leaving_room: "Closure with entry activity and no active table roster",
+    out_of_room: "Closure complete with no active table roster",
+  }[patientState] || "Patient room state changed";
+  const code = {
+    waiting_outside: "patient_out_of_room",
+    entering_room: "patient_entering_room",
+    in_room: "patient_in_room",
+    on_table: "patient_on_table",
+    in_room_unverified: "patient_room_status_held",
+    leaving_room: "patient_leaving_room",
+    out_of_room: "patient_out_of_room",
+  }[patientState] || "patient_state_changed";
+  return {
+    time: elapsedSeconds,
+    code,
+    label: PATIENT_STATE_LABELS[patientState] || patientState,
+    detail,
+    tone: patientState === "in_room_unverified" ? "warn" : "current",
+  };
+}
+
+function currentVideoSourceLabel() {
+  if (syntheticMode) return "synthetic video";
+  if (liveMode && liveMediaStream) return "live camera feed";
+  if (liveMode) return "live stream URL";
+  if (hasVideoSource()) return "uploaded video";
+  return "idle";
 }
 
 function copyBrowserRoster(roster) {
@@ -1805,6 +2129,227 @@ function renderProcedureStatus(status = null, demo = null) {
   scoreVerificationRows(demo?.scoreSummary, status).forEach((row) => {
     appendInfoRow(procedureStatus, row.label, row.value, { tone: row.tone });
   });
+}
+
+function renderVideoWorkflow(state = null) {
+  videoWorkflow.replaceChildren();
+  const current = state || {
+    patientLabel: "Patient out of room",
+    patientConfidence: 0,
+    roomView: "idle",
+    trackingAvailable: false,
+    sourceLabel: currentVideoSourceLabel(),
+    anaesthetistCount: 0,
+    proceduralistCount: 0,
+    tableCount: 0,
+    effectiveTableCount: 0,
+    latestEvent: null,
+  };
+
+  appendInfoRow(
+    videoWorkflow,
+    "Patient",
+    `${current.patientLabel}; confidence ${formatNumber(current.patientConfidence)}`,
+    { tone: current.patientLabel?.includes("unavailable") ? "warn" : "current" },
+  );
+  appendInfoRow(
+    videoWorkflow,
+    "Source",
+    `${current.sourceLabel}; room view ${current.roomView}; tracking ${current.trackingAvailable ? "yes" : "no"}`,
+    { tone: current.trackingAvailable ? "current" : "quiet" },
+  );
+  appendInfoRow(
+    videoWorkflow,
+    "Tracked roles",
+    `${current.anaesthetistCount} anaesthetist; ${current.proceduralistCount} proceduralist`,
+  );
+  appendInfoRow(
+    videoWorkflow,
+    "Table context",
+    `${current.tableCount} visible; ${current.effectiveTableCount} effective`,
+  );
+  appendInfoRow(
+    videoWorkflow,
+    "Latest event",
+    current.latestEvent
+      ? `${formatSeconds(current.latestEvent.time)} ${current.latestEvent.label}`
+      : "none",
+    { tone: current.latestEvent?.tone || "quiet" },
+  );
+}
+
+function renderWorkflowEvents() {
+  workflowEventList.replaceChildren();
+  const visible = workflowEvents.slice(-8).reverse();
+  if (!visible.length) {
+    appendInfoRow(workflowEventList, "None yet", "");
+    return;
+  }
+  visible.forEach((event) => {
+    appendInfoRow(
+      workflowEventList,
+      `${formatSeconds(event.time)} ${event.label}`,
+      event.detail,
+      { tone: event.tone },
+    );
+  });
+}
+
+function renderReplayVideoWorkflow(status = {}, demo = null, packet = null) {
+  try {
+    const currentTable = currentTableSnapshot(status);
+    const effectiveTable = effectiveTableSnapshot(status);
+    const patientState = replayPatientState(status, currentTable, effectiveTable);
+    const roleCounts = replayRoleCounts(status, demo, packet);
+    const replayEvents = replayWorkflowEvents(status, demo, patientState);
+    workflowEvents = replayEvents;
+    workflowState = {
+      ...workflowState,
+      patientState,
+      patientSeenInRoom: patientState !== "waiting_outside" && patientState !== "out_of_room",
+      stageKey: status.current_stage || packet?.stage || null,
+      roomView: status.current_view || "replay",
+      tableRosterKey: (currentTable.canonicalIds || []).join(","),
+      sourceLabel: "evaluated stock footage",
+    };
+    renderVideoWorkflow({
+      patientState,
+      patientLabel: PATIENT_STATE_LABELS[patientState] || patientState,
+      patientConfidence: patientWorkflowConfidence(patientState, {
+        trackingAvailable: Boolean(status.tracking_available),
+        currentTableCount: currentTable.count,
+        effectiveTableCount: effectiveTable.count,
+        peopleCount: roleCounts.proceduralistCount + roleCounts.anaesthetistCount,
+      }),
+      roomView: status.current_view || "replay",
+      trackingAvailable: Boolean(status.tracking_available),
+      sourceLabel: "evaluated stock footage",
+      anaesthetistCount: roleCounts.anaesthetistCount,
+      proceduralistCount: roleCounts.proceduralistCount,
+      tableCount: currentTable.count,
+      effectiveTableCount: effectiveTable.count,
+      latestEvent: replayEvents.at(-1) || null,
+    });
+    renderWorkflowEvents();
+  } catch (error) {
+    console.error("Replay workflow render failed", error);
+    renderReplayVideoWorkflowFallback(status);
+  }
+}
+
+function renderReplayVideoWorkflowFallback(status = {}) {
+  const currentCount = Number(status.current_table_count || 0);
+  const effectiveCount = Number(status.effective_table_count || 0);
+  const patientState = status.tracking_available === false && effectiveCount > 0
+    ? "in_room_unverified"
+    : (currentCount > 0 ? "on_table" : (effectiveCount > 0 ? "in_room" : "in_room"));
+  const time = statusTimeSeconds(status) || 0;
+  workflowEvents = [{
+    time,
+    code: "patient_state_replayed",
+    label: PATIENT_STATE_LABELS[patientState] || patientState,
+    detail: "Derived from evaluated stock-footage status snapshot",
+    tone: patientState === "in_room_unverified" ? "warn" : "current",
+  }];
+  workflowState = {
+    ...workflowState,
+    patientState,
+    patientSeenInRoom: patientState !== "waiting_outside" && patientState !== "out_of_room",
+    stageKey: status.current_stage || null,
+    roomView: status.current_view || "replay",
+    tableRosterKey: "",
+    sourceLabel: "evaluated stock footage",
+  };
+  renderVideoWorkflow({
+    patientState,
+    patientLabel: PATIENT_STATE_LABELS[patientState] || patientState,
+    patientConfidence: patientWorkflowConfidence(patientState, {
+      trackingAvailable: Boolean(status.tracking_available),
+      currentTableCount: currentCount,
+      effectiveTableCount: effectiveCount,
+      peopleCount: Number(status.peak_table_count || effectiveCount || currentCount || 0),
+    }),
+    roomView: status.current_view || "replay",
+    trackingAvailable: Boolean(status.tracking_available),
+    sourceLabel: "evaluated stock footage",
+    anaesthetistCount: 0,
+    proceduralistCount: Number(status.effective_table_count || status.current_table_count || 0),
+    tableCount: currentCount,
+    effectiveTableCount: effectiveCount,
+    latestEvent: workflowEvents.at(-1),
+  });
+  renderWorkflowEvents();
+}
+
+function replayPatientState(status, currentTable, effectiveTable) {
+  if (status.tracking_available === false && effectiveTable.count > 0) {
+    return "in_room_unverified";
+  }
+  if (currentTable.count > 0) return "on_table";
+  if (effectiveTable.count > 0) return "in_room";
+  if (status.current_stage === "room_prep_drape") return "entering_room";
+  if (status.current_stage === "closure_finish") return "leaving_room";
+  return "in_room";
+}
+
+function replayRoleCounts(status, demo, packet) {
+  const roster = [
+    ...asArray(status.current_table_roster),
+    ...asArray(status.effective_table_roster),
+    ...asArray(packet?.active_table_roster),
+  ];
+  const proceduralistCount = new Set(
+    roster
+      .filter((row) => ["table_operator", "access_operator"].includes(
+        row.table_team_role || row.dominant_role,
+      ))
+      .map((row) => row.canonical_table_id || row.track_id || row.label),
+  ).size || Number(status.effective_table_count || status.current_table_count || 0);
+  const stageStaffing = asArray(demo?.tavr?.stage_staffing_summary);
+  const anaesthetistCount = Math.max(
+    ...stageStaffing.map((row) => Number(row.role_counts?.anesthesia || 0)),
+    0,
+  );
+  return { proceduralistCount, anaesthetistCount };
+}
+
+function replayWorkflowEvents(status, demo, patientState) {
+  const events = [{
+    time: statusTimeSeconds(status) || 0,
+    code: "patient_state_replayed",
+    label: PATIENT_STATE_LABELS[patientState] || patientState,
+    detail: "Derived from evaluated stock-footage status snapshot",
+    tone: patientState === "in_room_unverified" ? "warn" : "current",
+  }];
+  if (status.current_stage_label) {
+    events.push({
+      time: statusTimeSeconds(status) || 0,
+      code: "procedure_stage_replayed",
+      label: "Procedure stage",
+      detail: status.current_stage_label,
+      tone: "current",
+    });
+  }
+  if (status.current_view) {
+    events.push({
+      time: statusTimeSeconds(status) || 0,
+      code: "room_view_replayed",
+      label: "Room view",
+      detail: `${status.current_view}; tracking ${yesNo(status.tracking_available)}`,
+      tone: status.tracking_available ? "current" : "warn",
+    });
+  }
+  const focused = focusedReplayEvents(demo?.events || [], status).rows.slice(-3);
+  focused.forEach((event) => {
+    events.push({
+      time: eventTimeSeconds(event),
+      code: event.event_type || "replay_event",
+      label: String(event.event_type || "Replay event").replaceAll("_", " "),
+      detail: event.label || event.stage_label || "evaluated event",
+      tone: "quiet",
+    });
+  });
+  return events;
 }
 
 function renderBackendStatusSnapshots(rows = [], selectedIndex = -1) {
@@ -2758,6 +3303,8 @@ function resetMetrics(options = {}) {
   milestoneProgress = new Map();
   currentMilestoneKey = null;
   lastObservedTableSnapshot = null;
+  workflowState = initialWorkflowState();
+  workflowEvents = [];
   resetEvaluationScrubber();
   uploadedStageIndex = selectedInitialStageIndex();
   uploadedStageStartedAt = sourceElapsedSeconds();
@@ -2767,6 +3314,8 @@ function resetMetrics(options = {}) {
   setEmptyState("No video loaded", "Choose a local MP4, MOV, or M4V file.");
   renderTableRoster([]);
   renderOperatorAnswer();
+  renderVideoWorkflow();
+  renderWorkflowEvents();
   renderStageTableBrief();
   renderTableTeam();
   renderStageCoverage();

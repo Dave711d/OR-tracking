@@ -15,12 +15,16 @@ added behind the same metrics surface later.
 - TAVR table-presence and procedure-stage inference
 - Per-track TAVR role dwell, current/effective table team status, and
   evaluation summaries
+- De-identified video workflow state: patient/case in-room, out-of-room,
+  room-view hold, anaesthetist/proceduralist role sightings, table-roster
+  changes, and key event timeline rows
 - Sample video downloader and synthetic fixture generator in `download_sample.py`
 - Single-clip evaluator in `evaluate_tavr.py`
 - Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
 - Browser-only Vercel demo in `public/`, including live camera / browser
   stream mode, an opt-in static table fallback for low-motion room-view review,
-  and bundled evaluated TAVR replay artifacts from the real-footage suite
+  a video workflow panel for patient-room state and key events, and bundled
+  evaluated TAVR replay artifacts from the real-footage suite
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
 
@@ -93,6 +97,11 @@ person IDs across short raw-ID gaps, crossings, and held non-room views, so the
 live "who is at the table" panels track people rather than per-frame motion
 cluster labels. It can analyze uploaded videos, a local camera/capture-card
 feed, or a browser-playable stream URL.
+The same live/upload path now drives the video workflow layer: the browser
+surface shows whether the de-identified patient/case is out of room, entering,
+in room, on table, held while the room camera is unavailable, or leaving, plus
+first-seen anaesthetist/proceduralist events and table-roster changes. The
+patient state is a room workflow signal only; no patient identity is stored.
 
 To compare output against expected stage/table labels:
 
@@ -188,6 +197,10 @@ operators can distinguish current visible detections from held table context.
 The app leads with a `Current operator answer` pane: current stage, literal
 current visible table, effective handoff table, stage roster, within-stage
 entry/exit, and quality status are separated before the detailed audit tables.
+It also shows a `Video workflow` pane for patient room-state, camera/source
+status, anaesthetist and proceduralist counts, and latest workflow event, plus a
+`Workflow events` timeline. The annotated MP4 labels tracked entities with
+operator-facing role names such as `Anaesthetist` and `Proceduralist`.
 It also shows `Operator status snapshots` so critical clip, stage, and view
 transition points can be reviewed with the same current/effective table
 semantics used by the public replay. The app shows a `Procedure status` summary,

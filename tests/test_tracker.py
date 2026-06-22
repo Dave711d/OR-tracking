@@ -3,7 +3,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from or_tracking import MotionTrackerConfig, ORActivityTracker, process_video_file
+from or_tracking import (
+    CaseWorkflowAnalyzer,
+    MotionTrackerConfig,
+    ORActivityTracker,
+    process_video_file,
+)
 from or_tracking.models import Detection
 from or_tracking.synthetic import generate_synthetic_or_video, generate_synthetic_tavr_video
 from or_tracking.tavr import TAVR_STAGE_ORDER
@@ -173,6 +178,20 @@ def test_tracker_can_disable_tavr_inference(tmp_path: Path) -> None:
     capture.release()
 
     assert metrics.tavr is None
+    assert metrics.workflow is not None
+
+
+def test_tracker_can_disable_workflow_layer(tmp_path: Path) -> None:
+    video_path = generate_synthetic_or_video(tmp_path / "sample.mp4", frames=12)
+    capture = cv2.VideoCapture(str(video_path))
+    tracker = ORActivityTracker(MotionTrackerConfig(min_area=250, enable_workflow=False))
+
+    ok, frame = capture.read()
+    assert ok
+    metrics = tracker.process_frame(frame, 0, 0)
+    capture.release()
+
+    assert metrics.workflow is None
 
 
 def test_tracker_suppresses_obvious_non_room_view() -> None:
@@ -191,6 +210,9 @@ def test_tracker_suppresses_obvious_non_room_view() -> None:
     assert metrics.tavr.table_count == 0
     assert metrics.tavr.confidence < 0.45
     assert metrics.tavr.signals["stage_observable"] == 0.0
+    assert metrics.workflow is not None
+    assert metrics.workflow.room_view == "non_room"
+    assert metrics.workflow.tracking_available is False
 
 
 def test_tracker_static_table_fallback_counts_low_motion_room_staff() -> None:
@@ -219,6 +241,9 @@ def test_tracker_static_table_fallback_counts_low_motion_room_staff() -> None:
     assert metrics.tavr.signals["stage_observable"] == 0.0
     assert metrics.tavr.signals["stage_hold_static_table_fallback"] == 1.0
     assert "static table fallback" in metrics.tavr.note
+    assert metrics.workflow is not None
+    assert metrics.workflow.patient_state == "on_table"
+    assert metrics.workflow.proceduralist_track_ids == [1]
 
 
 def test_tracker_static_table_fallback_stays_suppressed_for_non_room_view() -> None:
@@ -304,3 +329,39 @@ def test_tavr_synthetic_footage_produces_ordered_stage_trace(tmp_path: Path) -> 
     assert "role_counts" in csv_text
     assert "role_track_ids" in csv_text
     assert "track_role_summary" in csv_text
+    assert "patient_room_state" in csv_text
+    assert "workflow_events" in csv_text
+    assert any(
+        metric.workflow is not None and metric.workflow.patient_state == "on_table"
+        for metric in result.metrics
+    )
+    assert any(
+        metric.workflow is not None and metric.workflow.anaesthetist_track_ids
+        for metric in result.metrics
+    )
+    assert any(
+        metric.workflow is not None and metric.workflow.proceduralist_track_ids
+        for metric in result.metrics
+    )
+
+
+def test_workflow_layer_detects_patient_state_and_key_roles() -> None:
+    analyzer = CaseWorkflowAnalyzer()
+    state = analyzer.update(
+        detections=[
+            Detection(1, (58, 58, 20, 44), (68, 82), 880),
+            Detection(2, (140, 0, 20, 44), (150, 22), 880),
+        ],
+        zone_counts={"access": 1, "anesthesia": 1},
+        role_track_ids={"access_operator": [1], "anesthesia": [2]},
+        tavr=None,
+        alert_flags=[],
+        frame_index=1,
+    )
+
+    assert state.patient_state == "in_room"
+    assert state.anaesthetist_track_ids == [2]
+    assert state.proceduralist_track_ids == [1]
+    assert {
+        event.code for event in state.event_log
+    } >= {"patient_in_room", "anaesthetist_detected", "access_proceduralist_detected"}

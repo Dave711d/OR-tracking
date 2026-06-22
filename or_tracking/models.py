@@ -50,6 +50,7 @@ class FrameMetrics:
     alert_flags: List[str] = field(default_factory=list)
     view_colorfulness: float = 0.0
     tavr: Optional[Any] = None
+    workflow: Optional[Any] = None
 
     def __post_init__(self) -> None:
         if self.clip_frame_index is None:
@@ -97,6 +98,8 @@ class FrameMetrics:
         }
         if self.tavr is not None:
             row.update(self.tavr.to_row_fields())
+        if self.workflow is not None:
+            row.update(self.workflow.to_row_fields())
         return row
 
 
@@ -113,6 +116,10 @@ class TrackingSummary:
     alert_count: int
     dominant_tavr_stage: str = ""
     peak_table_count: int = 0
+    patient_room_state: str = ""
+    patient_room_label: str = ""
+    workflow_event_count: int = 0
+    latest_workflow_event: str = ""
     source_start_s: float = 0.0
     source_end_s: float = 0.0
     clip_start_s: float = 0.0
@@ -131,6 +138,10 @@ class TrackingSummary:
                 alert_count=0,
                 dominant_tavr_stage="",
                 peak_table_count=0,
+                patient_room_state="",
+                patient_room_label="",
+                workflow_event_count=0,
+                latest_workflow_event="",
                 source_start_s=0.0,
                 source_end_s=0.0,
                 clip_start_s=0.0,
@@ -151,6 +162,14 @@ class TrackingSummary:
         tavr_states = [metric.tavr for metric in metrics if metric.tavr is not None]
         dominant_tavr_stage = _dominant_stage(tavr_states)
         peak_table_count = max((state.table_count for state in tavr_states), default=0)
+        workflow_states = [
+            metric.workflow for metric in metrics if metric.workflow is not None
+        ]
+        latest_workflow = workflow_states[-1] if workflow_states else None
+        workflow_events = [
+            event for state in workflow_states for event in state.key_events
+        ]
+        latest_event = workflow_events[-1].label if workflow_events else ""
         return cls(
             frames_processed=len(metrics),
             duration_s=round(float(duration), 3),
@@ -161,6 +180,14 @@ class TrackingSummary:
             alert_count=alert_count,
             dominant_tavr_stage=dominant_tavr_stage,
             peak_table_count=peak_table_count,
+            patient_room_state=(
+                latest_workflow.patient_state if latest_workflow is not None else ""
+            ),
+            patient_room_label=(
+                latest_workflow.patient_label if latest_workflow is not None else ""
+            ),
+            workflow_event_count=len(workflow_events),
+            latest_workflow_event=latest_event,
             source_start_s=round(float(source_start_s), 3),
             source_end_s=round(float(source_end_s), 3),
             clip_start_s=round(float(clip_start_s), 3),
@@ -178,6 +205,10 @@ class TrackingSummary:
             "alert_count": self.alert_count,
             "dominant_tavr_stage": self.dominant_tavr_stage,
             "peak_table_count": self.peak_table_count,
+            "patient_room_state": self.patient_room_state,
+            "patient_room_label": self.patient_room_label,
+            "workflow_event_count": self.workflow_event_count,
+            "latest_workflow_event": self.latest_workflow_event,
             "source_start_s": self.source_start_s,
             "source_end_s": self.source_end_s,
             "clip_start_s": self.clip_start_s,

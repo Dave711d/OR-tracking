@@ -180,7 +180,7 @@ def _run_analysis(
     )
     status_snapshots = tavr_summary.get("operator_status_snapshots", [])
     summary = result.summary.to_dict()
-    metric_cols = st.columns(7)
+    metric_cols = st.columns(8)
     metric_cols[0].metric("Frames", summary["frames_processed"])
     metric_cols[1].metric("Avg count", summary["average_people_count"])
     metric_cols[2].metric("Peak count", summary["peak_people_count"])
@@ -193,6 +193,10 @@ def _run_analysis(
         or "n/a",
     )
     metric_cols[6].metric("Peak table", summary.get("peak_table_count", 0))
+    metric_cols[7].metric(
+        "Patient",
+        summary.get("patient_room_label") or "n/a",
+    )
     if timebase:
         st.caption(_timebase_label(timebase))
 
@@ -229,6 +233,21 @@ def _run_analysis(
                 f"{latest['recent_who_at_table']} "
                 "(brief visual hold; current frame is not a fresh table sighting)"
             )
+        if latest.get("patient_room_label"):
+            st.info(
+                "Workflow state: "
+                f"{latest['patient_room_label']} "
+                f"(confidence {latest.get('patient_confidence', 0)})"
+            )
+
+    workflow_events = _workflow_event_rows(result.metrics)
+    if workflow_events:
+        st.subheader("Video workflow events")
+        st.dataframe(
+            pd.DataFrame(workflow_events),
+            width="stretch",
+            hide_index=True,
+        )
 
     run_stem = result.csv_path.name.replace("_metrics.csv", "")
     tavr_csv_paths = write_tavr_summary_csvs("outputs", run_stem, tavr_summary)
@@ -501,6 +520,11 @@ def _run_analysis(
                 "recent_table_track_ids",
                 "recent_who_at_table",
                 "role_counts",
+                "patient_room_label",
+                "patient_confidence",
+                "anaesthetist_track_ids",
+                "proceduralist_track_ids",
+                "workflow_event_codes",
                 "track_role_summary",
                 "movement_px",
                 "alert_flags",
@@ -544,6 +568,27 @@ def _run_analysis(
     if result.annotated_video_path and result.annotated_video_path.exists():
         st.subheader("Annotated output")
         st.video(str(result.annotated_video_path))
+
+
+def _workflow_event_rows(metrics: list[Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for metric in metrics:
+        workflow = getattr(metric, "workflow", None)
+        if workflow is None:
+            continue
+        for event in workflow.key_events:
+            rows.append(
+                {
+                    "clip_s": metric.clip_timestamp_s,
+                    "source_s": metric.source_timestamp_s,
+                    "event": event.label,
+                    "code": event.code,
+                    "patient": workflow.patient_label,
+                    "detail": event.detail,
+                    "severity": event.severity,
+                }
+            )
+    return rows
 
 
 def _stage_staffing_rows(staffing: list[dict[str, Any]]) -> list[dict[str, Any]]:

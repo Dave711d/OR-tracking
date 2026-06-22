@@ -195,6 +195,17 @@ def write_metrics_csv(path: str | Path, metrics: List[FrameMetrics]) -> None:
         "role_track_ids",
         "track_role_summary",
         "tavr_signals",
+        "patient_room_state",
+        "patient_room_label",
+        "patient_confidence",
+        "workflow_room_view",
+        "workflow_tracking_available",
+        "anaesthetist_track_ids",
+        "proceduralist_track_ids",
+        "workflow_role_track_ids",
+        "workflow_event_codes",
+        "workflow_events",
+        "workflow_event_log",
     ]
     with Path(path).open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)

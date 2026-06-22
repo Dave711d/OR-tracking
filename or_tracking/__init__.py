@@ -2,6 +2,7 @@
 
 from .tracker import MotionTrackerConfig, ORActivityTracker
 from .tavr import TAVR_STAGE_LABELS, TAVR_STAGE_ORDER, TAVRFrameState
+from .workflow import CaseWorkflowAnalyzer, WorkflowFrameState
 from .evaluation import (
     operator_stage_packet,
     score_tavr_metrics,
@@ -24,8 +25,10 @@ from .video import TrackingRunResult, process_video_file
 __all__ = [
     "MotionTrackerConfig",
     "ORActivityTracker",
+    "CaseWorkflowAnalyzer",
     "operator_stage_packet",
     "TAVRFrameState",
+    "WorkflowFrameState",
     "TAVR_STAGE_LABELS",
     "TAVR_STAGE_ORDER",
     "TrackingRunResult",

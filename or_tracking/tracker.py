@@ -16,6 +16,7 @@ import numpy as np
 
 from .models import BBox, Detection, FrameMetrics, Point
 from .tavr import ROLE_ZONE_MAP, TABLE_ZONES, TAVRWorkflowAnalyzer, tavr_default_zones
+from .workflow import CaseWorkflowAnalyzer, ROLE_LABELS
 
 
 ZoneMap = Mapping[str, Tuple[float, float, float, float]]
@@ -66,6 +67,7 @@ class MotionTrackerConfig:
     tavr_advance_margin: float = 0.06
     tavr_min_stage_frames: int = 30
     tavr_recent_table_hold_frames: int = 12
+    enable_workflow: bool = True
 
 
 @dataclass
@@ -200,6 +202,7 @@ class ORActivityTracker:
             if self.config.enable_tavr
             else None
         )
+        self._workflow = CaseWorkflowAnalyzer() if self.config.enable_workflow else None
 
     @property
     def total_tracks_seen(self) -> int:
@@ -234,19 +237,19 @@ class ORActivityTracker:
         alert_flags = view_flags + self._alert_flags(detections, zone_counts)
         if static_table_used:
             alert_flags.append("static_table_fallback")
+        table_track_ids = self._track_ids_in_zones(
+            detections,
+            frame.shape[1],
+            frame.shape[0],
+            TABLE_ZONES,
+        )
+        role_track_ids = self._role_track_ids(
+            detections,
+            frame.shape[1],
+            frame.shape[0],
+        )
         tavr = None
         if self._tavr is not None:
-            table_track_ids = self._track_ids_in_zones(
-                detections,
-                frame.shape[1],
-                frame.shape[0],
-                TABLE_ZONES,
-            )
-            role_track_ids = self._role_track_ids(
-                detections,
-                frame.shape[1],
-                frame.shape[0],
-            )
             stage_hold_reason = None
             if (
                 self.config.freeze_non_room_tavr_stage
@@ -270,6 +273,16 @@ class ORActivityTracker:
                 stage_hold_reason=stage_hold_reason,
                 stage_frame_index=clip_frame_index,
             )
+        workflow = None
+        if self._workflow is not None:
+            workflow = self._workflow.update(
+                detections=detections,
+                zone_counts=zone_counts,
+                role_track_ids=role_track_ids,
+                tavr=tavr,
+                alert_flags=alert_flags,
+                frame_index=frame_index,
+            )
         return FrameMetrics(
             frame_index=frame_index,
             timestamp_s=timestamp_s,
@@ -281,6 +294,7 @@ class ORActivityTracker:
             alert_flags=alert_flags,
             view_colorfulness=view_colorfulness,
             tavr=tavr,
+            workflow=workflow,
         )
 
     def annotate_frame(
@@ -294,12 +308,13 @@ class ORActivityTracker:
 
         for detection in metrics.detections:
             x, y, w, h = detection.bbox
-            color = (32, 190, 255)
+            role_key = self._detection_role(metrics, detection.track_id)
+            color = _role_color(role_key)
             cv2.rectangle(annotated, (x, y), (x + w, y + h), color, 2)
             cv2.circle(annotated, detection.centroid, 4, (20, 255, 120), -1)
             cv2.putText(
                 annotated,
-                f"ID {detection.track_id}",
+                f"{ROLE_LABELS.get(role_key, 'Motion')} {detection.track_id}",
                 (x, max(20, y - 8)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
@@ -316,9 +331,15 @@ class ORActivityTracker:
                 f"{metrics.tavr.stage_label} | Table {metrics.tavr.table_count} | "
                 f"Conf {metrics.tavr.confidence:.2f}"
             )
+        if metrics.workflow is not None:
+            status = f"{status} | {metrics.workflow.patient_label}"
         if "non_room_view" in metrics.alert_flags:
-            status = "Non-room / fluoroscopy view | staff tracking suppressed"
-        cv2.rectangle(annotated, (10, 10), (520, 46), (12, 18, 28), -1)
+            status = (
+                "Non-room / fluoroscopy view | staff tracking suppressed"
+                if metrics.workflow is None
+                else f"Non-room / fluoroscopy view | {metrics.workflow.patient_label}"
+            )
+        cv2.rectangle(annotated, (10, 10), (700, 46), (12, 18, 28), -1)
         cv2.putText(
             annotated,
             status,
@@ -330,6 +351,17 @@ class ORActivityTracker:
             cv2.LINE_AA,
         )
         return annotated
+
+    def _detection_role(self, metrics: FrameMetrics, track_id: int) -> str:
+        if metrics.workflow is not None:
+            for role, track_ids in metrics.workflow.active_role_track_ids.items():
+                if track_id in track_ids:
+                    return role
+        if metrics.tavr is not None:
+            for role, track_ids in metrics.tavr.role_track_ids.items():
+                if track_id in track_ids:
+                    return role
+        return "unassigned"
 
     def _detect_motion_candidates(
         self, frame: np.ndarray
@@ -604,3 +636,16 @@ def _colorfulness(frame: np.ndarray) -> float:
     red_green = np.abs(bgr[:, :, 2] - bgr[:, :, 1]).mean()
     yellow_blue = np.abs(0.5 * (bgr[:, :, 2] + bgr[:, :, 1]) - bgr[:, :, 0]).mean()
     return float((red_green**2 + yellow_blue**2) ** 0.5)
+
+
+def _role_color(role_key: str) -> Tuple[int, int, int]:
+    colors = {
+        "table_operator": (80, 220, 160),
+        "access_operator": (255, 168, 80),
+        "anesthesia": (225, 145, 255),
+        "device_prep": (78, 210, 255),
+        "imaging": (255, 220, 92),
+        "entry_supply": (120, 165, 255),
+        "unassigned": (32, 190, 255),
+    }
+    return colors.get(role_key, colors["unassigned"])
