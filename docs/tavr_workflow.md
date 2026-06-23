@@ -65,12 +65,20 @@ opened. The setup database is currently seeded with:
 
 Each clinical profile stores a role type and skill set. Case profiles seed a
 default room/location, default clinical roster, and editable event/role/task
-plan. The operator can select one or more clinical profiles, edit event names,
-change case roles, reassign tasks to another selected clinician, change planned
-timing, add tasks, or delete tasks before opening the tracking workspace.
-Reassignments that do not match the task's expected role type are flagged inline
-so the prototype can distinguish deliberate coverage changes from skill-set
-mismatches.
+plan. Matching clinical profiles also expose OR preference-card style workflow
+preferences. Unlike a traditional static preference card, each preference item
+has an explicit timing component such as `T-8m` before patient-in-room or
+`T+26m` before a deployment pause. Selected cards merge their timed preference
+items into the same editable case plan as ordinary events and tasks.
+
+The operator can select one or more clinical profiles, choose which preference
+cards apply, edit event names, change case roles, reassign tasks to another
+selected clinician, change planned timing, add tasks, or delete tasks before
+opening the tracking workspace. Reassignments that do not match the task's
+expected role type are flagged inline so the prototype can distinguish
+deliberate coverage changes from skill-set mismatches. If a preference card is
+unchecked, its generated preference rows are removed; if it stays selected,
+operator edits to those preference rows are preserved.
 
 Once the workspace is opened, the active case summary remains visible beside
 the live/upload/replay panels. Planned task rows are compared with live or

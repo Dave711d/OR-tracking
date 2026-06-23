@@ -135,6 +135,7 @@ body {
 }
 
 .proceduralist-checklist,
+.preference-card-list,
 .setup-summary-list,
 .case-task-editor,
 .active-case-panel {
@@ -144,6 +145,7 @@ body {
 }
 
 .proceduralist-option,
+.preference-card-option,
 .setup-summary-list div,
 .case-task-row,
 .active-case-panel div {
@@ -163,7 +165,18 @@ body {
   text-transform: none;
 }
 
-.proceduralist-option input {
+.setup-panel .preference-card-option {
+  align-items: flex-start;
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 12px;
+  text-transform: none;
+}
+
+.proceduralist-option input,
+.preference-card-option input {
   inline-size: 18px;
   block-size: 18px;
   margin: 2px 0 0;
@@ -171,6 +184,7 @@ body {
 }
 
 .proceduralist-option strong,
+.preference-card-option strong,
 .setup-summary-list b,
 .active-case-panel b {
   color: var(--accent);
@@ -178,12 +192,15 @@ body {
   line-height: 1.25;
 }
 
-.proceduralist-option > span {
+.proceduralist-option > span,
+.preference-card-option > span {
   display: grid;
   gap: 3px;
 }
 
 .proceduralist-option span,
+.preference-card-option span,
+.preference-card-option li,
 .setup-summary-list span,
 .case-task-warning,
 .active-case-panel span,
@@ -195,6 +212,18 @@ body {
   line-height: 1.3;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.preference-card-option ul {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 0;
+  padding-left: 17px;
+}
+
+.preference-card-timing {
+  color: var(--warn) !important;
+  font-weight: 720;
 }
 
 .setup-summary-list div,

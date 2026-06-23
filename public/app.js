@@ -28,12 +28,16 @@ import {
   CASE_SETUP_DATABASE,
   TASK_KIND_OPTIONS,
   addCaseTask,
+  applyPreferenceCardsToTasks,
   assigneeSkillWarning,
   buildActiveCaseProfile,
   caseRoleLabel,
   defaultCaseSetupState,
+  defaultPreferenceCardIds,
   locationsForHospital,
   normalizeCaseTask,
+  preferenceCardById,
+  preferenceCardsForSetup,
   proceduralistById,
   removeCaseTask,
   roleTypeLabel,
@@ -51,6 +55,7 @@ const locationSelect = document.querySelector("#locationSelect");
 const caseSelect = document.querySelector("#caseSelect");
 const proceduralistChecklist = document.querySelector("#proceduralistChecklist");
 const selectedProceduralistSummary = document.querySelector("#selectedProceduralistSummary");
+const preferenceCardList = document.querySelector("#preferenceCardList");
 const caseTaskEditor = document.querySelector("#caseTaskEditor");
 const addCaseTaskButton = document.querySelector("#addCaseTaskButton");
 const startCaseButton = document.querySelector("#startCaseButton");
@@ -363,14 +368,39 @@ proceduralistChecklist.addEventListener("change", (event) => {
   const selectedIds = new Set(caseSetupState.proceduralistIds);
   if (target.checked) selectedIds.add(proceduralistId);
   else selectedIds.delete(proceduralistId);
-  caseSetupState = {
+  const nextState = {
     ...caseSetupState,
     proceduralistIds: [...selectedIds],
+  };
+  const preferenceCardIds = defaultPreferenceCardIds(nextState);
+  caseSetupState = {
+    ...nextState,
+    preferenceCardIds,
     tasks: caseSetupState.tasks.map((task) => (
       task.assigneeId && !selectedIds.has(task.assigneeId)
         ? { ...task, assigneeId: "" }
         : task
     )),
+  };
+  caseSetupState.tasks = applyPreferenceCardsToTasks(
+    caseSetupState.tasks,
+    preferenceCardIds,
+  );
+  renderCaseSetup();
+});
+
+preferenceCardList.addEventListener("change", (event) => {
+  const target = event.target;
+  if (!target?.matches?.("input[type='checkbox'][data-preference-card-id]")) return;
+  const cardId = target.dataset.preferenceCardId;
+  const selectedIds = new Set(caseSetupState.preferenceCardIds || []);
+  if (target.checked) selectedIds.add(cardId);
+  else selectedIds.delete(cardId);
+  const preferenceCardIds = [...selectedIds];
+  caseSetupState = {
+    ...caseSetupState,
+    preferenceCardIds,
+    tasks: applyPreferenceCardsToTasks(caseSetupState.tasks, preferenceCardIds),
   };
   renderCaseSetup();
 });
@@ -451,6 +481,7 @@ function renderCaseSetup() {
   caseSelect.value = caseSetupState.caseId;
   renderProceduralistChecklist();
   renderSelectedProceduralistSummary();
+  renderPreferenceCards();
   renderCaseTaskEditor();
   renderSetupStatus();
 }
@@ -506,6 +537,51 @@ function renderSelectedProceduralistSummary() {
   });
 }
 
+function renderPreferenceCards() {
+  const cards = preferenceCardsForSetup(caseSetupState);
+  const selectedIds = new Set(caseSetupState.preferenceCardIds || []);
+  preferenceCardList.replaceChildren();
+  if (!cards.length) {
+    appendInfoRow(preferenceCardList, "No matching cards", "Select a clinical profile", {
+      tone: "quiet",
+      detail: "Preference cards are matched to the selected case and team.",
+    });
+    return;
+  }
+  cards.forEach((card) => {
+    preferenceCardList.append(createPreferenceCardOption(card, selectedIds.has(card.id)));
+  });
+}
+
+function createPreferenceCardOption(card, checked) {
+  const owner = proceduralistById(card.ownerId);
+  const option = document.createElement("label");
+  option.className = "preference-card-option";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = checked;
+  checkbox.dataset.preferenceCardId = card.id;
+
+  const body = document.createElement("span");
+  const title = document.createElement("strong");
+  title.textContent = card.title;
+  const detail = document.createElement("span");
+  detail.textContent = `${owner?.displayName || "Unknown owner"}; ${card.summary}`;
+  const timing = document.createElement("span");
+  timing.className = "preference-card-timing";
+  timing.textContent = `${card.items.length} timed preferences; anchor ${card.timingAnchor}`;
+  const items = document.createElement("ul");
+  card.items.slice(0, 3).forEach((item) => {
+    const row = document.createElement("li");
+    row.textContent = `${formatPlannedMinute(item.plannedMinute)} - ${item.label}`;
+    items.append(row);
+  });
+  body.append(title, detail, timing, items);
+  option.append(checkbox, body);
+  return option;
+}
+
 function renderCaseTaskEditor() {
   caseTaskEditor.replaceChildren();
   const tasks = [...(caseSetupState.tasks || [])]
@@ -538,9 +614,22 @@ function createCaseTaskRow(task) {
   const warningRow = document.createElement("div");
   warningRow.className = "case-task-warning";
   warningRow.dataset.tone = warning ? "warn" : "quiet";
-  warningRow.textContent = warning || `${taskKindLabel(task.kind)} assigned as ${caseRoleLabel(task.caseRole)}; expected skill ${roleTypeLabel(task.requiredRoleType)}`;
+  warningRow.textContent = warning || caseTaskDetailText(task);
   row.append(warningRow);
   return row;
+}
+
+function caseTaskDetailText(task) {
+  const sourceCard = task.sourcePreferenceCardId
+    ? preferenceCardById(task.sourcePreferenceCardId)
+    : null;
+  const parts = [
+    `${taskKindLabel(task.kind)} assigned as ${caseRoleLabel(task.caseRole)}`,
+    `expected skill ${roleTypeLabel(task.requiredRoleType)}`,
+  ];
+  if (task.timingLabel) parts.push(task.timingLabel);
+  if (sourceCard) parts.push(`from ${sourceCard.title}`);
+  return parts.join("; ");
 }
 
 function createCaseTextField(task, field, labelText) {
@@ -560,7 +649,7 @@ function createCaseNumberField(task, field, labelText) {
   label.textContent = labelText;
   const inputNode = document.createElement("input");
   inputNode.type = "number";
-  inputNode.min = "0";
+  inputNode.min = "-120";
   inputNode.step = "1";
   inputNode.value = String(task[field] ?? 0);
   inputNode.dataset.taskId = task.id;
@@ -638,7 +727,7 @@ function renderSetupStatus() {
   }
   const profile = buildActiveCaseProfile(caseSetupState);
   const pending = pendingDemoMode === "synthetic" ? "; synthetic demo queued" : "";
-  setupStatus.textContent = `${profile.title}; ${profile.proceduralistLabel}; ${profile.tasks.length} editable events/tasks${pending}`;
+  setupStatus.textContent = `${profile.title}; ${profile.proceduralistLabel}; ${profile.preferenceCards.length} preference cards; ${profile.tasks.length} editable events/tasks${pending}`;
 }
 
 function openTrackingWorkspace() {
@@ -669,6 +758,7 @@ function renderActiveCaseProfile(elapsedSeconds = null) {
   caseContext.append(
     caseContextChip(activeCaseProfile.title),
     caseContextChip(activeCaseProfile.proceduralistLabel),
+    caseContextChip(`${activeCaseProfile.preferenceCards.length} preference cards`),
     caseContextChip(`${activeCaseProfile.tasks.length} planned events/tasks`),
   );
   appendInfoRow(activeCasePanel, "Case", activeCaseProfile.caseProfile?.name || "n/a", {
@@ -677,6 +767,14 @@ function renderActiveCaseProfile(elapsedSeconds = null) {
   appendInfoRow(activeCasePanel, "Proceduralists", activeCaseProfile.proceduralistLabel, {
     detail: activeCaseProfile.proceduralists.map((person) => roleTypeLabel(person.roleType)).join(", "),
   });
+  appendInfoRow(
+    activeCasePanel,
+    "Preference cards",
+    String(activeCaseProfile.preferenceCards.length),
+    {
+      detail: activeCaseProfile.preferenceCards.map((card) => card.title).join("; ") || "none selected",
+    },
+  );
   const rows = casePlanRows(elapsedSeconds).slice(0, 6);
   rows.forEach((row) => {
     appendInfoRow(activeCasePanel, row.label, row.value, {
@@ -700,12 +798,18 @@ function casePlanRows(elapsedSeconds = null) {
     const assignee = proceduralistById(task.assigneeId);
     const status = caseTaskStatus(task, elapsedMinute);
     return {
-      label: `${task.plannedMinute}m ${taskKindLabel(task.kind)}`,
+      label: `${formatPlannedMinute(task.plannedMinute)} ${taskKindLabel(task.kind)}`,
       value: `${task.label}; ${status.label}`,
       detail: `${caseRoleLabel(task.caseRole)}; ${assignee?.displayName || "unassigned room team"}`,
       tone: status.tone,
     };
   });
+}
+
+function formatPlannedMinute(plannedMinute) {
+  const minute = Number(plannedMinute);
+  if (!Number.isFinite(minute) || minute === 0) return "T+0m";
+  return minute < 0 ? `T${minute}m` : `T+${minute}m`;
 }
 
 function caseTaskStatus(task, elapsedMinute) {

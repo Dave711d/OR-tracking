@@ -4,10 +4,13 @@ import { test } from "node:test";
 import {
   CASE_SETUP_DATABASE,
   addCaseTask,
+  applyPreferenceCardsToTasks,
   assigneeSkillWarning,
   buildActiveCaseProfile,
   defaultCaseSetupState,
+  defaultPreferenceCardIds,
   locationsForHospital,
+  preferenceCardsForSetup,
   proceduralistById,
   removeCaseTask,
   roleTypeLabel,
@@ -51,8 +54,13 @@ test("default setup opens a MUH Cath Lab structural heart case with editable tas
     "Martin Ng",
     "David Dsilva",
   ]);
-  assert.equal(profile.tasks.length, 6);
+  assert.deepEqual(
+    profile.preferenceCards.map((card) => card.id),
+    ["pref-martin-ng-tavr", "pref-david-dsilva-tavr"],
+  );
+  assert.equal(profile.tasks.length, 11);
   assert.ok(profile.tasks.some((task) => task.assigneeId === "david-dsilva"));
+  assert.ok(profile.tasks.some((task) => task.id === "pref:pref-david-dsilva-tavr:david-tavr-art-line"));
   assert.equal(validateCaseSetup(state).length, 0);
 });
 
@@ -66,7 +74,36 @@ test("case changes reseed location, proceduralists, and default task plan", () =
     "Bridget Prior",
   ]);
   assert.match(profile.tasks.map((task) => task.label).join(" "), /Incision and exposure/);
+  assert.deepEqual(
+    profile.preferenceCards.map((card) => card.id),
+    ["pref-bridget-prior-cardiac", "pref-michael-vallely-cardiac"],
+  );
   assert.ok(profile.tasks.some((task) => task.assigneeId === "bridget-prior"));
+});
+
+test("workflow preference cards are matched to selected case and clinical team", () => {
+  const state = defaultCaseSetupState();
+  const cards = preferenceCardsForSetup(state);
+
+  assert.deepEqual(cards.map((card) => card.title), [
+    "Martin Ng TAVR preference card",
+    "David Dsilva TAVR anaesthetic preference card",
+  ]);
+  assert.deepEqual(defaultPreferenceCardIds(state), cards.map((card) => card.id));
+  assert.equal(cards[0].items[0].timingLabel, "8m before patient in room");
+  assert.equal(cards[1].items[0].plannedMinute, -6);
+});
+
+test("preference card task merge can remove cards and preserve edits for selected cards", () => {
+  const state = defaultCaseSetupState();
+  const davidTaskId = "pref:pref-david-dsilva-tavr:david-tavr-rapid-pacing";
+  const martinOnly = applyPreferenceCardsToTasks(state.tasks, ["pref-martin-ng-tavr"]);
+
+  assert.equal(martinOnly.some((task) => task.id === davidTaskId), false);
+
+  const edited = updateCaseTask(state.tasks, davidTaskId, { plannedMinute: 21 });
+  const retained = applyPreferenceCardsToTasks(edited, state.preferenceCardIds);
+  assert.equal(retained.find((task) => task.id === davidTaskId).plannedMinute, 21);
 });
 
 test("task editor helpers can retime, reassign, add, and remove case tasks", () => {

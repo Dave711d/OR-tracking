@@ -24,9 +24,10 @@ added behind the same metrics surface later.
 - Browser-only Vercel demo in `public/`, including live camera / browser
   stream mode, an opt-in static table fallback for low-motion room-view review,
   a required case setup screen backed by a seeded hospital/location/case/
-  proceduralist database, an editable case event/role/task plan, a video
-  workflow panel for patient-room state and key events, and bundled evaluated
-  TAVR replay artifacts from the real-footage suite
+  clinical-profile database, timed workflow preference cards, an editable case
+  event/role/task plan, a video workflow panel for patient-room state and key
+  events, and bundled evaluated TAVR replay artifacts from the real-footage
+  suite
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
 
@@ -105,12 +106,15 @@ Hospital (`MUH`), the `Cath Lab`, `OT11`, and `OT10` locations, and proceduralis
 profiles for Martin Ng (interventional cardiologist), Michael Vallely (cardiac
 surgeon), and Walid Mohabbat (vascular surgeon), plus anaesthetist profiles for
 David Dsilva and Bridget Prior. Each clinical profile carries a role type and
-skill set so the editable case plan can flag task reassignment mismatches. The
-setup screen lets the operator choose the hospital, location, case profile, and
-one or more clinical profiles, then edit planned case events, roles, assignees,
-and timings before opening the live/upload/replay demo. The active case profile
-remains visible in the tracking workspace and the planned task list updates
-against live or replay elapsed time.
+skill set so the editable case plan can flag task reassignment mismatches.
+Selected profiles expose traditional OR preference-card style workflow
+preferences, but each preference item also has a timing offset such as `T-6m`
+or `T+24m`. The setup screen lets the operator choose the hospital, location,
+case profile, and one or more clinical profiles, select which timed preference
+cards apply, then edit planned case events, roles, assignees, and timings before
+opening the live/upload/replay demo. The active case profile remains visible in
+the tracking workspace and the planned task list updates against live or replay
+elapsed time.
 The same live/upload path now drives the video workflow layer: the browser
 surface shows whether the de-identified patient/case is out of room, entering,
 in room, on table, held while the room camera is unavailable, or leaving, plus
