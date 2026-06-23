@@ -103,13 +103,14 @@ Before entering that tracking workspace, the browser surface now opens on a
 case setup screen. The seeded setup database includes Macquarie University
 Hospital (`MUH`), the `Cath Lab`, `OT11`, and `OT10` locations, and proceduralist
 profiles for Martin Ng (interventional cardiologist), Michael Vallely (cardiac
-surgeon), and Walid Mohabbat (vascular surgeon). Each proceduralist carries a
-role type and skill set so the editable case plan can flag task reassignment
-mismatches. The setup screen lets the operator choose the hospital, location,
-case profile, and one or more proceduralists, then edit planned case events,
-roles, assignees, and timings before opening the live/upload/replay demo. The
-active case profile remains visible in the tracking workspace and the planned
-task list updates against live or replay elapsed time.
+surgeon), and Walid Mohabbat (vascular surgeon), plus anaesthetist profiles for
+David Dsilva and Bridget Prior. Each clinical profile carries a role type and
+skill set so the editable case plan can flag task reassignment mismatches. The
+setup screen lets the operator choose the hospital, location, case profile, and
+one or more clinical profiles, then edit planned case events, roles, assignees,
+and timings before opening the live/upload/replay demo. The active case profile
+remains visible in the tracking workspace and the planned task list updates
+against live or replay elapsed time.
 The same live/upload path now drives the video workflow layer: the browser
 surface shows whether the de-identified patient/case is out of room, entering,
 in room, on table, held while the room camera is unavailable, or leaving, plus

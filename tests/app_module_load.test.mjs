@@ -121,8 +121,8 @@ test("static app module loads with its replay helpers", async () => {
     assert.equal(elements.get("#hospitalSelect").children.length, 1);
     assert.equal(elements.get("#locationSelect").children.length, 3);
     assert.equal(elements.get("#caseSelect").children.length, 3);
-    assert.equal(elements.get("#proceduralistChecklist").children.length, 3);
-    assert.equal(elements.get("#caseTaskEditor").children.length, 5);
+    assert.equal(elements.get("#proceduralistChecklist").children.length, 5);
+    assert.equal(elements.get("#caseTaskEditor").children.length, 6);
     assert.equal(elements.get("#initialStage").children.length, 8);
     assert.equal(elements.get("#evaluationDemoSelect").children.length, 6);
   } finally {

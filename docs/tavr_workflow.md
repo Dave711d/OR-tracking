@@ -61,15 +61,16 @@ opened. The setup database is currently seeded with:
 - Locations: `Cath Lab`, `OT11`, and `OT10`
 - Proceduralists: Martin Ng (`interventional_cardiologist`), Michael Vallely
   (`cardiac_surgeon`), and Walid Mohabbat (`vascular_surgeon`)
+- Anaesthetists: David Dsilva (`anaesthesia`) and Bridget Prior (`anaesthesia`)
 
-Each proceduralist profile stores a role type and skill set. Case profiles seed
-a default room/location, default proceduralist roster, and editable event/role/
-task plan. The operator can select one or more proceduralists, edit event names,
-change case roles, reassign tasks to another selected proceduralist, change
-planned timing, add tasks, or delete tasks before opening the tracking
-workspace. Reassignments that do not match the task's expected role type are
-flagged inline so the prototype can distinguish deliberate coverage changes
-from skill-set mismatches.
+Each clinical profile stores a role type and skill set. Case profiles seed a
+default room/location, default clinical roster, and editable event/role/task
+plan. The operator can select one or more clinical profiles, edit event names,
+change case roles, reassign tasks to another selected clinician, change planned
+timing, add tasks, or delete tasks before opening the tracking workspace.
+Reassignments that do not match the task's expected role type are flagged inline
+so the prototype can distinguish deliberate coverage changes from skill-set
+mismatches.
 
 Once the workspace is opened, the active case summary remains visible beside
 the live/upload/replay panels. Planned task rows are compared with live or

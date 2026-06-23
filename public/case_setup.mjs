@@ -89,6 +89,22 @@ export const CASE_SETUP_DATABASE = {
       defaultCaseRoles: ["case_lead", "primary_operator", "access_operator"],
     },
     {
+      id: "david-dsilva",
+      displayName: "David Dsilva",
+      roleType: "anaesthesia",
+      specialty: "Anaesthetist",
+      skillSets: ["Anaesthesia", "Haemodynamic management", "Airway and line management"],
+      defaultCaseRoles: ["anaesthetist"],
+    },
+    {
+      id: "bridget-prior",
+      displayName: "Bridget Prior",
+      roleType: "anaesthesia",
+      specialty: "Anaesthetist",
+      skillSets: ["Anaesthesia", "Perioperative monitoring", "Airway and line management"],
+      defaultCaseRoles: ["anaesthetist"],
+    },
+    {
       id: "michael-vallely",
       displayName: "Michael Vallely",
       roleType: "cardiac_surgeon",
@@ -110,8 +126,8 @@ export const CASE_SETUP_DATABASE = {
       id: "tavr-structural-heart",
       name: "TAVR / structural heart",
       defaultLocationId: "muh-cath-lab",
-      defaultProceduralistIds: ["martin-ng"],
-      expectedRoleTypes: ["interventional_cardiologist"],
+      defaultProceduralistIds: ["martin-ng", "david-dsilva"],
+      expectedRoleTypes: ["interventional_cardiologist", "anaesthesia"],
       tasks: [
         {
           id: "tavr-brief",
@@ -121,6 +137,15 @@ export const CASE_SETUP_DATABASE = {
           requiredRoleType: "interventional_cardiologist",
           assigneeId: "martin-ng",
           plannedMinute: 0,
+        },
+        {
+          id: "tavr-anaesthetic-ready",
+          kind: "task",
+          label: "Anaesthetic readiness and monitoring",
+          caseRole: "anaesthetist",
+          requiredRoleType: "anaesthesia",
+          assigneeId: "david-dsilva",
+          plannedMinute: 3,
         },
         {
           id: "tavr-patient-in",
@@ -164,8 +189,8 @@ export const CASE_SETUP_DATABASE = {
       id: "cardiac-surgery",
       name: "Cardiac surgery / valve support",
       defaultLocationId: "muh-ot11",
-      defaultProceduralistIds: ["michael-vallely"],
-      expectedRoleTypes: ["cardiac_surgeon"],
+      defaultProceduralistIds: ["michael-vallely", "bridget-prior"],
+      expectedRoleTypes: ["cardiac_surgeon", "anaesthesia"],
       tasks: [
         {
           id: "cardiac-brief",
@@ -175,6 +200,15 @@ export const CASE_SETUP_DATABASE = {
           requiredRoleType: "cardiac_surgeon",
           assigneeId: "michael-vallely",
           plannedMinute: 0,
+        },
+        {
+          id: "cardiac-anaesthesia",
+          kind: "task",
+          label: "Anaesthesia induction and line readiness",
+          caseRole: "anaesthetist",
+          requiredRoleType: "anaesthesia",
+          assigneeId: "bridget-prior",
+          plannedMinute: 4,
         },
         {
           id: "cardiac-patient-in",
@@ -218,8 +252,8 @@ export const CASE_SETUP_DATABASE = {
       id: "vascular-endovascular",
       name: "Vascular / endovascular repair",
       defaultLocationId: "muh-ot10",
-      defaultProceduralistIds: ["walid-mohabbat"],
-      expectedRoleTypes: ["vascular_surgeon"],
+      defaultProceduralistIds: ["walid-mohabbat", "david-dsilva"],
+      expectedRoleTypes: ["vascular_surgeon", "anaesthesia"],
       tasks: [
         {
           id: "vascular-brief",
@@ -229,6 +263,15 @@ export const CASE_SETUP_DATABASE = {
           requiredRoleType: "vascular_surgeon",
           assigneeId: "walid-mohabbat",
           plannedMinute: 0,
+        },
+        {
+          id: "vascular-anaesthesia",
+          kind: "task",
+          label: "Anaesthetic monitoring and access support",
+          caseRole: "anaesthetist",
+          requiredRoleType: "anaesthesia",
+          assigneeId: "david-dsilva",
+          plannedMinute: 4,
         },
         {
           id: "vascular-patient-in",

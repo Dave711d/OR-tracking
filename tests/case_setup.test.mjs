@@ -32,6 +32,8 @@ test("case setup database seeds MUH rooms and proceduralist role types", () => {
     ]),
     [
       ["Martin Ng", "Interventional cardiologist"],
+      ["David Dsilva", "Anaesthesia"],
+      ["Bridget Prior", "Anaesthesia"],
       ["Michael Vallely", "Cardiac surgeon"],
       ["Walid Mohabbat", "Vascular surgeon"],
     ],
@@ -45,8 +47,12 @@ test("default setup opens a MUH Cath Lab structural heart case with editable tas
   assert.equal(profile.hospital.code, "MUH");
   assert.equal(profile.location.name, "Cath Lab");
   assert.equal(profile.caseProfile.name, "TAVR / structural heart");
-  assert.deepEqual(profile.proceduralists.map((person) => person.displayName), ["Martin Ng"]);
-  assert.equal(profile.tasks.length, 5);
+  assert.deepEqual(profile.proceduralists.map((person) => person.displayName), [
+    "Martin Ng",
+    "David Dsilva",
+  ]);
+  assert.equal(profile.tasks.length, 6);
+  assert.ok(profile.tasks.some((task) => task.assigneeId === "david-dsilva"));
   assert.equal(validateCaseSetup(state).length, 0);
 });
 
@@ -55,8 +61,12 @@ test("case changes reseed location, proceduralists, and default task plan", () =
   const profile = buildActiveCaseProfile(cardiac);
 
   assert.equal(profile.location.name, "OT11");
-  assert.deepEqual(profile.proceduralists.map((person) => person.displayName), ["Michael Vallely"]);
+  assert.deepEqual(profile.proceduralists.map((person) => person.displayName), [
+    "Michael Vallely",
+    "Bridget Prior",
+  ]);
   assert.match(profile.tasks.map((task) => task.label).join(" "), /Incision and exposure/);
+  assert.ok(profile.tasks.some((task) => task.assigneeId === "bridget-prior"));
 });
 
 test("task editor helpers can retime, reassign, add, and remove case tasks", () => {
