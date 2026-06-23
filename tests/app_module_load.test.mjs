@@ -111,9 +111,18 @@ test("static app module loads with its replay helpers", async () => {
       new URL("../public/replay_view.mjs", import.meta.url),
       path.join(tempDir, "replay_view.mjs"),
     );
+    await copyFile(
+      new URL("../public/case_setup.mjs", import.meta.url),
+      path.join(tempDir, "case_setup.mjs"),
+    );
 
     await import(pathToFileURL(path.join(tempDir, "app.mjs")).href);
 
+    assert.equal(elements.get("#hospitalSelect").children.length, 1);
+    assert.equal(elements.get("#locationSelect").children.length, 3);
+    assert.equal(elements.get("#caseSelect").children.length, 3);
+    assert.equal(elements.get("#proceduralistChecklist").children.length, 3);
+    assert.equal(elements.get("#caseTaskEditor").children.length, 5);
     assert.equal(elements.get("#initialStage").children.length, 8);
     assert.equal(elements.get("#evaluationDemoSelect").children.length, 6);
   } finally {

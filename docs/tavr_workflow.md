@@ -52,6 +52,30 @@ observed, and historical table-side IDs in the current browser session, plus an
 `Operator packet` panel for the current stage, evidence, handoff status, active
 table IDs, next stage, and quality flags.
 
+## Case Setup Surface
+
+The browser demo now starts with a case setup screen before any video demo is
+opened. The setup database is currently seeded with:
+
+- Hospital: `MUH` / Macquarie University Hospital
+- Locations: `Cath Lab`, `OT11`, and `OT10`
+- Proceduralists: Martin Ng (`interventional_cardiologist`), Michael Vallely
+  (`cardiac_surgeon`), and Walid Mohabbat (`vascular_surgeon`)
+
+Each proceduralist profile stores a role type and skill set. Case profiles seed
+a default room/location, default proceduralist roster, and editable event/role/
+task plan. The operator can select one or more proceduralists, edit event names,
+change case roles, reassign tasks to another selected proceduralist, change
+planned timing, add tasks, or delete tasks before opening the tracking
+workspace. Reassignments that do not match the task's expected role type are
+flagged inline so the prototype can distinguish deliberate coverage changes
+from skill-set mismatches.
+
+Once the workspace is opened, the active case summary remains visible beside
+the live/upload/replay panels. Planned task rows are compared with live or
+replay elapsed time so the setup plan becomes part of the workflow context
+rather than a detached form.
+
 ## Visual Signals
 
 The current model uses deterministic room-video heuristics:

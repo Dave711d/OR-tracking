@@ -7,17 +7,68 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <section id="caseSetup" class="case-setup" aria-label="Case setup">
+      <div class="case-setup-shell">
+        <header class="case-setup-header">
+          <div>
+            <h1>OR Case Setup</h1>
+            <p>Select the site, room, case profile, and proceduralist team before opening the tracking workspace.</p>
+          </div>
+          <button id="startCaseButton" type="button">Open tracking workspace</button>
+        </header>
+
+        <div class="setup-grid">
+          <section class="setup-panel setup-panel-primary">
+            <h2>Case profile</h2>
+            <div class="setup-field-grid">
+              <label>
+                Hospital
+                <select id="hospitalSelect"></select>
+              </label>
+              <label>
+                Location
+                <select id="locationSelect"></select>
+              </label>
+              <label>
+                Case
+                <select id="caseSelect"></select>
+              </label>
+            </div>
+            <div id="setupStatus" class="setup-status" aria-live="polite">Setup ready</div>
+          </section>
+
+          <section class="setup-panel">
+            <h2>Proceduralist profiles</h2>
+            <div id="proceduralistChecklist" class="proceduralist-checklist"></div>
+            <div id="selectedProceduralistSummary" class="setup-summary-list"></div>
+          </section>
+
+          <section class="setup-panel setup-panel-wide">
+            <div class="setup-panel-title">
+              <h2>Case events, roles, and tasks</h2>
+              <button id="addCaseTaskButton" type="button">Add task</button>
+            </div>
+            <div id="caseTaskEditor" class="case-task-editor" aria-label="Case task editor"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <main id="appShell" class="app-shell" hidden>
       <section class="workspace">
         <header class="topbar">
           <div>
             <h1>TAVR OR Tracking Prototype</h1>
             <p>Live and replay TAVR stage, table-side, and role/zone review.</p>
+            <div id="caseContext" class="case-context" aria-label="Active case context"></div>
           </div>
-          <label class="upload-button">
-            <input id="videoInput" type="file" accept="video/*" />
-            <span>Upload video</span>
-          </label>
+          <div class="topbar-actions">
+            <button id="editCaseSetupButton" type="button">Case setup</button>
+            <label class="upload-button">
+              <input id="videoInput" type="file" accept="video/*" />
+              <span>Upload video</span>
+            </label>
+          </div>
         </header>
 
         <section class="video-stage">
@@ -82,6 +133,12 @@
         <div class="metric">
           <span>At table now</span>
           <strong id="tableSideMetric">0</strong>
+        </div>
+        <div class="count-group">
+          <h2>Case setup</h2>
+          <div id="activeCasePanel" class="active-case-panel" aria-label="Active case setup">
+            <div><span>No active case</span></div>
+          </div>
         </div>
         <div class="count-group">
           <h2>Current operator answer</h2>

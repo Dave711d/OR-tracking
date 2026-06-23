@@ -23,8 +23,10 @@ added behind the same metrics surface later.
 - Manifest-driven multi-clip evaluator in `evaluate_tavr_suite.py`
 - Browser-only Vercel demo in `public/`, including live camera / browser
   stream mode, an opt-in static table fallback for low-motion room-view review,
-  a video workflow panel for patient-room state and key events, and bundled
-  evaluated TAVR replay artifacts from the real-footage suite
+  a required case setup screen backed by a seeded hospital/location/case/
+  proceduralist database, an editable case event/role/task plan, a video
+  workflow panel for patient-room state and key events, and bundled evaluated
+  TAVR replay artifacts from the real-footage suite
 - Tests and GitHub Actions CI
 - Deployment notes for Streamlit Cloud, Hugging Face Spaces, and Vercel
 
@@ -97,6 +99,17 @@ person IDs across short raw-ID gaps, crossings, and held non-room views, so the
 live "who is at the table" panels track people rather than per-frame motion
 cluster labels. It can analyze uploaded videos, a local camera/capture-card
 feed, or a browser-playable stream URL.
+Before entering that tracking workspace, the browser surface now opens on a
+case setup screen. The seeded setup database includes Macquarie University
+Hospital (`MUH`), the `Cath Lab`, `OT11`, and `OT10` locations, and proceduralist
+profiles for Martin Ng (interventional cardiologist), Michael Vallely (cardiac
+surgeon), and Walid Mohabbat (vascular surgeon). Each proceduralist carries a
+role type and skill set so the editable case plan can flag task reassignment
+mismatches. The setup screen lets the operator choose the hospital, location,
+case profile, and one or more proceduralists, then edit planned case events,
+roles, assignees, and timings before opening the live/upload/replay demo. The
+active case profile remains visible in the tracking workspace and the planned
+task list updates against live or replay elapsed time.
 The same live/upload path now drives the video workflow layer: the browser
 surface shows whether the de-identified patient/case is out of room, entering,
 in room, on table, held while the room camera is unavailable, or leaving, plus

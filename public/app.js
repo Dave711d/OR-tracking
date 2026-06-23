@@ -23,7 +23,38 @@ import {
   tableSourceLabel,
   tableSnapshotSummary,
 } from "./replay_view.mjs";
+import {
+  CASE_ROLE_OPTIONS,
+  CASE_SETUP_DATABASE,
+  TASK_KIND_OPTIONS,
+  addCaseTask,
+  assigneeSkillWarning,
+  buildActiveCaseProfile,
+  caseRoleLabel,
+  defaultCaseSetupState,
+  locationsForHospital,
+  normalizeCaseTask,
+  proceduralistById,
+  removeCaseTask,
+  roleTypeLabel,
+  selectedProceduralists,
+  stateForCase,
+  taskKindLabel,
+  updateCaseTask,
+  validateCaseSetup,
+} from "./case_setup.mjs";
 
+const caseSetup = document.querySelector("#caseSetup");
+const appShell = document.querySelector("#appShell");
+const hospitalSelect = document.querySelector("#hospitalSelect");
+const locationSelect = document.querySelector("#locationSelect");
+const caseSelect = document.querySelector("#caseSelect");
+const proceduralistChecklist = document.querySelector("#proceduralistChecklist");
+const selectedProceduralistSummary = document.querySelector("#selectedProceduralistSummary");
+const caseTaskEditor = document.querySelector("#caseTaskEditor");
+const addCaseTaskButton = document.querySelector("#addCaseTaskButton");
+const startCaseButton = document.querySelector("#startCaseButton");
+const setupStatus = document.querySelector("#setupStatus");
 const input = document.querySelector("#videoInput");
 const video = document.querySelector("#sourceVideo");
 const overlay = document.querySelector("#overlayCanvas");
@@ -44,9 +75,12 @@ const staticFallbackInput = document.querySelector("#staticFallback");
 const initialStageInput = document.querySelector("#initialStage");
 const sensitivityInput = document.querySelector("#sensitivity");
 const cellSizeInput = document.querySelector("#cellSize");
+const caseContext = document.querySelector("#caseContext");
+const editCaseSetupButton = document.querySelector("#editCaseSetupButton");
 const stageMetric = document.querySelector("#stageMetric");
 const countMetric = document.querySelector("#countMetric");
 const tableSideMetric = document.querySelector("#tableSideMetric");
+const activeCasePanel = document.querySelector("#activeCasePanel");
 const operatorAnswer = document.querySelector("#operatorAnswer");
 const videoWorkflow = document.querySelector("#videoWorkflow");
 const workflowEventList = document.querySelector("#workflowEventList");
@@ -286,10 +320,94 @@ let liveStartedAt = 0;
 let liveMediaStream = null;
 let activeObjectUrl = null;
 let frameReadBlocked = false;
+let caseSetupState = defaultCaseSetupState();
+let activeCaseProfile = null;
+let pendingDemoMode = null;
 
+populateCaseSetupControls();
 populateInitialStageOptions();
 populateEvaluationDemoOptions();
+renderCaseSetup();
+renderActiveCaseProfile();
 scheduleDemoAutostart();
+
+hospitalSelect.addEventListener("change", () => {
+  caseSetupState = {
+    ...caseSetupState,
+    hospitalId: hospitalSelect.value,
+  };
+  const locations = locationsForHospital(caseSetupState.hospitalId);
+  caseSetupState.locationId = locations.some((location) => location.id === caseSetupState.locationId)
+    ? caseSetupState.locationId
+    : (locations[0]?.id || "");
+  renderCaseSetup();
+});
+
+locationSelect.addEventListener("change", () => {
+  caseSetupState = {
+    ...caseSetupState,
+    locationId: locationSelect.value,
+  };
+  renderCaseSetup();
+});
+
+caseSelect.addEventListener("change", () => {
+  caseSetupState = stateForCase(caseSelect.value, caseSetupState);
+  renderCaseSetup();
+});
+
+proceduralistChecklist.addEventListener("change", (event) => {
+  const target = event.target;
+  if (!target?.matches?.("input[type='checkbox'][data-proceduralist-id]")) return;
+  const proceduralistId = target.dataset.proceduralistId;
+  const selectedIds = new Set(caseSetupState.proceduralistIds);
+  if (target.checked) selectedIds.add(proceduralistId);
+  else selectedIds.delete(proceduralistId);
+  caseSetupState = {
+    ...caseSetupState,
+    proceduralistIds: [...selectedIds],
+    tasks: caseSetupState.tasks.map((task) => (
+      task.assigneeId && !selectedIds.has(task.assigneeId)
+        ? { ...task, assigneeId: "" }
+        : task
+    )),
+  };
+  renderCaseSetup();
+});
+
+caseTaskEditor.addEventListener("input", handleCaseTaskEdit);
+caseTaskEditor.addEventListener("change", handleCaseTaskEdit);
+
+caseTaskEditor.addEventListener("click", (event) => {
+  const button = event.target?.closest?.("[data-delete-task-id]");
+  if (!button) return;
+  caseSetupState = {
+    ...caseSetupState,
+    tasks: removeCaseTask(caseSetupState.tasks, button.dataset.deleteTaskId),
+  };
+  renderCaseSetup();
+});
+
+addCaseTaskButton.addEventListener("click", () => {
+  const firstProceduralistId = caseSetupState.proceduralistIds[0] || "";
+  caseSetupState = {
+    ...caseSetupState,
+    tasks: addCaseTask(caseSetupState.tasks, {
+      assigneeId: firstProceduralistId,
+    }),
+  };
+  renderCaseSetup();
+});
+
+startCaseButton.addEventListener("click", openTrackingWorkspace);
+
+editCaseSetupButton.addEventListener("click", () => {
+  cancelAnimationFrame(rafId);
+  if (!video.paused) video.pause();
+  appShell.hidden = true;
+  caseSetup.hidden = false;
+  renderCaseSetup();
+});
 
 input.addEventListener("change", () => {
   const file = input.files?.[0];
@@ -308,6 +426,313 @@ input.addEventListener("change", () => {
   resetMetrics();
   setLiveStatus("Uploaded file ready");
 });
+
+function populateCaseSetupControls() {
+  setSelectOptions(
+    hospitalSelect,
+    CASE_SETUP_DATABASE.hospitals.map((hospital) => ({
+      value: hospital.id,
+      label: `${hospital.code} - ${hospital.name}`,
+    })),
+  );
+  setSelectOptions(
+    caseSelect,
+    CASE_SETUP_DATABASE.cases.map((caseProfile) => ({
+      value: caseProfile.id,
+      label: caseProfile.name,
+    })),
+  );
+}
+
+function renderCaseSetup() {
+  renderLocationOptions();
+  hospitalSelect.value = caseSetupState.hospitalId;
+  locationSelect.value = caseSetupState.locationId;
+  caseSelect.value = caseSetupState.caseId;
+  renderProceduralistChecklist();
+  renderSelectedProceduralistSummary();
+  renderCaseTaskEditor();
+  renderSetupStatus();
+}
+
+function renderLocationOptions() {
+  const locations = locationsForHospital(caseSetupState.hospitalId);
+  setSelectOptions(
+    locationSelect,
+    locations.map((location) => ({
+      value: location.id,
+      label: `${location.name} - ${location.capabilityTags.join(", ")}`,
+    })),
+  );
+}
+
+function renderProceduralistChecklist() {
+  const selectedIds = new Set(caseSetupState.proceduralistIds);
+  proceduralistChecklist.replaceChildren();
+  CASE_SETUP_DATABASE.proceduralists.forEach((person) => {
+    const option = document.createElement("label");
+    option.className = "proceduralist-option";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = selectedIds.has(person.id);
+    checkbox.dataset.proceduralistId = person.id;
+
+    const body = document.createElement("span");
+    const name = document.createElement("strong");
+    name.textContent = person.displayName;
+    const detail = document.createElement("span");
+    detail.textContent = `${person.specialty}; ${roleTypeLabel(person.roleType)}; ${person.skillSets.join(", ")}`;
+    body.append(name, detail);
+    option.append(checkbox, body);
+    proceduralistChecklist.append(option);
+  });
+}
+
+function renderSelectedProceduralistSummary() {
+  const people = selectedProceduralists(caseSetupState);
+  selectedProceduralistSummary.replaceChildren();
+  if (!people.length) {
+    appendInfoRow(selectedProceduralistSummary, "Selected team", "none", { tone: "warn" });
+    return;
+  }
+  people.forEach((person) => {
+    appendInfoRow(
+      selectedProceduralistSummary,
+      person.displayName,
+      roleTypeLabel(person.roleType),
+      { detail: person.skillSets.join(", ") },
+    );
+  });
+}
+
+function renderCaseTaskEditor() {
+  caseTaskEditor.replaceChildren();
+  const tasks = [...(caseSetupState.tasks || [])]
+    .map(normalizeCaseTask)
+    .sort((a, b) => a.plannedMinute - b.plannedMinute || a.label.localeCompare(b.label));
+  if (!tasks.length) {
+    appendInfoRow(caseTaskEditor, "No tasks", "Add task", { tone: "warn" });
+    return;
+  }
+  tasks.forEach((task) => {
+    caseTaskEditor.append(createCaseTaskRow(task));
+  });
+}
+
+function createCaseTaskRow(task) {
+  const row = document.createElement("div");
+  row.className = "case-task-row";
+  row.dataset.taskId = task.id;
+  row.append(
+    createCaseTextField(task, "label", "Event / task"),
+    createCaseSelectField(task, "kind", "Type", TASK_KIND_OPTIONS),
+    createCaseSelectField(task, "caseRole", "Role", CASE_ROLE_OPTIONS),
+    createAssigneeField(task),
+    createCaseNumberField(task, "plannedMinute", "Minute"),
+    createDeleteTaskButton(task),
+  );
+
+  const assignee = proceduralistById(task.assigneeId);
+  const warning = assigneeSkillWarning(task, assignee);
+  const warningRow = document.createElement("div");
+  warningRow.className = "case-task-warning";
+  warningRow.dataset.tone = warning ? "warn" : "quiet";
+  warningRow.textContent = warning || `${taskKindLabel(task.kind)} assigned as ${caseRoleLabel(task.caseRole)}; expected skill ${roleTypeLabel(task.requiredRoleType)}`;
+  row.append(warningRow);
+  return row;
+}
+
+function createCaseTextField(task, field, labelText) {
+  const label = document.createElement("label");
+  label.textContent = labelText;
+  const inputNode = document.createElement("input");
+  inputNode.type = "text";
+  inputNode.value = task[field] || "";
+  inputNode.dataset.taskId = task.id;
+  inputNode.dataset.field = field;
+  label.append(inputNode);
+  return label;
+}
+
+function createCaseNumberField(task, field, labelText) {
+  const label = document.createElement("label");
+  label.textContent = labelText;
+  const inputNode = document.createElement("input");
+  inputNode.type = "number";
+  inputNode.min = "0";
+  inputNode.step = "1";
+  inputNode.value = String(task[field] ?? 0);
+  inputNode.dataset.taskId = task.id;
+  inputNode.dataset.field = field;
+  label.append(inputNode);
+  return label;
+}
+
+function createCaseSelectField(task, field, labelText, options) {
+  const label = document.createElement("label");
+  label.textContent = labelText;
+  const select = document.createElement("select");
+  select.dataset.taskId = task.id;
+  select.dataset.field = field;
+  setSelectOptions(
+    select,
+    options.map((option) => ({ value: option.id, label: option.label })),
+  );
+  select.value = task[field] || "";
+  label.append(select);
+  return label;
+}
+
+function createAssigneeField(task) {
+  const label = document.createElement("label");
+  label.textContent = "Assignee";
+  const select = document.createElement("select");
+  select.dataset.taskId = task.id;
+  select.dataset.field = "assigneeId";
+  const people = selectedProceduralists(caseSetupState);
+  setSelectOptions(select, [
+    { value: "", label: "Unassigned / room team" },
+    ...people.map((person) => ({
+      value: person.id,
+      label: `${person.displayName} - ${roleTypeLabel(person.roleType)}`,
+    })),
+  ]);
+  select.value = people.some((person) => person.id === task.assigneeId) ? task.assigneeId : "";
+  label.append(select);
+  return label;
+}
+
+function createDeleteTaskButton(task) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "case-task-delete";
+  button.dataset.deleteTaskId = task.id;
+  button.textContent = "Delete";
+  return button;
+}
+
+function handleCaseTaskEdit(event) {
+  const target = event.target;
+  const taskId = target?.dataset?.taskId;
+  const field = target?.dataset?.field;
+  if (!taskId || !field) return;
+  const value = field === "plannedMinute" ? Number(target.value) : target.value;
+  caseSetupState = {
+    ...caseSetupState,
+    tasks: updateCaseTask(caseSetupState.tasks, taskId, { [field]: value }),
+  };
+  if (event.type === "input") {
+    renderSetupStatus();
+    return;
+  }
+  renderCaseTaskEditor();
+}
+
+function renderSetupStatus() {
+  const issues = validateCaseSetup(caseSetupState);
+  setupStatus.dataset.tone = issues.length ? "warn" : "current";
+  if (issues.length) {
+    setupStatus.textContent = issues.join("; ");
+    return;
+  }
+  const profile = buildActiveCaseProfile(caseSetupState);
+  const pending = pendingDemoMode === "synthetic" ? "; synthetic demo queued" : "";
+  setupStatus.textContent = `${profile.title}; ${profile.proceduralistLabel}; ${profile.tasks.length} editable events/tasks${pending}`;
+}
+
+function openTrackingWorkspace() {
+  const issues = validateCaseSetup(caseSetupState);
+  if (issues.length) {
+    setupStatus.dataset.tone = "warn";
+    setupStatus.textContent = issues.join("; ");
+    return;
+  }
+  activeCaseProfile = buildActiveCaseProfile(caseSetupState);
+  caseSetup.hidden = true;
+  appShell.hidden = false;
+  resetMetrics();
+  renderActiveCaseProfile();
+  syncEmptyStateToVideoSource();
+  resizeOverlay();
+  runPendingDemoAutostart();
+}
+
+function renderActiveCaseProfile(elapsedSeconds = null) {
+  caseContext.replaceChildren();
+  activeCasePanel.replaceChildren();
+  if (!activeCaseProfile) {
+    caseContext.append(caseContextChip("No active case"));
+    appendInfoRow(activeCasePanel, "No active case", "Run setup first", { tone: "quiet" });
+    return;
+  }
+  caseContext.append(
+    caseContextChip(activeCaseProfile.title),
+    caseContextChip(activeCaseProfile.proceduralistLabel),
+    caseContextChip(`${activeCaseProfile.tasks.length} planned events/tasks`),
+  );
+  appendInfoRow(activeCasePanel, "Case", activeCaseProfile.caseProfile?.name || "n/a", {
+    detail: `${activeCaseProfile.hospital?.code || "Hospital"} ${activeCaseProfile.location?.name || "location n/a"}`,
+  });
+  appendInfoRow(activeCasePanel, "Proceduralists", activeCaseProfile.proceduralistLabel, {
+    detail: activeCaseProfile.proceduralists.map((person) => roleTypeLabel(person.roleType)).join(", "),
+  });
+  const rows = casePlanRows(elapsedSeconds).slice(0, 6);
+  rows.forEach((row) => {
+    appendInfoRow(activeCasePanel, row.label, row.value, {
+      detail: row.detail,
+      tone: row.tone,
+    });
+  });
+  appendOverflowRow(activeCasePanel, activeCaseProfile.tasks.length, rows.length, "planned tasks");
+}
+
+function caseContextChip(label) {
+  const chip = document.createElement("span");
+  chip.textContent = label;
+  return chip;
+}
+
+function casePlanRows(elapsedSeconds = null) {
+  if (!activeCaseProfile) return [];
+  const elapsedMinute = elapsedSeconds === null ? null : elapsedSeconds / 60;
+  return activeCaseProfile.tasks.map((task) => {
+    const assignee = proceduralistById(task.assigneeId);
+    const status = caseTaskStatus(task, elapsedMinute);
+    return {
+      label: `${task.plannedMinute}m ${taskKindLabel(task.kind)}`,
+      value: `${task.label}; ${status.label}`,
+      detail: `${caseRoleLabel(task.caseRole)}; ${assignee?.displayName || "unassigned room team"}`,
+      tone: status.tone,
+    };
+  });
+}
+
+function caseTaskStatus(task, elapsedMinute) {
+  if (elapsedMinute === null || elapsedMinute === undefined) return { label: "planned", tone: "quiet" };
+  if (elapsedMinute + 0.5 < task.plannedMinute) return { label: "upcoming", tone: "quiet" };
+  if (Math.abs(elapsedMinute - task.plannedMinute) <= 0.5) return { label: "current window", tone: "current" };
+  return { label: "elapsed", tone: "current" };
+}
+
+function runPendingDemoAutostart() {
+  if (!pendingDemoMode) return;
+  const demoMode = pendingDemoMode;
+  pendingDemoMode = null;
+  if (demoMode === "synthetic") {
+    syntheticButton.click();
+  }
+}
+
+function setSelectOptions(select, options) {
+  select.replaceChildren();
+  options.forEach((item) => {
+    const option = document.createElement("option");
+    option.value = item.value;
+    option.textContent = item.label;
+    select.append(option);
+  });
+}
 
 playButton.addEventListener("click", () => {
   if (!hasVideoSource() || video.hidden) return;
@@ -439,6 +864,7 @@ function renderEvaluationReplaySnapshot(demo, snapshotIndex = null) {
   tableSideMetric.textContent = String(tableCount);
   activityMetric.textContent = "replay";
   elapsedMetric.textContent = replayClockLabel(status);
+  renderActiveCaseProfile(replayElapsedSeconds(status));
 
   updateEvaluationScrubberLabel(demo, selectedIndex, status);
   renderReplayVideoWorkflow(status, demo, packet);
@@ -496,8 +922,13 @@ function scheduleDemoAutostart() {
   if (!demoMode) return;
   const schedule = window.setTimeout || globalThis.setTimeout;
   schedule(() => {
-    if (demoMode === "synthetic") {
+    if (activeCaseProfile && demoMode === "synthetic") {
       syntheticButton.click();
+      return;
+    }
+    if (demoMode === "synthetic") {
+      pendingDemoMode = "synthetic";
+      renderSetupStatus();
     }
   }, 0);
 }
@@ -664,6 +1095,12 @@ function sourceElapsedSeconds() {
   if (liveMode) return Math.max(0, (performance.now() - liveStartedAt) / 1000);
   const currentTime = Number(video.currentTime);
   return Number.isFinite(currentTime) ? currentTime : 0;
+}
+
+function replayElapsedSeconds(status = {}) {
+  const value = firstDefined(status.clip_timestamp_s, status.clip_end_s, status.timestamp_s);
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
 }
 
 function setLiveStatus(message, isWarning = false) {
@@ -1303,6 +1740,7 @@ function updateMetrics(boxes, activity, elapsedSeconds, stageInput = "Uploaded r
   tableSideMetric.textContent = String(currentTable.count);
   activityMetric.textContent = String(activity);
   elapsedMetric.textContent = `${elapsedSeconds.toFixed(1)}s`;
+  renderActiveCaseProfile(elapsedSeconds);
   updateStageRoster(stage, summary.tableRoster, elapsedSeconds);
   updateProcedureMilestones(stage, summary.tableRoster, summary.tableSide, elapsedSeconds);
   const evidenceLabel = stage.stageHoldReason
@@ -3155,14 +3593,17 @@ function appendInfoRow(container, labelText, valueText, options = {}) {
   const row = document.createElement("div");
   const label = document.createElement("span");
   const value = document.createElement("b");
+  const detail = document.createElement("em");
   if (options.tone) row.dataset.tone = options.tone;
   if (options.handoff) row.dataset.handoff = String(options.handoff).replaceAll("_", "-");
   if (options.status) row.dataset.status = String(options.status).replaceAll("_", "-");
   if (options.source) row.dataset.source = String(options.source).replaceAll("_", "-");
   label.textContent = labelText;
   value.textContent = valueText;
+  detail.textContent = options.detail || "";
   row.append(label);
   if (valueText !== "") row.append(value);
+  if (options.detail) row.append(detail);
   container.append(row);
 }
 
@@ -3306,6 +3747,7 @@ function resetMetrics(options = {}) {
   workflowState = initialWorkflowState();
   workflowEvents = [];
   resetEvaluationScrubber();
+  renderActiveCaseProfile();
   uploadedStageIndex = selectedInitialStageIndex();
   uploadedStageStartedAt = sourceElapsedSeconds();
   stageMetric.textContent = "Idle";
